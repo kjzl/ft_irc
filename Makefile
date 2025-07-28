@@ -44,7 +44,7 @@ DIRS = $(addprefix $(OBJ_DIR)/, .)
 INCLUDES := -I$(HDRS_DIR)
 
 SRCS := $(addprefix $(SRCS_DIR)/,\
-		server.cpp \
+		Server.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
