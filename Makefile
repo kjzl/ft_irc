@@ -41,19 +41,19 @@ HDRS_DIR	:= include
 
 DIRS = $(addprefix $(OBJ_DIR)/, .)
 
-INCLUDES := -I$(HDRS_DIR) -I$(LIBFT_DIR) -I$(MLX_DIR)/include -lpthread
-
-HDRS := socket.hpp
+INCLUDES := -I$(HDRS_DIR)
 
 SRCS := $(addprefix $(SRCS_DIR)/,\
-		main.c \
+		server.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
 
-HDRS := $(addprefix $(HDRS_DIR)/,
-		socket.hpp \
+HDRS := $(addprefix $(HDRS_DIR)/,\
+		 \
 		)
+
+.PHONY: all clean fclean re sanitize debug
 
 all: $(NAME) $(HDRS)
 
@@ -89,10 +89,3 @@ fclean: clean
 	@rm -f $(NAME)
 
 re: fclean all
-
-.PHONY: all clean fclean re sanitize asan ubsan leak debug clean_submodules
-
-all: $(LIBFT) $(LIBMLX) $(NAME)
-
-run: all
-	./$(NAME)

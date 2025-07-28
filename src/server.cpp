@@ -47,7 +47,8 @@ int main(void)
     // We'll start with enough room for 5 fds in the array,
     // we'll reallocate if necessary
     poll_size = 5;
-    poll_fds = calloc(poll_size + 1, sizeof *poll_fds);
+	// poll_fds = new struct pollfd[5];
+    poll_fds = (struct pollfd *)calloc(poll_size + 1, sizeof *poll_fds);
     if (!poll_fds) {
         return (4);
     }
@@ -193,7 +194,7 @@ void add_to_poll_fds(struct pollfd *poll_fds[], int new_fd, int *poll_count, int
     // If there is not enough room, reallocate the poll_fds array
     if (*poll_count == *poll_size) {
         *poll_size *= 2; // Double its size
-        *poll_fds = realloc(*poll_fds, sizeof(**poll_fds) * (*poll_size));
+        *poll_fds = (struct pollfd *)realloc(*poll_fds, sizeof(**poll_fds) * (*poll_size));
     }
     (*poll_fds)[*poll_count].fd = new_fd;
     (*poll_fds)[*poll_count].events = POLLIN;
