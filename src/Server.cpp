@@ -2,16 +2,16 @@
 #include "../include/Debug.hpp"
 
 // Default Constructor
-Server::Server( void )
+Server::Server( void ): port_(6667)
 {
 	debug("Default Constructor called");
 }
 
 // Parameterized Constructor
-// Server::Server( std::string value )
-// {
-// 	debug("Parameterized Constructor called");
-// }
+Server::Server( int port, std::string password ): port_(port)
+{
+	debug("Parameterized Constructor called");
+}
 
 // Destructor
 Server::~Server()
@@ -20,15 +20,15 @@ Server::~Server()
 }
 
 // Copy Constructor
-Server::Server(const Server &copy)
+Server::Server(const Server& rhs): port_(rhs.port_)
 {
-	*this = copy;
+	*this = rhs;
 }
 
 // Copy Assignment Operator
-Server& Server::operator=( const Server &assign )
+Server& Server::operator=( const Server& rhs )
 {
-	if (this != &assign)
+	if (this != &rhs)
 	{
 		//Todo
 	}
