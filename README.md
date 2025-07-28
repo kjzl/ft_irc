@@ -1,5 +1,12 @@
 # README
 
+## Requirements
+
+Executable will run like:
+$$./ircserv <port> <password>$$
+
+Let us use port 6667, as it is the [standard IRC port](https://datatracker.ietf.org/doc/html/rfc7194).
+
 ## Sources
 
 - https://ircv3.net/irc/
