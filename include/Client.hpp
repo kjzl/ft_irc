@@ -9,7 +9,7 @@ class   Client
 		bool        is_authenticated_;
 		std::string nickname_; //necessary ?? ==> or we use a map{nickname:client} in the server class directly?
 		std::string username_;
-		// ??       socket_;
+		int			socket_;
 		
 
 	public:
