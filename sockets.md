@@ -19,9 +19,13 @@ using INADDR_LOOPBACK would mean you can only connect from this very mashine it'
 	setServerSocket(socket(sa.sin_family, SOCK_STREAM, 0));
 ```
 socket works like this:
-int socket(int domain, int type, int protocol);
+$$int socket(int domain, int type, int protocol);$$
 and I am leaving 0 as the protocol, as it is [reccomended](https://www.ibm.com/docs/en/zvm/7.2.0?topic=rsf-socket) and defaults to TCP/IP assigning the default protocol for the domain.
 (it would be IPPROTO_TCP as I am using a stream socket, but it's better to leave that for TCP/IP)
+
+
+BUUUT
+that is the old way. let's go with the new, ipv6 compatible one.
 
 
 #### poll
@@ -41,3 +45,5 @@ how to check if an event happened?
 			if (((pollFds_[pollIndex].revents & POLLIN) == 1))
 ```
 the return events will be set by poll
+
+

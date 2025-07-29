@@ -1,8 +1,11 @@
 #include "../include/Server.hpp"
 #include "../include/Debug.hpp"
+#include "../include/ircUtils.hpp"
 #include <csignal>
 #include <iostream>
 #include <netinet/in.h>
+#include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <errno.h>
@@ -14,6 +17,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <sys/fcntl.h>
 
 //TODO: addPollFd clients: allways POLLIN | POLLHUP
 
@@ -21,6 +25,7 @@ void	Server::signalHandler(int signum)
 {
 	static_cast<void>(signum);
 	running = false;
+	std::cout << BLUE << "Signal received" << RESET << std::endl;
 }
 
 // Default Constructor
@@ -35,12 +40,14 @@ Server::Server(int port, std::string password): port_(port), serverSocket_(-1)
 	debug("Parameterized Constructor called");
 	signal(SIGINT, Server::signalHandler);
 	signal(SIGQUIT, Server::signalHandler);
+	serverInit();
 }
 
 // Destructor
 Server::~Server()
 {
 	debug("Destructor called");
+	serverShutdown();
 }
 
 // Copy Constructor
@@ -80,7 +87,8 @@ void	Server::setServerSocket( int serverSocketFd )
 	this->serverSocket_ = serverSocketFd;
 }
 
-void	Server::acceptConnection(int pollIndex)
+// accepts a connection from client and adds it to pollFds_
+void	Server::acceptConnection( void )
 {
 	int clientFd;
 
@@ -89,7 +97,10 @@ void	Server::acceptConnection(int pollIndex)
 		throw std::runtime_error("[Server] accept error");
 	addPollFd(clientFd, POLLIN | POLLHUP, 0);
 	debug("server accepted new connection");
-
+	std::string	clientFdString = intToStr(clientFd);
+	std::string welcomeMessage = "Welcome to this server, you are the " + clientFdString + "th connection";
+	if (-1 == send(clientFd, welcomeMessage.c_str(), welcomeMessage.size(), 0))
+		throw std::runtime_error("[Server] send error with client: " + clientFdString);
 }
 
 // this function should check if its a POLLHUP or POLLIN 
@@ -100,6 +111,9 @@ void	Server::readFromSocket(struct pollfd request)
 	//TODO:
 }
 
+//main loop to be in while running
+//checks if any fd is ready and prints waiting messages inbetween
+//if ready, checks polls through and directs them toward acceptConnection or readFromSocket
 void	Server::waitForRequests(void)
 {
 	while (running)
@@ -127,25 +141,41 @@ void	Server::waitForRequests(void)
 	std::cout << YEL << "[Server] Stopped listening for requests" << RESET << std::endl;
 }
 
+//creates the one listening socket the server has to start out with
 void	Server::createListeningSocket(void)
 {
-	struct	sockaddr_in	sa = {0};
-	sa.sin_family = AF_INET;
-	sa.sin_port = htons(getPort());
-	sa.sin_addr.s_addr = htonl(INADDR_ANY);
+	struct addrinfo	hints = {0}, *res = {0};
+	hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
+	hints.ai_socktype = SOCK_STREAM; //TCP
+	hints.ai_flags = AI_PASSIVE; //put in my ip for me
+	std::string port_str = intToStr(port_);
 
+	int err = (getaddrinfo(NULL, port_str.c_str(), &hints, &res));
+	if (err != 0)
+	{
+		freeaddrinfo(res);
+		throw std::runtime_error(std::string(gai_strerror(err)));
+	}
 	//create Socket
-	serverSocket_ = socket(sa.sin_family, SOCK_STREAM, 0);
+	serverSocket_ = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	if (serverSocket_ == -1)
+	{
+		freeaddrinfo(res);
 		throw std::runtime_error("[Server] socket error");
+	}
 	//bind socket
-	if (-1 == bind(getServerSocket(), reinterpret_cast<struct sockaddr *>(&sa), sizeof sa))
+	if (-1 == bind(getServerSocket(), res->ai_addr, res->ai_addrlen))
+	{
+		freeaddrinfo(res);
 		throw std::runtime_error("[Server] bind error");
+	}
+	freeaddrinfo(res);
 	// mark as passive socket listening to incoming connections from clients
 	if (-1 == listen(getServerSocket(), BACKLOG))
 		throw std::runtime_error("[Server] listen error");
 }
 
+// makes first listeing socket and adds it to pollFds_
 void	Server::serverInit(void)
 {
 	pollFds_.reserve(5);
@@ -154,6 +184,7 @@ void	Server::serverInit(void)
 	this->addPollFd(getServerSocket(), POLLIN, 0);
 }
 
+//cleanup
 void	Server::serverShutdown(void)
 {
 	std::cout << BRED << "==== STARTING SERVER SHUTDOWN ====" << RESET << std::endl;

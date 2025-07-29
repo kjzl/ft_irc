@@ -7,6 +7,7 @@
 
 #define	BACKLOG 10
 #define	TIMEOUT	2500 // = 2.5 seconds waiting for events
+#define	WELCOME_MESSAGE "Welcome to this server. You are the "
 
 class	Client;
 class	Channel;
@@ -32,6 +33,7 @@ class Server {
 		void		serverInit(void);
 		void	serverShutdown(void);
 		void	acceptConnection();
+		void	readFromSocket(struct pollfd request);
 		static void	signalHandler(int signum);
 
 		const int						port_;
