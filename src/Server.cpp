@@ -35,7 +35,7 @@ Server::Server(void): port_(6667)
 }
 
 // Parameterized Constructor
-Server::Server(int port, std::string password): port_(port), serverSocket_(-1)
+Server::Server(int port, std::string password): port_(port), password_(password), serverSocket_(-1)
 {
 	debug("Parameterized Constructor called");
 	signal(SIGINT, Server::signalHandler);
@@ -108,6 +108,7 @@ void	Server::acceptConnection( void )
 // and execute it
 void	Server::readFromSocket(struct pollfd request)
 {
+	(void) request;
 	//TODO:
 }
 
@@ -126,8 +127,8 @@ void	Server::waitForRequests(void)
 			std::cout << "[Server] Waiting for requests" << std::endl;
 			continue;
 		}
-		int	rdyPollsChecked;
-		for (int pollIndex = 0; pollIndex < pollFds_.size() && rdyPollsChecked < rdyPollsCount; pollIndex++)
+		int	rdyPollsChecked = 0;
+		for (size_t pollIndex = 0; pollIndex < pollFds_.size() && rdyPollsChecked < rdyPollsCount; pollIndex++)
 		{ 
 			if (((pollFds_[pollIndex].revents & (POLLIN | POLLHUP)) != 1))
 				continue; // this socket is not the ready one
@@ -144,7 +145,7 @@ void	Server::waitForRequests(void)
 //creates the one listening socket the server has to start out with
 void	Server::createListeningSocket(void)
 {
-	struct addrinfo	hints = {0}, *res = {0};
+	struct addrinfo	hints, *res = {0};
 	hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
 	hints.ai_socktype = SOCK_STREAM; //TCP
 	hints.ai_flags = AI_PASSIVE; //put in my ip for me

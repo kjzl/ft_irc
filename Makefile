@@ -45,12 +45,14 @@ INCLUDES := -I$(HDRS_DIR)
 
 SRCS := $(addprefix $(SRCS_DIR)/,\
 		Server.cpp \
+		utils.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
 
 HDRS := $(addprefix $(HDRS_DIR)/,\
-		 \
+		Server.hpp \
+		ircUtils.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug

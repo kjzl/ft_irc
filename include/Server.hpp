@@ -37,6 +37,7 @@ class Server {
 		static void	signalHandler(int signum);
 
 		const int						port_;
+		const std::string				password_;
 		int								serverSocket_;
 		static bool						running;
 		std::vector<struct pollfd>		pollFds_;
