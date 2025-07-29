@@ -20,15 +20,15 @@ Server::~Server()
 }
 
 // Copy Constructor
-Server::Server(const Server& rhs): port_(rhs.port_)
+Server::Server(const Server& other): port_(other.port_)
 {
-	*this = rhs;
+	*this = other;
 }
 
 // Copy Assignment Operator
-Server& Server::operator=( const Server& rhs )
+Server& Server::operator=( const Server& other )
 {
-	if (this != &rhs)
+	if (this != &other)
 	{
 		//Todo
 	}

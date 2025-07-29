@@ -10,8 +10,8 @@ class Server {
 		virtual ~Server();
 		Server( int port, std::string password );
 
-		Server(const Server &copy);
-		Server& operator=( const Server &assign );
+		Server(const Server& other);
+		Server& operator=( const Server& other );
 
 		// Getters and setters
 	private:
