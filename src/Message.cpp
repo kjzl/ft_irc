@@ -40,7 +40,7 @@ Message Message::parseIncomingMessage(const std::string& msg)
 	if (token[0] == ':' || token[0] == '@')
 		throw WrongMessageFormatException("Message must not include a source or tag.");
 	type = parseCommandType(token);
-	if (type == MessageType::UNKNOWN)
+	if (type == UNKNOWN)
 		throw UnknownMessageTypeException(token);
 	while (iss >> token)
 	{
@@ -77,7 +77,11 @@ Message::UnknownMessageTypeException::UnknownMessageTypeException(const std::str
 {
 }
 
-const char * Message::UnknownMessageTypeException::what() const noexcept
+Message::UnknownMessageTypeException::~UnknownMessageTypeException() throw()
+{
+}
+
+const char * Message::UnknownMessageTypeException::what() const throw()
 {
 	return type_.c_str();
 }
@@ -87,7 +91,11 @@ Message::WrongMessageFormatException::WrongMessageFormatException(const std::str
 {
 }
 
-const char * Message::WrongMessageFormatException::what() const noexcept
+const char * Message::WrongMessageFormatException::what() const throw()
 {
 	return message_.c_str();
+}
+
+Message::WrongMessageFormatException::~WrongMessageFormatException() throw()
+{
 }

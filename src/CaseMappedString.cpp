@@ -33,8 +33,8 @@ std::string CaseMappedString::toCaseMappedString(const std::string& str)
 	std::string	result;
 
 	result.reserve(str.length());
-	std::string::const_iterator end = str.cend();
-	for (std::string::const_iterator it = str.cbegin(); it != end; ++it)
+	std::string::const_iterator end = str.end();
+	for (std::string::const_iterator it = str.begin(); it != end; ++it)
 		result += toCaseMapped(*it);
 	return result;
 }

@@ -45,6 +45,9 @@ INCLUDES := -I$(HDRS_DIR)
 
 SRCS := $(addprefix $(SRCS_DIR)/,\
 		server.cpp \
+		Message.cpp \
+		MessageType.cpp \
+		CaseMappedString.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)

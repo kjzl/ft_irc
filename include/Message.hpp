@@ -24,21 +24,23 @@ private:
 	Message(MessageType type, std::vector<std::string> params);
 	Message(const std::string& source, MessageType type, std::vector<std::string> params);
 
-	class UnknownMessageTypeException : public std::exception {
+	class UnknownMessageTypeException : std::exception {
 	private:
 		std::string type_;
 
 	public:
 		UnknownMessageTypeException(const std::string& type);
-		const char* what() const noexcept;
+		~UnknownMessageTypeException() throw();
+		const char* what() const throw();
 	};
 
-	class WrongMessageFormatException : public std::exception {
+	class WrongMessageFormatException : std::exception {
 	private:
 		std::string message_;
 
 	public:
 		WrongMessageFormatException(const std::string& message);
-		const char* what() const noexcept;
+		~WrongMessageFormatException() throw();
+		const char* what() const throw();
 	};
 };

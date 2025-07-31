@@ -32,7 +32,7 @@ enum MessageType {
 	// https://modern.ircdocs.horse/#errunknownerror-400
 	ERR_UNKNOWNERROR = 400,
 	// https://modern.ircdocs.horse/#errnosuchnick-401
-	ERR_NOSUCHNICK = 401,
+	ERR_NOSUCHNICK = 401
 };
 
 MessageType parseCommandType(const std::string& type);
