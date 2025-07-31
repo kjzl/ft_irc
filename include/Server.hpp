@@ -21,6 +21,7 @@ class Server {
 		Server(const Server& other);
 		Server& operator=( const Server& other );
 		void	waitForRequests(void);
+		void	serverShutdown(void);
 
 	private:
 		Server( void );
@@ -32,7 +33,6 @@ class Server {
 
 		void		createListeningSocket(void);
 		void		serverInit(void);
-		void	serverShutdown(void);
 		void	acceptConnection();
 		void	processPollIn(struct pollfd request, int pollIndex);
 		void	removeClient(int pollIndexToRemove);

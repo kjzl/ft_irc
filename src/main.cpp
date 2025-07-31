@@ -15,6 +15,7 @@ int main (int argc, char *argv[]) {
 	try {
 	Server	serv(6667, "password");
 	serv.waitForRequests();
+	serv.serverShutdown();
 	} catch (std::exception &e) {
 		std::cerr << e.what() << ": " << strerror(errno) << std::endl;
 	}

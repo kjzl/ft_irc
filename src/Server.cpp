@@ -55,7 +55,7 @@ Server::Server(int port, std::string password): port_(port), password_(password)
 Server::~Server()
 {
 	debug("Destructor called");
-	serverShutdown();
+	// serverShutdown();
 }
 
 // Copy Constructor
@@ -63,8 +63,8 @@ Server::Server(const Server& other):
 	port_(other.port_),
 	password_(other.password_),
 	serverSocket_(other.serverSocket_),
-	clients_(other.clients_),
-	pollFds_(other.pollFds_)
+	pollFds_(other.pollFds_),
+	clients_(other.clients_)
 	// channels_(other.channels_)
 {}
 
@@ -74,8 +74,8 @@ Server& Server::operator=(const Server& other)
 	if (this != &other)
 	{
 		serverSocket_ = other.serverSocket_;
-		clients_ = other.clients_;
 		pollFds_ = other.pollFds_;
+		clients_ = other.clients_;
 		//channels_ = other.channels_;
 	}
 	return *this;
@@ -117,6 +117,7 @@ void	Server::acceptConnection( void )
 	if (-1 == send(clientFd, welcomeMessage.c_str(), welcomeMessage.size(), 0))
 		throw std::runtime_error("[Server] send error with client: " + clientFdString);
 	Client newcomer;
+	newcomer.setSocket(clientFd);
 	clients_.push_back(newcomer);
 }
 
@@ -126,7 +127,7 @@ void	Server::removeClient(int pollIndexToRemove)
 {
 	struct pollfd pollToRemove = pollFds_[pollIndexToRemove];
 	debug("removing Client");
-	std::cout << "[Server] Client on fd " << pollToRemove.fd << "has disconnected." << std::endl;
+	std::cout << "[Server] Client on fd " << pollToRemove.fd << " has disconnected." << std::endl;
 	if (-1 == close(pollToRemove.fd))
 		throw std::runtime_error("close error");
 	if (clients_[pollIndexToRemove - 1].getSocket() != pollFds_[pollIndexToRemove].fd)
@@ -223,7 +224,8 @@ void	Server::waitForRequests(void)
 void	Server::createListeningSocket(void)
 {
 	int	err = 0;
-	struct addrinfo	hints, *res = {0};
+	struct addrinfo	hints = {0, 0, 0, 0, 0, 0, 0, 0};
+	struct addrinfo	*res = {0};
 	hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
 	hints.ai_socktype = SOCK_STREAM; //TCP
 	hints.ai_flags = AI_PASSIVE; //put in my ip for me
@@ -270,13 +272,13 @@ void	Server::serverShutdown(void)
 	for (size_t pollIndex = 1; pollIndex < pollFds_.size(); pollIndex++)
 	{
 		if (-1 == close(pollFds_[pollIndex].fd))
-			throw std::runtime_error(strerror(errno));
+			throw std::runtime_error("[Server] close error on fd: " + toString(pollFds_[pollIndex].fd));
 	}
 	std::cout << "[Server] diconnected all clients sockets" << RESET << std::endl;
 	if (serverSocket_ != -1)
 	{
 		if (-1 == close(serverSocket_))
-			throw std::runtime_error(strerror(errno));
+			throw std::runtime_error("[Server] close error on serverSocket");
 		std::cout << "[Server] diconnected listening socket" << RESET << std::endl;
 	}
 	std::cout << GREEN << "[Server] Shutdown complete" << RESET << std::endl;
