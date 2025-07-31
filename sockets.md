@@ -27,6 +27,7 @@ and I am leaving 0 as the protocol, as it is [reccomended](https://www.ibm.com/d
 BUUUT
 that is the old way. let's go with the new, ipv6 compatible one.
 
+[guide](https://beej.us/guide/bgnet/html/#getaddrinfoman)
 
 #### poll
 

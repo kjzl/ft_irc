@@ -9,12 +9,11 @@
 #define	TIMEOUT	2500 // = 2.5 seconds waiting for events
 #define	WELCOME_MESSAGE "Welcome to this server. You are the "
 
-class	Client;
-class	Channel;
+// class	Client;
+// class	Channel;
 
 class Server {
 	public:
-		Server( void );
 		virtual ~Server();
 		Server( int port, std::string password );
 
@@ -23,6 +22,7 @@ class Server {
 		void	waitForRequests(void);
 
 	private:
+		Server( void );
 		// Getters and setters
 		int			getPort( void ) const;
 		int			getServerSocket( void ) const;
@@ -33,7 +33,8 @@ class Server {
 		void		serverInit(void);
 		void	serverShutdown(void);
 		void	acceptConnection();
-		void	readFromSocket(struct pollfd request);
+		void	processPollIn(struct pollfd request, int pollIndex);
+		void	removeClient(int pollIndexToRemove);
 		static void	signalHandler(int signum);
 
 		const int						port_;
@@ -41,8 +42,8 @@ class Server {
 		int								serverSocket_;
 		static bool						running;
 		std::vector<struct pollfd>		pollFds_;
-		std::map<std::string, Client>	clients_;
-		std::map<std::string, Channel>	channels_;
+		// std::map<std::string, Client>	clients_;
+		// std::map<std::string, Channel>	channels_;
 };
 
 #endif // !SERVER_HPP

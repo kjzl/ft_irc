@@ -45,7 +45,7 @@ INCLUDES := -I$(HDRS_DIR)
 
 SRCS := $(addprefix $(SRCS_DIR)/,\
 		Server.cpp \
-		utils.cpp \
+		main.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
