@@ -5,11 +5,12 @@
 #include <vector>
 #include <string>
 
+#include "Client.hpp"
+
 #define	BACKLOG 10
 #define	TIMEOUT	4000 // = /1000 to seconds waiting for events
 #define	WELCOME_MESSAGE "Welcome to this server. You are the "
 
-// class	Client;
 // class	Channel;
 
 class Server {
@@ -43,6 +44,7 @@ class Server {
 		static bool						running_;
 		std::vector<struct pollfd>		pollFds_;
 		// std::map<std::string, Client>	clients_;
+		std::vector<Client>				clients_;
 		// std::map<std::string, Channel>	channels_;
 };
 

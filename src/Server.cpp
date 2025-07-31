@@ -107,10 +107,13 @@ void	Server::acceptConnection( void )
 	std::string welcomeMessage = "Welcome to this server, you are fildescriptor " + clientFdString + " connection";
 	if (-1 == send(clientFd, welcomeMessage.c_str(), welcomeMessage.size(), 0))
 		throw std::runtime_error("[Server] send error with client: " + clientFdString);
+	Client newcomer;
+	clients_.push_back(newcomer);
 }
 
 // closes and delets an elements from pollIndex_ 
 // TODO: removes the entry from clients_ as well
+//the entry in pollFds_ corresponds to the same index -1 in clients_ for that particular client. they should have the same fd.
 void	Server::removeClient(int pollIndexToRemove)
 {
 	struct pollfd pollToRemove = pollFds_[pollIndexToRemove];
@@ -118,9 +121,24 @@ void	Server::removeClient(int pollIndexToRemove)
 	std::cout << "[Server] Client on fd " << pollToRemove.fd << "has disconnected." << std::endl;
 	if (-1 == close(pollToRemove.fd))
 		throw std::runtime_error("close error");
-	// overwrite pollIndexToRemove with back client
+	if (clients_[pollIndexToRemove - 1].getSocket() != pollFds_[pollIndexToRemove].fd)
+		throw std::logic_error("pollfds and clients should be indexwise only -1 apart");
+	// does this actually deconsctuct the client at that position if i just overwrite it?
+	clients_[pollIndexToRemove - 1] = clients_.back();
+	clients_.pop_back();
 	pollFds_[pollIndexToRemove] = pollFds_.back();
 	pollFds_.pop_back();
+}
+
+void	makeMessage(Client client)
+{
+	// loop if there is /n/r
+	// {
+	// extract upt to /n/r
+	// construct a message class
+	// execute message class
+	// save the rest that wasn't procesed back into message(setRawMessage)
+	// }
 }
 
 // this function should check if its a POLLHUP or POLLIN 
@@ -138,8 +156,15 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 		bytesRead = recv(request.fd, message, BUFSIZ, MSG_DONTWAIT);
 		if (bytesRead == 0)
 			removeClient(pollIndex);
+		if (bytesRead == -1)
+			//check errno, throw if neccessary
+			;
 		else
-			std::cout << CYN << "[MSG from Client] " << RESET << std::endl << message << std::endl;
+		{
+			std::cout << CYN << "[received a message from client]" << RESET << std::endl << message << std::endl;
+			clients_[pollIndex - 1].appendRawMessage(message);
+			makeMessage(clients_[pollIndex - 1]);
+		}
 	}
 }
 

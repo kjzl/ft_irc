@@ -1,4 +1,5 @@
 #include "../include/Client.hpp"
+#include <cstdio>
 
 Client::Client() : is_authenticated_(false), nickname_(""), username_(""), realname_(""), socket_(-1)
 {}
@@ -50,6 +51,16 @@ int Client::getSocket() const
     return socket_;
 }
 
+const std::string &Client::getMessage() const
+{
+    return rawMessage_;
+}
+
+void Client::clearMessage()
+{
+	rawMessage_.clear();
+}
+
 // Setters
 
 void Client::setAuthenticated(bool authenticated)
@@ -75,4 +86,16 @@ void Client::setRealname(const std::string &realname)
 void Client::setSocket(int socket)
 {
     socket_ = socket;
+}
+
+
+void Client::setRawMessage(const std::string &rawMessage)
+{
+    realname_ = rawMessage;
+}
+
+
+void Client::appendRawMessage(const char partialMessage[BUFSIZ])
+{
+	rawMessage_ += partialMessage;
 }
