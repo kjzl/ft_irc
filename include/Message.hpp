@@ -26,7 +26,7 @@ private:
 
 	class UnknownMessageTypeException : public std::exception {
 	private:
-		std::string type;
+		std::string type_;
 
 	public:
 		UnknownMessageTypeException(const std::string& type);
@@ -35,7 +35,7 @@ private:
 
 	class WrongMessageFormatException : public std::exception {
 	private:
-		std::string message;
+		std::string message_;
 
 	public:
 		WrongMessageFormatException(const std::string& message);

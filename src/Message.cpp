@@ -1,5 +1,6 @@
 #include "Message.hpp"
 #include <cctype>
+#include <sstream>
 
 Message::Message(MessageType type, std::vector<std::string> params)
 	: source_(NULL), type_(type), params_(params)
@@ -26,41 +27,32 @@ Message::~Message()
 // input message must not end with crlf
 Message Message::parseMessage(const std::string& msg)
 {
-	std::string::const_iterator	it = msg.cbegin();
-	std::string::const_iterator	end = msg.cend();
-	std::string					tmp;
+	std::istringstream			iss(msg);
+	std::string					token;
 	MessageType					type;
 	std::vector<std::string>	params;
+	bool 						lastParam = false;
 
+	iss >> token;
+	if (token.empty())
+		throw WrongMessageFormatException("Message must not be empty.");
 	// client messages cant have a source and we do not support tags
-	if (*it == ':' || *it == '@') {
-		throw WrongMessageFormatException("Client must not send a source or tags.");
-	}
-	while (it != end && *it != ' ')
-		tmp += *it++;
-	type = parseClientMessageType(tmp);
-	if (type == MessageType::UNKNOWN) {
-		throw UnknownMessageTypeException(tmp);
-	}
-	while (true)
+	if (token[0] == ':' || token[0] == '@')
+		throw WrongMessageFormatException("Message must not include a source or tag.");
+	type = parseClientMessageType(token);
+	if (type == MessageType::UNKNOWN)
+		throw UnknownMessageTypeException(token);
+	while (iss >> token)
 	{
-		// skip whitespace
-		while (it != end && *it == ' ')
-			++it;
-		if (it == end)
-			break;
-		tmp.clear();
-		if (*it == ':')
+		if (lastParam)
+			params.back() += " " + token;
+		else if (token[0] == ':')
 		{
-			while (++it != end)
-				tmp += *it;
+			lastParam = true;
+			params.push_back(token.substr(1));
 		}
 		else
-		{
-			while (*it != ' ' && it != end)
-				tmp += *it++;
-		}
-		params.push_back(tmp);
+			params.push_back(token);
 	}
 	return Message(type, params);
 }
@@ -81,21 +73,21 @@ const std::vector<std::string>& Message::getParams() const
 }
 
 Message::UnknownMessageTypeException::UnknownMessageTypeException(const std::string& type)
-	: type("\"" + type + "\" is not a valid message/command type.")
+	: type_("\"" + type + "\" is not a valid message/command type.")
 {
 }
 
 const char * Message::UnknownMessageTypeException::what() const noexcept
 {
-	return type.c_str();
+	return type_.c_str();
 }
 
 Message::WrongMessageFormatException::WrongMessageFormatException(const std::string& message)
-	: message(message)
+	: message_(message)
 {
 }
 
 const char * Message::WrongMessageFormatException::what() const noexcept
 {
-	return message.c_str();
+	return message_.c_str();
 }
