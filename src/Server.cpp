@@ -30,7 +30,7 @@ void	Server::signalHandler(int signum)
 }
 
 // Default Constructor
-Server::Server(void): port_(6667)
+Server::Server(void): port_(6667), password_("password")
 {
 	running_ = true;
 	debug("Default Constructor called");
@@ -55,17 +55,24 @@ Server::~Server()
 }
 
 // Copy Constructor
-Server::Server(const Server& other): port_(other.port_)
-{
-	*this = other;
-}
+Server::Server(const Server& other):
+	port_(other.port_),
+	password_(other.password_),
+	serverSocket_(other.serverSocket_),
+	clients_(other.clients_),
+	pollFds_(other.pollFds_)
+	// channels_(other.channels_)
+{}
 
 // Copy Assignment Operator
 Server& Server::operator=(const Server& other)
 {
 	if (this != &other)
 	{
-		//Todo
+		serverSocket_ = other.serverSocket_;
+		clients_ = other.clients_;
+		pollFds_ = other.pollFds_;
+		//channels_ = other.channels_;
 	}
 	return *this;
 }
