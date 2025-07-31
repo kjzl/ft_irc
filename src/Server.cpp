@@ -2,6 +2,7 @@
 #include "../include/Debug.hpp"
 #include "../include/ircUtils.hpp"
 #include <csignal>
+#include <cstdio>
 #include <iostream>
 #include <netinet/in.h>
 #include <ostream>
@@ -21,19 +22,19 @@
 #include <sys/fcntl.h>
 #include <strings.h>
 
-bool Server::running = false;
+bool Server::running_ = false;
 
 void	Server::signalHandler(int signum)
 {
 	static_cast<void>(signum);
-	running = false;
+	running_ = false;
 	std::cout << BLUE << "Signal received" << RESET << std::endl;
 }
 
 // Default Constructor
 Server::Server(void): port_(6667)
 {
-	running = true;
+	running_ = true;
 	debug("Default Constructor called");
 }
 
@@ -42,7 +43,7 @@ Server::Server(int port, std::string password): port_(port), password_(password)
 {
 	debug("Parameterized Constructor called");
 	std::cout << GREEN << "==== STARTING SERVER ====" << RESET << std::endl;
-	running = true;
+	running_ = true;
 	signal(SIGINT, Server::signalHandler);
 	signal(SIGQUIT, Server::signalHandler);
 	serverInit();
@@ -127,13 +128,19 @@ void	Server::removeClient(int pollIndexToRemove)
 // and execute it
 void	Server::processPollIn(struct pollfd request, int pollIndex)
 {
+	char	message[BUFSIZ];
+	int		bytesRead;
+
 	if (request.revents & POLLHUP)
 		removeClient(pollIndex);
 	else
 	{
-
+		bytesRead = recv(request.fd, message, BUFSIZ, MSG_DONTWAIT);
+		if (bytesRead == 0)
+			removeClient(pollIndex);
+		else
+			std::cout << CYN << "[MSG from Client] " << RESET << std::endl << message << std::endl;
 	}
-
 }
 
 //main loop to be in while running
@@ -141,11 +148,11 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 //if ready, checks polls through and directs them toward acceptConnection or readFromSocket
 void	Server::waitForRequests(void)
 {
-	while (running)
+	while (running_)
 	{
 		int	rdyPollsCount = 0;
 		rdyPollsCount = poll(&(pollFds_[0]), pollFds_.size(), TIMEOUT);
-		if (running && rdyPollsCount == -1)
+		if (running_ && rdyPollsCount == -1)
 			throw std::runtime_error("[Server] poll error");
 		else if (rdyPollsCount == 0)
 		{
@@ -153,15 +160,15 @@ void	Server::waitForRequests(void)
 			continue;
 		}
 		int	rdyPollsChecked = 0;
-		for (size_t pollIndex = 0; running && pollIndex < pollFds_.size() && rdyPollsChecked < rdyPollsCount; pollIndex++)
+		for (size_t pollIndex = 0; running_ && pollIndex < pollFds_.size() && rdyPollsChecked < rdyPollsCount; pollIndex++)
 		{ 
 			if (((pollFds_[pollIndex].revents & (POLLIN | POLLHUP)) != 1))
 				continue; // this socket is not the ready one
 			++rdyPollsChecked;
 			if (pollIndex == 0)
 				acceptConnection();
-			// else
-			// 	processPollIn(pollFds_[pollIndex], pollIndex);
+			else
+				processPollIn(pollFds_[pollIndex], pollIndex);
 		}
 	}
 	std::cout << YEL << "[Server] Stopped listening for requests" << RESET << std::endl;
