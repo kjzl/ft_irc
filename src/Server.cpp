@@ -112,7 +112,6 @@ void	Server::acceptConnection( void )
 }
 
 // closes and delets an elements from pollIndex_ 
-// TODO: removes the entry from clients_ as well
 //the entry in pollFds_ corresponds to the same index -1 in clients_ for that particular client. they should have the same fd.
 void	Server::removeClient(int pollIndexToRemove)
 {
@@ -130,6 +129,7 @@ void	Server::removeClient(int pollIndexToRemove)
 	pollFds_.pop_back();
 }
 
+//TODO:
 void	Server::makeMessage(Client client)
 {
 	(void) client;
@@ -158,12 +158,14 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 		if (bytesRead == 0)
 			removeClient(pollIndex);
 		if (bytesRead == -1)
+			//TODO:
 			//check errno, throw if neccessary
 			;
 		else
 		{
 			std::cout << CYN << "[received a message from client]" << RESET << std::endl << message << std::endl;
 			clients_[pollIndex - 1].appendRawMessage(message);
+			//TODO:
 			// makeMessage(clients_[pollIndex - 1]);
 		}
 	}
