@@ -7,22 +7,29 @@ class   Client
 {
 	private:
 		bool        is_authenticated_;
-		std::string nickname_; //necessary ?? ==> or we use a map{nickname:client} in the server class directly?
+		std::string nickname_;
 		std::string username_;
+		std::string realname_;
 		int			socket_;
-		
+
 
 	public:
 		Client();
-		Client(Client &other);
+		Client(const Client &other);
 		Client &operator =(const Client &other);
 		virtual ~Client();
 
-		std::string getNickName(void) const; //necessary ?
-		void        setNickName(const std::string &name);
-		std::string getUserName(void) const; //necessary?
-		void        setUserName(const std::string &name);
-		void        check_authentication(???); // ?? 
+		bool isAuthenticated() const;
+		const std::string &getNickname() const;
+		const std::string &getUsername() const;
+		const std::string &getRealname() const;
+		int getSocket() const;
+
+		void setAuthenticated(bool authenticated);
+		void setNickname(const std::string &nickname);
+		void setUsername(const std::string &username);
+		void setRealname(const std::string &realname);
+		void setSocket(int socket); 
 };
 
 #endif
