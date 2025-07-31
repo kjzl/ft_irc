@@ -137,12 +137,17 @@ void	Server::makeMessage(Client &client)
 	std::string	raw_message = client.getRawMessage();
 	size_t		position;
 
-	if ((position = raw_message.find("\r\n")) != raw_message.npos)
-		command = raw_message.substr(0, position);
-		client.setRawMessage(raw_message.erase(0, position + 2));
+	if ((position = raw_message.find("\n")) != raw_message.npos)
+	{
+		if (position != 0 && raw_message[position - 1] == '\r')
+			command = raw_message.substr(0, position - 1);
+		else
+			command = raw_message.substr(0, position);
+		client.setRawMessage(raw_message.erase(0, position + 1));
 		std::cout << command << std::endl;
 		// CALL THE PARSER
 		// CALL THE COMMAND ECXECUTOR
+	}
 }
 
 // this function should check if its a POLLHUP or POLLIN 
