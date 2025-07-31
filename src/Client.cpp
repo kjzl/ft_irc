@@ -16,6 +16,7 @@ Client &Client::operator=(const Client &other)
         this->nickname_ = other.nickname_;
         this->username_ = other.username_;
         this->realname_ = other.realname_;
+		this->rawMessage_ = other.rawMessage_;
         this->socket_ = other.socket_;
     }
     return *this;

@@ -119,7 +119,6 @@ void	Server::removeClient(int pollIndexToRemove)
 		throw std::runtime_error("close error");
 	if (clients_[pollIndexToRemove - 1].getSocket() != pollFds_[pollIndexToRemove].fd)
 		throw std::logic_error("pollfds and clients should be indexwise only -1 apart");
-	// does this actually deconsctuct the client at that position if i just overwrite it?
 	clients_[pollIndexToRemove - 1] = clients_.back();
 	clients_.pop_back();
 	pollFds_[pollIndexToRemove] = pollFds_.back();
