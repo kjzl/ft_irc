@@ -12,6 +12,7 @@ Client::Client(const Client &other)
 Client &Client::operator=(const Client &other)
 {
     if (this != &other) {
+		clearMessage();
         this->is_authenticated_ = other.is_authenticated_;
         this->nickname_ = other.nickname_;
         this->username_ = other.username_;
@@ -92,7 +93,7 @@ void Client::setSocket(int socket)
 
 void Client::setRawMessage(const std::string &rawMessage)
 {
-    realname_ = rawMessage;
+    rawMessage_ = rawMessage;
 }
 
 

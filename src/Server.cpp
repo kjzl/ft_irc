@@ -146,7 +146,7 @@ void	Server::makeMessage(Client &client)
 	std::string	raw_message = client.getRawMessage();
 	size_t		position;
 
-	if ((position = raw_message.find("\n")) != raw_message.npos)
+	while ((position = raw_message.find('\n')) != raw_message.npos)
 	{
 		if (position != 0 && raw_message[position - 1] == '\r')
 			command = raw_message.substr(0, position - 1);
@@ -156,6 +156,7 @@ void	Server::makeMessage(Client &client)
 		std::cout << command << std::endl;
 		// CALL THE PARSER
 		// CALL THE COMMAND ECXECUTOR
+		debug(raw_message);
 	}
 }
 
@@ -167,10 +168,10 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 	char	message[BUFSIZ];
 	int		bytesRead;
 
-	if (request.revents & POLLHUP)
-		removeClient(pollIndex);
-	else
-	{
+	// if (request.revents & POLLHUP)
+	// 	removeClient(pollIndex);
+	// else
+	// {
 		bytesRead = recv(request.fd, message, BUFSIZ, MSG_DONTWAIT);
 		if (bytesRead == 0)
 			removeClient(pollIndex);
@@ -182,11 +183,11 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 		}
 		else
 		{
-			std::cout << CYN << "[received a message from client]" << RESET << std::endl << message << std::endl;
+			std::cout << CYN << "[received a message from client: " << request.fd <<" ]" << RESET << std::endl;
 			clients_[pollIndex - 1].appendRawMessage(message);
 			makeMessage(clients_[pollIndex - 1]);
 		}
-	}
+	// }
 }
 
 //main loop to be in while running
@@ -194,28 +195,33 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 //if ready, checks polls through and directs them toward acceptConnection or readFromSocket
 void	Server::waitForRequests(void)
 {
-	while (running_)
-	{
-		int	rdyPollsCount = 0;
-		rdyPollsCount = poll(&(pollFds_[0]), pollFds_.size(), TIMEOUT);
-		if (running_ && rdyPollsCount == -1)
-			throw std::runtime_error("[Server] poll error");
-		else if (rdyPollsCount == 0)
+	try {
+		while (running_)
 		{
-			std::cout << "[Server] Waiting for requests" << std::endl;
-			continue;
+			int	rdyPollsCount = 0;
+			rdyPollsCount = poll(&(pollFds_[0]), pollFds_.size(), TIMEOUT);
+			if (running_ && rdyPollsCount == -1)
+				throw std::runtime_error("[Server] poll error");
+			else if (rdyPollsCount == 0)
+			{
+				std::cout << "[Server] Waiting for requests" << std::endl;
+				continue;
+			}
+			int	rdyPollsChecked = 0;
+			for (size_t pollIndex = 0; running_ && pollIndex < pollFds_.size() && rdyPollsChecked < rdyPollsCount; pollIndex++)
+			{ 
+				if (((pollFds_[pollIndex].revents & (POLLIN | POLLHUP)) != 1))
+					continue; // this socket is not the ready one
+				++rdyPollsChecked;
+				if (pollIndex == 0)
+					acceptConnection();
+				else
+					processPollIn(pollFds_[pollIndex], pollIndex);
+			}
 		}
-		int	rdyPollsChecked = 0;
-		for (size_t pollIndex = 0; running_ && pollIndex < pollFds_.size() && rdyPollsChecked < rdyPollsCount; pollIndex++)
-		{ 
-			if (((pollFds_[pollIndex].revents & (POLLIN | POLLHUP)) != 1))
-				continue; // this socket is not the ready one
-			++rdyPollsChecked;
-			if (pollIndex == 0)
-				acceptConnection();
-			else
-				processPollIn(pollFds_[pollIndex], pollIndex);
-		}
+	} catch (std::runtime_error &e) {
+		std::cerr << e.what() << ": " << strerror(errno) << std::endl;
+		serverShutdown();
 	}
 	std::cout << YEL << "[Server] Stopped listening for requests" << RESET << std::endl;
 }
@@ -247,6 +253,7 @@ void	Server::createListeningSocket(void)
 	//bind socket
 	if (-1 == bind(getServerSocket(), res->ai_addr, res->ai_addrlen))
 	{
+		close(serverSocket_);
 		freeaddrinfo(res);
 		throw std::runtime_error("[Server] bind error");
 	}
@@ -271,12 +278,14 @@ void	Server::serverShutdown(void)
 	std::cout << BRED << "==== STARTING SERVER SHUTDOWN ====" << RESET << std::endl;
 	for (size_t pollIndex = 1; pollIndex < pollFds_.size(); pollIndex++)
 	{
+		shutdown(pollFds_[pollIndex].fd,  SHUT_RDWR);
 		if (-1 == close(pollFds_[pollIndex].fd))
 			throw std::runtime_error("[Server] close error on fd: " + toString(pollFds_[pollIndex].fd));
 	}
 	std::cout << "[Server] diconnected all clients sockets" << RESET << std::endl;
 	if (serverSocket_ != -1)
 	{
+		shutdown(serverSocket_,  SHUT_RDWR);
 		if (-1 == close(serverSocket_))
 			throw std::runtime_error("[Server] close error on serverSocket");
 		std::cout << "[Server] diconnected listening socket" << RESET << std::endl;
