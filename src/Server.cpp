@@ -26,7 +26,7 @@ void	Server::signalHandler(int signum)
 {
 	static_cast<void>(signum);
 	running_ = false;
-	std::cout << BLUE << "Signal received" << RESET << std::endl;
+	debug("received a signal");
 }
 
 // Default Constructor
@@ -39,11 +39,15 @@ Server::Server(void): port_(6667), password_("password")
 // Parameterized Constructor
 Server::Server(int port, std::string password): port_(port), password_(password), serverSocket_(-1)
 {
+	struct sigaction sa;
+	sa.sa_handler = signalHandler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
 	debug("Parameterized Constructor called");
 	std::cout << GREEN << "==== STARTING SERVER ====" << RESET << std::endl;
 	running_ = true;
-	signal(SIGINT, Server::signalHandler);
-	signal(SIGQUIT, Server::signalHandler);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
 	serverInit();
 }
 
@@ -133,10 +137,10 @@ void	Server::removeClient(int pollIndexToRemove)
 	pollFds_.pop_back();
 }
 
-//TODO:
+//attempts to extract a full message from the clients sent input
+//if it extraced a string, calls the parser and executes the command
 void	Server::makeMessage(Client &client)
 {
-	// (void) client;
 	std::string	command;
 	std::string	raw_message = client.getRawMessage();
 	size_t		position;
