@@ -130,16 +130,19 @@ void	Server::removeClient(int pollIndexToRemove)
 }
 
 //TODO:
-void	Server::makeMessage(Client client)
+void	Server::makeMessage(Client &client)
 {
-	(void) client;
-	// loop if there is /n/r
-	// {
-	// extract upt to /n/r
-	// construct a message class
-	// execute message class
-	// save the rest that wasn't procesed back into message(setRawMessage)
-	// }
+	// (void) client;
+	std::string	command;
+	std::string	raw_message = client.getRawMessage();
+	size_t		position;
+
+	if ((position = raw_message.find("\r\n")) != raw_message.npos)
+		command = raw_message.substr(0, position);
+		client.setRawMessage(raw_message.erase(0, position + 2));
+		std::cout << command << std::endl;
+		// CALL THE PARSER
+		// CALL THE COMMAND ECXECUTOR
 }
 
 // this function should check if its a POLLHUP or POLLIN 
@@ -165,8 +168,7 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 		{
 			std::cout << CYN << "[received a message from client]" << RESET << std::endl << message << std::endl;
 			clients_[pollIndex - 1].appendRawMessage(message);
-			//TODO:
-			// makeMessage(clients_[pollIndex - 1]);
+			makeMessage(clients_[pollIndex - 1]);
 		}
 	}
 }
