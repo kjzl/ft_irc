@@ -1,6 +1,7 @@
 #include "../include/Server.hpp"
 #include "../include/Debug.hpp"
 #include "../include/ircUtils.hpp"
+#include <cerrno>
 #include <csignal>
 #include <cstdio>
 #include <iostream>
@@ -154,9 +155,11 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 		if (bytesRead == 0)
 			removeClient(pollIndex);
 		if (bytesRead == -1)
-			//TODO:
-			//check errno, throw if neccessary
-			;
+		{
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				return ;
+			throw std::runtime_error("[Server] recv error");
+		}
 		else
 		{
 			std::cout << CYN << "[received a message from client]" << RESET << std::endl << message << std::endl;
