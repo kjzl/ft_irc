@@ -6,9 +6,7 @@
 #include <iostream>
 #include <netinet/in.h>
 #include <ostream>
-#include <pthread.h>
 #include <stdexcept>
-#include <strings.h>
 #include <sys/socket.h>
 #include <errno.h>
 #include <netdb.h>
@@ -20,7 +18,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/fcntl.h>
-#include <strings.h>
 
 bool Server::running_ = false;
 
@@ -207,8 +204,6 @@ void	Server::createListeningSocket(void)
 {
 	int	err = 0;
 	struct addrinfo	hints, *res = {0};
-	//TODO: replace bzero
-	bzero(&hints, sizeof(hints));
 	hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
 	hints.ai_socktype = SOCK_STREAM; //TCP
 	hints.ai_flags = AI_PASSIVE; //put in my ip for me
