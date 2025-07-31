@@ -1,7 +1,7 @@
 #include "../include/Client.hpp"
 #include <cstdio>
 
-Client::Client() : is_authenticated_(false), nickname_(""), username_(""), realname_(""), socket_(-1)
+Client::Client() : is_authenticated_(false), socket_(-1), nickname_(""), username_(""), realname_(""), rawMessage_("")
 {}
 
 Client::Client(const Client &other) 

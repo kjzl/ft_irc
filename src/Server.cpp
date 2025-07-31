@@ -130,8 +130,9 @@ void	Server::removeClient(int pollIndexToRemove)
 	pollFds_.pop_back();
 }
 
-void	makeMessage(Client client)
+void	Server::makeMessage(Client client)
 {
+	(void) client;
 	// loop if there is /n/r
 	// {
 	// extract upt to /n/r
@@ -163,7 +164,7 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 		{
 			std::cout << CYN << "[received a message from client]" << RESET << std::endl << message << std::endl;
 			clients_[pollIndex - 1].appendRawMessage(message);
-			makeMessage(clients_[pollIndex - 1]);
+			// makeMessage(clients_[pollIndex - 1]);
 		}
 	}
 }

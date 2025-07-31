@@ -37,6 +37,7 @@ class Server {
 		void	processPollIn(struct pollfd request, int pollIndex);
 		void	removeClient(int pollIndexToRemove);
 		static void	signalHandler(int signum);
+		void	makeMessage(Client client);
 
 		const int						port_;
 		const std::string				password_;
