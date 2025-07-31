@@ -1,0 +1,83 @@
+{
+	"C++ Orthodox Canonical Class Header": {
+		"prefix": "42class",
+		"body": [
+			"#ifndef ${1:${TM_FILENAME_BASE/(.*)/${1:/upcase}/g}}_HPP",
+			"#define ${1:${TM_FILENAME_BASE/(.*)/${1:/upcase}/g}}_HPP",
+			"",
+			"class ${2:${TM_FILENAME_BASE}} {",
+			"public:",
+			"\t${2:${TM_FILENAME_BASE}}();",
+			"\t${2:${TM_FILENAME_BASE}}(const ${2:${TM_FILENAME_BASE}}& other);",
+			"\t${2:${TM_FILENAME_BASE}}& operator=(const ${2:${TM_FILENAME_BASE}}& other);",
+			"\tvirtual ~${2:${TM_FILENAME_BASE}}();",
+			"",
+			"private:",
+			"\t$3",
+			"",
+			"};",
+			"",
+			"#endif // ${1:${TM_FILENAME_BASE/(.*)/${1:/upcase}/g}}_HPP"
+		],
+		"description": "Creates a C++ class header file in orthodox canonical form with header guards (42 school style)"
+	},
+	"C++ Orthodox Canonical Class Implementation": {
+		"prefix": "42impl",
+		"body": [
+			"#include \"${1:${TM_FILENAME_BASE}}.hpp\"",
+			"#include \"Debug.hpp\"",
+			"",
+			"${2:${TM_FILENAME_BASE}}::${2:${TM_FILENAME_BASE}}()",
+			"{",
+			"\tdebug(\"${2:${TM_FILENAME_BASE}} default constructor called\");",
+			"\t$3",
+			"}",
+			"",
+			"${2:${TM_FILENAME_BASE}}::${2:${TM_FILENAME_BASE}}(const ${2:${TM_FILENAME_BASE}}& other)",
+			"{",
+			"\tdebug(\"${2:${TM_FILENAME_BASE}} copy constructor called\");",
+			"\t*this = other;",
+			"}",
+			"",
+			"${2:${TM_FILENAME_BASE}}& ${2:${TM_FILENAME_BASE}}::operator=(const ${2:${TM_FILENAME_BASE}}& other)",
+			"{",
+			"\tdebug(\"${2:${TM_FILENAME_BASE}} assignment operator called\");",
+			"\tif (this != &other) {",
+			"\t\t$4",
+			"\t}",
+			"\treturn *this;",
+			"}",
+			"",
+			"${2:${TM_FILENAME_BASE}}::~${2:${TM_FILENAME_BASE}}()",
+			"{",
+			"\tdebug(\"${2:${TM_FILENAME_BASE}} destructor called\");",
+			"\t$5",
+			"}",
+			"",
+			"$6"
+		],
+		"description": "Creates a C++ class implementation file in orthodox canonical form (42 school style)"
+	},
+	"C++ Class with Custom Constructor": {
+		"prefix": "42constructor",
+		"body": [
+			"// Constructor with parameters",
+			"${1:${TM_FILENAME_BASE}}::${1:${TM_FILENAME_BASE}}(${2:parameters})",
+			"{",
+			"\tdebug(\"${2:${TM_FILENAME_BASE}} parameterized constructor called\");",
+			"\t$3",
+			"}"
+		],
+		"description": "Adds a custom constructor implementation"
+	},
+	"C++ Member Function Implementation": {
+		"prefix": "42func",
+		"body": [
+			"${1:return_type} ${2:${TM_FILENAME_BASE}}::${3:function_name}(${4:parameters})",
+			"{",
+			"\t$5",
+			"}"
+		],
+		"description": "Creates a member function implementation"
+	}
+}
