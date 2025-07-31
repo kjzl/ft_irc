@@ -4,7 +4,7 @@
 #include "MessageType.hpp"
 
 // input string must be uppercase
-MessageType parseClientMessageType(const std::string& type)
+MessageType parseCommandType(const std::string& type)
 {
 	static std::map<std::string, MessageType> command_map;
 

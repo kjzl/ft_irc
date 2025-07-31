@@ -7,7 +7,7 @@ class Message {
 public:
 	Message(const Message& other);
 	virtual ~Message();
-	static Message parseMessage(const std::string& raw);
+	static Message parseIncomingMessage(const std::string& raw);
 
 	// Optional note of where the message came from
 	const std::string* getSource() const;

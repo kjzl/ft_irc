@@ -35,5 +35,5 @@ enum MessageType {
 	ERR_NOSUCHNICK = 401,
 };
 
-MessageType parseClientMessageType(const std::string& type);
+MessageType parseCommandType(const std::string& type);
 #endif

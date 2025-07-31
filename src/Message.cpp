@@ -25,7 +25,7 @@ Message::~Message()
 }
 
 // input message must not end with crlf
-Message Message::parseMessage(const std::string& msg)
+Message Message::parseIncomingMessage(const std::string& msg)
 {
 	std::istringstream			iss(msg);
 	std::string					token;
@@ -39,7 +39,7 @@ Message Message::parseMessage(const std::string& msg)
 	// client messages cant have a source and we do not support tags
 	if (token[0] == ':' || token[0] == '@')
 		throw WrongMessageFormatException("Message must not include a source or tag.");
-	type = parseClientMessageType(token);
+	type = parseCommandType(token);
 	if (type == MessageType::UNKNOWN)
 		throw UnknownMessageTypeException(token);
 	while (iss >> token)
