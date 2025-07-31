@@ -52,7 +52,7 @@ int Client::getSocket() const
     return socket_;
 }
 
-const std::string &Client::getMessage() const
+const std::string &Client::getRawMessage() const
 {
     return rawMessage_;
 }
