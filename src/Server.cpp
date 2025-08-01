@@ -219,6 +219,7 @@ void	Server::waitForRequests(void)
 					acceptConnection();
 				else
 					processPollIn(pollFds_[pollIndex], pollIndex);
+				std::cout << std::endl;
 			}
 		}
 	} catch (std::runtime_error &e) {
@@ -238,6 +239,7 @@ void	Server::createListeningSocket(void)
 	hints.ai_socktype = SOCK_STREAM; //TCP
 	hints.ai_flags = AI_PASSIVE; //put in my ip for me
 	std::string port_str = toString(port_);
+	int optval = 1;
 
 	err = (getaddrinfo(NULL, port_str.c_str(), &hints, &res));
 	if (err != 0)
@@ -252,6 +254,8 @@ void	Server::createListeningSocket(void)
 		freeaddrinfo(res);
 		throw std::runtime_error("[Server] socket error");
 	}
+	//reusing old socket, if still open, to circumvent TIME_WAIT
+	setsockopt(serverSocket_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 	//bind socket
 	if (-1 == bind(getServerSocket(), res->ai_addr, res->ai_addrlen))
 	{
