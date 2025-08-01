@@ -110,21 +110,21 @@ void	Client::sendMessage(Message toSend)
 	safeSend(toSend.toString());
 }
 
-// sends the entire string with send() even when more than one send() call is needed 
+// sends the entire string with send() even when more than one send() call is needed
 // throws and error if send fails
 int		Client::safeSend(const std::string &string)
 {
 	int sendBytes;
 	int	total_sent = 0;
 	int	left_size = string.size();
-	
+
 	while (left_size)
 	{
 		sendBytes = send(this->getSocket(), string.substr(total_sent, left_size).c_str(), left_size, 0);
 		if (sendBytes == -1)
 			throw std::runtime_error("[Server] send error with client: " + toString(getSocket()));
 		total_sent += sendBytes;
-		left_size -= sendBytes; 
+		left_size -= sendBytes;
 	}
 	return (0);
 }

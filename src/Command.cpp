@@ -60,7 +60,7 @@ void executeIncomingCommandMessage(Server& server, Client& sender, const std::st
 	} catch (const ErrReply& errReply) {
 		debug("Error reply: " + std::string(errReply.what()));
 		Message errorMessage = errReply.toMessage();
-		// TODO send errorMessage to the client
+		sender.sendMessage(errorMessage);
 	} catch (const std::exception& e) {
 		debug("Exception caught: " + std::string(e.what()));
 		std::vector<std::string> params;

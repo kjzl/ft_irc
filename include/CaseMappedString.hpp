@@ -25,8 +25,17 @@ public:
 	CaseMappedString& operator=(const char* str);
 	virtual ~CaseMappedString();
 
-    const std::string& str() const { return data_; }
-    operator const std::string&() const { return data_; }
+    const std::string& str() const;
+    operator const std::string&() const;
+
+    // String utility functions
+    bool empty() const;
+    size_t length() const;
+    size_t size() const;
+    void clear();
+    const char* c_str() const;
+    char at(size_t pos) const;
+    char operator[](size_t pos) const;
 
     bool operator<(const CaseMappedString& other) const;
     bool operator==(const CaseMappedString& other) const;

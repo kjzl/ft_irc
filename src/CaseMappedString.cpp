@@ -98,6 +98,52 @@ CaseMappedString::~CaseMappedString()
 
 }
 
+void CaseMappedString::clear()
+{
+	data_.clear();
+	caseMappedData_.clear();
+}
+
+const std::string& CaseMappedString::str() const
+{
+	return data_;
+}
+
+CaseMappedString::operator const std::string&() const
+{
+	return data_;
+}
+
+bool CaseMappedString::empty() const
+{
+	return data_.empty();
+}
+
+size_t CaseMappedString::length() const
+{
+	return data_.length();
+}
+
+size_t CaseMappedString::size() const
+{
+	return data_.size();
+}
+
+const char* CaseMappedString::c_str() const
+{
+	return data_.c_str();
+}
+
+char CaseMappedString::at(size_t pos) const
+{
+	return data_.at(pos);
+}
+
+char CaseMappedString::operator[](size_t pos) const
+{
+	return data_[pos];
+}
+
 bool CaseMappedString::operator<(const CaseMappedString& other) const
 {
 	return caseMappedData_ < other.caseMappedData_;
