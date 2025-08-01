@@ -4,6 +4,7 @@
 #include "ErrNotRegistered.hpp"
 #include "ErrAlreadyRegistered.hpp"
 #include "UserCommand.hpp"
+#include "ircUtils.hpp"
 
 static CommandFactory factory(int minArgs, AuthRequirement auth, Command* (*createCommand)(const Message&, const Client&))
 {
@@ -48,7 +49,7 @@ void executeIncomingCommandMessage(Server& server, Client& sender, const std::st
 {
 	try {
 		Message message = Message::parseIncomingMessage(rawMessage);
-		debug("Parsed message: " + message.getTypeAsString() + " with params: " + std::to_string(message.getParams().size()));
+		debug("Parsed message: " + message.getTypeAsString() + " with params: " + toString(message.getParams().size()));
 
 		Command* command = convertMessageToCommand(message, sender);
 		if (command)
