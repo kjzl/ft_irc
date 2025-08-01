@@ -47,17 +47,33 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		main.cpp \
 		Server.cpp \
 		Client.cpp \
-    Message.cpp \
+		Message.cpp \
 		MessageType.cpp \
 		CaseMappedString.cpp \
+		Command.cpp \
+		commands/UserCommand.cpp \
+		ErrReply.cpp \
+		errors/ErrNeedMoreParams.cpp \
+		errors/ErrNotRegistered.cpp \
+		errors/ErrAlreadyRegistered.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
 
 HDRS := $(addprefix $(HDRS_DIR)/,\
-		Server.hpp \
+		CaseMappedString.hpp \
+		Channel.hpp \
 		Client.hpp \
+		Command.hpp \
+		ErrAlreadyRegistered.hpp \
+		ErrNeedMoreParams.hpp \
+		ErrNotRegistered.hpp \
+		ErrReply.hpp \
 		ircUtils.hpp \
+		Message.hpp \
+		MessageType.hpp \
+		Server.hpp \
+		UserCommand.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug

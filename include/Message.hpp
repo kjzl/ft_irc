@@ -1,3 +1,6 @@
+#ifndef MESSAGE_HPP
+#define MESSAGE_HPP
+
 #include <string>
 #include <vector>
 #include <exception>
@@ -6,6 +9,8 @@
 class Message {
 public:
 	Message(const Message& other);
+	Message(MessageType type, const std::vector<std::string>& params);
+	Message(const std::string& source, MessageType type, const std::vector<std::string>& params);
 	virtual ~Message();
 	static Message parseIncomingMessage(const std::string& raw);
 
@@ -13,6 +18,7 @@ public:
 	const std::string* getSource() const;
 	// The specific command this message represents.
 	MessageType getType() const;
+	std::string getTypeAsString() const;
 	// If it exists, data relevant to this specific command.
 	const std::vector<std::string>& getParams() const;
 
@@ -20,9 +26,6 @@ private:
 	const std::string* source_;
 	const MessageType type_;
 	const std::vector<std::string> params_;
-
-	Message(MessageType type, std::vector<std::string> params);
-	Message(const std::string& source, MessageType type, std::vector<std::string> params);
 
 	class UnknownMessageTypeException : std::exception {
 	private:
@@ -44,3 +47,7 @@ private:
 		const char* what() const throw();
 	};
 };
+
+std::ostream& operator<<(std::ostream& os, const Message& message);
+
+#endif // MESSAGE_HPP
