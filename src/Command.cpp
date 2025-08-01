@@ -1,10 +1,10 @@
-#include "Command.hpp"
-#include "Debug.hpp"
-#include "ErrNeedMoreParams.hpp"
-#include "ErrNotRegistered.hpp"
-#include "ErrAlreadyRegistered.hpp"
-#include "UserCommand.hpp"
-#include "ircUtils.hpp"
+#include "../include/Command.hpp"
+#include "../include/Debug.hpp"
+#include "../include/ErrNeedMoreParams.hpp"
+#include "../include/ErrNotRegistered.hpp"
+#include "../include/ErrAlreadyRegistered.hpp"
+#include "../include/UserCommand.hpp"
+#include "../include/ircUtils.hpp"
 
 static CommandFactory factory(int minArgs, AuthRequirement auth, Command* (*createCommand)(const Message&, const Client&))
 {

@@ -1,6 +1,5 @@
-#include "UserCommand.hpp"
-#include "Debug.hpp"
-#include "ErrAlreadyRegistered.hpp"
+#include "../../include/UserCommand.hpp"
+#include "../../include/Debug.hpp"
 
 UserCommand::UserCommand(const std::string& username, const std::string& realname) : username_(username), realname_(realname)
 {
@@ -37,7 +36,9 @@ void UserCommand::execute(Server& server, Client& sender)
 	sender.setUsername(username_);
 	sender.setRealname(realname_);
 	// TODO is this the right place to set the authenticated flag?
-	sender.setAuthenticated(true);
-	// TODO do we need to send a reply?
+	if (sender.getNickname().size() > 0)
+		sender.setAuthenticated(true);
+	//sending reply
+	
 	(void)server;
 }
