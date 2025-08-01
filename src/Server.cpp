@@ -102,6 +102,26 @@ void	Server::setServerSocket( int serverSocketFd )
 	this->serverSocket_ = serverSocketFd;
 }
 
+// sends the entire string with send() even when more than one send() call is needed 
+// returns -1 on error;
+int		Server::safeSend(int fd, const std::string &string)
+{
+	int sendBytes;
+	int	total_sent = 0;
+	int	left_size = string.size();
+	
+	while (left_size)
+	{
+		sendBytes = send(fd, string.substr(total_sent, left_size).c_str(), left_size, 0);
+		if (sendBytes == -1)
+			return (-1);
+		total_sent += sendBytes;
+		left_size -= sendBytes; 
+	}
+	return (0);
+}
+
+
 // accepts a connection from client and adds it to pollFds_
 void	Server::acceptConnection( void )
 {
@@ -113,9 +133,9 @@ void	Server::acceptConnection( void )
 	addPollFd(clientFd, POLLIN, 0);
 	debug("[Server] accepted new connection");
 	std::string	clientFdString = toString(clientFd);
-	std::string welcomeMessage = "Welcome to this server, you are fildescriptor " + clientFdString + " connection";
-	if (-1 == send(clientFd, welcomeMessage.c_str(), welcomeMessage.size(), 0))
-		throw std::runtime_error("[Server] send error with client: " + clientFdString);
+	std::string welcomeMessage = "Welcome to this server, you are fildescriptor " + clientFdString + " connection\n";
+	if (-1 == safeSend(clientFd, welcomeMessage))
+			throw std::runtime_error("[Server] send error with client: " + clientFdString);
 	Client newcomer;
 	newcomer.setSocket(clientFd);
 	clients_.push_back(newcomer);
