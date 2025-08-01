@@ -47,6 +47,9 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		main.cpp \
 		Server.cpp \
 		Client.cpp \
+    Message.cpp \
+		MessageType.cpp \
+		CaseMappedString.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
