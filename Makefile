@@ -44,8 +44,10 @@ DIRS = $(addprefix $(OBJ_DIR)/, .)
 INCLUDES := -I$(HDRS_DIR)
 
 SRCS := $(addprefix $(SRCS_DIR)/,\
-		server.cpp \
-		Message.cpp \
+		main.cpp \
+		Server.cpp \
+		Client.cpp \
+    Message.cpp \
 		MessageType.cpp \
 		CaseMappedString.cpp \
 		)
@@ -53,7 +55,9 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
 
 HDRS := $(addprefix $(HDRS_DIR)/,\
-		 \
+		Server.hpp \
+		Client.hpp \
+		ircUtils.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug
