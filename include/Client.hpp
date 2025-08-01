@@ -5,6 +5,8 @@
 #include <string>
 #include "CaseMappedString.hpp"
 
+class Message;
+
 class   Client
 {
 	private:
@@ -38,6 +40,8 @@ class   Client
 
 		void appendRawMessage(const char partialMessage[BUFSIZ], size_t length);
 		void clearMessage();
+		int		safeSend(const std::string &string);
+		void	sendMessage(Message toSend);
 };
 
 #endif

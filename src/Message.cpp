@@ -1,16 +1,46 @@
-#include "Message.hpp"
+#include "../include/Message.hpp"
+#include "../include/ircUtils.hpp"
 #include <cctype>
 #include <sstream>
-#include <ircUtils.hpp>
 
 Message::Message(MessageType type, const std::vector<std::string>& params)
 	: source_(NULL), type_(type), params_(params)
 {
 }
 
-Message::Message(const std::string& source, MessageType type, const std::vector<std::string>& params)
-: source_(source.empty() ? NULL : new std::string(source)), type_(type), params_(params)
+Message::Message(MessageType type, const std::vector<std::string>& params, const std::string& source)
+	: source_(source.empty() ? NULL : new std::string(source)), type_(type), params_(params)
 {
+}
+
+Message::Message(MessageType type, const std::vector<std::string>& params, const Client& source)
+	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_(params)
+{
+}
+
+Message::Message(MessageType type, const std::string& arg1)
+	: source_(NULL), type_(type), params_(1, arg1)
+{
+}
+
+Message::Message(MessageType type, const std::string& arg1, const std::string& arg2)
+	: source_(NULL), type_(type), params_()
+{
+	params_.push_back(arg1);
+	params_.push_back(arg2);
+}
+
+Message::Message(MessageType type, const std::string& arg1, const Client& source)
+	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_()
+{
+	params_.push_back(arg1);
+}
+
+Message::Message(MessageType type, const std::string& arg1, const std::string& arg2, const Client& source)
+	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_()
+{
+	params_.push_back(arg1);
+	params_.push_back(arg2);
 }
 
 Message::Message(const Message& other)
@@ -22,13 +52,24 @@ Message::Message(const Message& other)
 
 std::ostream& operator<<(std::ostream& os, const Message& message)
 {
-	os << message.getTypeAsString() << " ";
-	if (message.getParams().empty())
-		return os;
-	for (size_t i = 0; i < message.getParams().size() - 1; i++)
-		os << message.getParams()[i] << " ";
-	os << ":" << message.getParams().back();
+	os << message.toString();
 	return os;
+}
+
+std::string	Message::toString() const
+{
+	std::string msg;
+	if (source_)
+		msg += ":" + *source_ + " ";
+	msg += getTypeAsString();
+	if (getParams().empty())
+		return msg;
+	else
+		msg += " ";
+	for (size_t i = 0; i < getParams().size() - 1; i++)
+		msg += getParams()[i] + " ";
+	msg += ":" + getParams().back() + "\r\n";
+	return (msg);
 }
 
 Message::~Message()
@@ -81,7 +122,7 @@ MessageType Message::getType() const
 
 std::string Message::getTypeAsString() const
 {
-	return toString(type_);
+	return ::toString(type_);
 }
 
 const std::vector<std::string>& Message::getParams() const
