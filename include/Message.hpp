@@ -5,12 +5,18 @@
 #include <vector>
 #include <exception>
 #include "MessageType.hpp"
+#include "Client.hpp"
 
 class Message {
 public:
 	Message(const Message& other);
 	Message(MessageType type, const std::vector<std::string>& params);
-	Message(const std::string& source, MessageType type, const std::vector<std::string>& params);
+	Message(MessageType type, const std::vector<std::string>& params, const std::string& source);
+	Message(MessageType type, const std::vector<std::string>& params,  const Client& source);
+	Message(MessageType type, const std::string& arg1);
+	Message(MessageType type, const std::string& arg1, const std::string& arg2);
+	Message(MessageType type, const std::string& arg1, const Client& source);
+	Message(MessageType type, const std::string& arg1, const std::string& arg2, const Client& source);
 	virtual ~Message();
 	static Message parseIncomingMessage(const std::string& raw);
 
@@ -23,9 +29,10 @@ public:
 	const std::vector<std::string>& getParams() const;
 
 private:
-	const std::string* source_;
-	const MessageType type_;
-	const std::vector<std::string> params_;
+	std::string* source_;
+	MessageType type_;
+	std::vector<std::string> params_;
+
 	std::string	toString() const;
 
 	class UnknownMessageTypeException : std::exception {
