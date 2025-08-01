@@ -26,6 +26,7 @@ private:
 	const std::string* source_;
 	const MessageType type_;
 	const std::vector<std::string> params_;
+	std::string	toString() const;
 
 	class UnknownMessageTypeException : std::exception {
 	private:

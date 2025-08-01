@@ -22,6 +22,7 @@ class Server {
 		Server& operator=( const Server& other );
 		void	waitForRequests(void);
 		void	serverShutdown(void);
+		int		safeSend(int fd, const std::string &string);
 
 	private:
 		Server( void );
@@ -38,7 +39,6 @@ class Server {
 		void	removeClient(int pollIndexToRemove);
 		static void	signalHandler(int signum);
 		void	makeMessage(Client &client);
-		int		safeSend(int fd, const std::string &string);
 
 		const int						port_;
 		const std::string				password_;

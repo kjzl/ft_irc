@@ -67,7 +67,7 @@ void executeIncomingCommandMessage(Server& server, Client& sender, const std::st
 		params.push_back(sender.getNickname());
 		params.push_back(e.what());
 		Message errorMessage(ERR_UNKNOWNERROR, params);
-		// TODO send errorMessage to the client
+		sender.sendMessage(errorMessage);
 	}
 }
 

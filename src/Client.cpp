@@ -1,5 +1,8 @@
 #include "../include/Client.hpp"
+#include "../include/ircUtils.hpp"
 #include <cstdio>
+#include <stdexcept>
+#include <sys/socket.h>
 
 Client::Client() : is_authenticated_(false), socket_(-1), nickname_(""), username_(""), realname_(""), rawMessage_("")
 {}
@@ -100,3 +103,32 @@ void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 {
 	rawMessage_ += std::string(partialMessage, length);
 }
+
+
+void	Client::sendMessage(Message toSend)
+{
+	//TODO: this can be optimized, make new method in message to concatenate to string
+	std::string msg = toString(toSend);
+
+	safeSend(msg);
+}
+
+// sends the entire string with send() even when more than one send() call is needed 
+// throws and error if send fails
+int		Client::safeSend(const std::string &string)
+{
+	int sendBytes;
+	int	total_sent = 0;
+	int	left_size = string.size();
+	
+	while (left_size)
+	{
+		sendBytes = send(this->getSocket(), string.substr(total_sent, left_size).c_str(), left_size, 0);
+		if (sendBytes == -1)
+			throw std::runtime_error("[Server] send error with client: " + toString(getSocket()));
+		total_sent += sendBytes;
+		left_size -= sendBytes; 
+	}
+	return (0);
+}
+

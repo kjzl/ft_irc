@@ -31,6 +31,18 @@ std::ostream& operator<<(std::ostream& os, const Message& message)
 	return os;
 }
 
+std::string	Message::toString() const
+{
+	std::string msg;
+	msg = getTypeAsString() + " ";
+	if (getParams().empty())
+		return msg;
+	for (size_t i = 0; i < getParams().size() - 1; i++)
+		msg += getParams()[i] + " ";
+	msg += ":" + getParams().back();
+	return (msg);
+}
+
 Message::~Message()
 {
 	delete source_;
@@ -81,7 +93,7 @@ MessageType Message::getType() const
 
 std::string Message::getTypeAsString() const
 {
-	return toString(type_);
+	return ::toString(type_);
 }
 
 const std::vector<std::string>& Message::getParams() const

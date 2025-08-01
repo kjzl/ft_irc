@@ -9,7 +9,7 @@
 class Command {
 public:
 	virtual ~Command();
-	virtual void execute(Server& server, Client& sender) = 0;
+	virtual void	execute(Server& server, Client& sender) = 0;
 };
 
 enum AuthRequirement {
@@ -26,5 +26,6 @@ struct CommandFactory {
 
 Command* convertMessageToCommand(const Message& message, const Client& sender);
 void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage);
+void	sendMessage(Server& server, int fd, Message toSend);
 
 #endif // COMMAND_HPP

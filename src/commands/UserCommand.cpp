@@ -32,13 +32,13 @@ Command* UserCommand::fromMessage(const Message& message, const Client& sender)
 
 void UserCommand::execute(Server& server, Client& sender)
 {
-	// TODO check whether username and realname are valid or duplicated etc.
 	sender.setUsername(username_);
 	sender.setRealname(realname_);
 	// TODO is this the right place to set the authenticated flag?
 	if (sender.getNickname().size() > 0)
 		sender.setAuthenticated(true);
-	//sending reply
-	
+	//TODO send welcome message
+	// Message welcomeMsg("Welcome to the AspenWood our modest Internet Relay Chat Network" + getNickname());
+	// sender.sendMessage(welcomeMsg);
 	(void)server;
 }

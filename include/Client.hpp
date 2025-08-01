@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <string>
+#include "../include/Message.hpp"
 
 class   Client
 {
@@ -37,6 +38,8 @@ class   Client
 
 		void appendRawMessage(const char partialMessage[BUFSIZ], size_t length);
 		void clearMessage();
+		int		safeSend(const std::string &string);
+		void	sendMessage(Message toSend);
 };
 
 #endif
