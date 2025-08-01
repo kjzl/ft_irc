@@ -101,6 +101,5 @@ void Client::setRawMessage(const std::string &rawMessage)
 
 void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 {
-	std::cerr << BLUE << "appending rawMessage with: '" << std::string(partialMessage, length) << "'" << RESET << std::endl;
 	rawMessage_ += std::string(partialMessage, length);
 }
