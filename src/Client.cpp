@@ -7,7 +7,7 @@
 Client::Client() : is_authenticated_(false), socket_(-1), nickname_(""), username_(""), realname_(""), rawMessage_("")
 {}
 
-Client::Client(const Client &other) 
+Client::Client(const Client &other)
 {
     *this = other;
 }
@@ -26,17 +26,17 @@ Client &Client::operator=(const Client &other)
     return *this;
 }
 
-Client::~Client() 
+Client::~Client()
 {}
 
 // Getters
 
-bool Client::isAuthenticated() const 
+bool Client::isAuthenticated() const
 {
     return is_authenticated_;
 }
 
-const std::string &Client::getNickname() const
+const CaseMappedString &Client::getNickname() const
 {
     return nickname_;
 }
