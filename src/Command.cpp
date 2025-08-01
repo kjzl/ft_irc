@@ -2,20 +2,21 @@
 #include "Debug.hpp"
 #include "ErrNeedMoreParams.hpp"
 #include "ErrNotRegistered.hpp"
+#include "ErrAlreadyRegistered.hpp"
 #include "UserCommand.hpp"
 
-static CommandFactory factory(int minArgs, bool requiresAuth, Command* (*createCommand)(const Message&, const Client&))
+static CommandFactory factory(int minArgs, AuthRequirement auth, Command* (*createCommand)(const Message&, const Client&))
 {
 	CommandFactory commandFactory;
 	commandFactory.minArgs = minArgs;
-	commandFactory.requiresAuth = requiresAuth;
+	commandFactory.auth = auth;
 	commandFactory.createCommand = createCommand;
 	return commandFactory;
 }
 
 static void fillCommandFactories(std::map<MessageType, CommandFactory>& commandFactories)
 {
-	commandFactories[USER] = factory(4, false, UserCommand::fromMessage);
+	commandFactories[USER] = factory(4, REQUIRES_UNAUTH, UserCommand::fromMessage);
 }
 
 Command* convertMessageToCommand(const Message& message, const Client& sender)
@@ -27,10 +28,15 @@ Command* convertMessageToCommand(const Message& message, const Client& sender)
 
 	CommandFactory factory = commandFactories[message.getType()];
 
-	if (factory.requiresAuth && !sender.isAuthenticated())
+	if (factory.auth == REQUIRES_AUTH && !sender.isAuthenticated())
 	{
 		debug("Command requires authentication but client is not authenticated");
 		throw ErrNotRegistered(sender);
+	}
+	else if (factory.auth == REQUIRES_UNAUTH && sender.isAuthenticated())
+	{
+		debug("Command requires unauthenticated client but client is authenticated");
+		throw ErrAlreadyRegistered(sender);
 	}
 	if (static_cast<size_t>(factory.minArgs) <= message.getParams().size())
 		return factory.createCommand(message, sender);

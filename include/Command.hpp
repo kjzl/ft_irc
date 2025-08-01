@@ -12,9 +12,15 @@ public:
 	virtual void execute(Server& server, Client& sender) = 0;
 };
 
+enum AuthRequirement {
+	REQUIRES_UNAUTH,
+	NO_AUTH_REQUIRED,
+	REQUIRES_AUTH
+};
+
 struct CommandFactory {
 	int		minArgs;
-	bool	requiresAuth;
+	AuthRequirement	auth;
 	Command* (*createCommand)(const Message&, const Client&);
 };
 

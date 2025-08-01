@@ -20,6 +20,17 @@ Message::Message(const Message& other)
 {
 }
 
+std::ostream& operator<<(std::ostream& os, const Message& message)
+{
+	os << message.getTypeAsString() << " ";
+	if (message.getParams().empty())
+		return os;
+	for (size_t i = 0; i < message.getParams().size() - 1; i++)
+		os << message.getParams()[i] << " ";
+	os << ":" << message.getParams().back();
+	return os;
+}
+
 Message::~Message()
 {
 	delete source_;

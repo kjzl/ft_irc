@@ -33,11 +33,6 @@ Command* UserCommand::fromMessage(const Message& message, const Client& sender)
 
 void UserCommand::execute(Server& server, Client& sender)
 {
-	if (sender.isAuthenticated())
-	{
-		debug("UserCommand execute called, but client is already authenticated");
-		throw ErrAlreadyRegistered(sender);
-	}
 	// TODO check whether username and realname are valid or duplicated etc.
 	sender.setUsername(username_);
 	sender.setRealname(realname_);

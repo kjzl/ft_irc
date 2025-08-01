@@ -48,4 +48,6 @@ private:
 	};
 };
 
+std::ostream& operator<<(std::ostream& os, const Message& message);
+
 #endif // MESSAGE_HPP
