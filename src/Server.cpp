@@ -1,14 +1,13 @@
 #include "../include/Server.hpp"
 #include "../include/Debug.hpp"
 #include "../include/ircUtils.hpp"
+#include <cerrno>
 #include <csignal>
 #include <cstdio>
 #include <iostream>
 #include <netinet/in.h>
 #include <ostream>
-#include <pthread.h>
 #include <stdexcept>
-#include <strings.h>
 #include <sys/socket.h>
 #include <errno.h>
 #include <netdb.h>
@@ -20,7 +19,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/fcntl.h>
-#include <strings.h>
 
 bool Server::running_ = false;
 
@@ -28,11 +26,11 @@ void	Server::signalHandler(int signum)
 {
 	static_cast<void>(signum);
 	running_ = false;
-	std::cout << BLUE << "Signal received" << RESET << std::endl;
+	debug("received a signal");
 }
 
 // Default Constructor
-Server::Server(void): port_(6667)
+Server::Server(void): port_(6667), password_("password")
 {
 	running_ = true;
 	debug("Default Constructor called");
@@ -41,11 +39,15 @@ Server::Server(void): port_(6667)
 // Parameterized Constructor
 Server::Server(int port, std::string password): port_(port), password_(password), serverSocket_(-1)
 {
+	struct sigaction sa;
+	sa.sa_handler = signalHandler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
 	debug("Parameterized Constructor called");
 	std::cout << GREEN << "==== STARTING SERVER ====" << RESET << std::endl;
 	running_ = true;
-	signal(SIGINT, Server::signalHandler);
-	signal(SIGQUIT, Server::signalHandler);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
 	serverInit();
 }
 
@@ -53,21 +55,28 @@ Server::Server(int port, std::string password): port_(port), password_(password)
 Server::~Server()
 {
 	debug("Destructor called");
-	serverShutdown();
+	// serverShutdown();
 }
 
 // Copy Constructor
-Server::Server(const Server& other): port_(other.port_)
-{
-	*this = other;
-}
+Server::Server(const Server& other):
+	port_(other.port_),
+	password_(other.password_),
+	serverSocket_(other.serverSocket_),
+	pollFds_(other.pollFds_),
+	clients_(other.clients_)
+	// channels_(other.channels_)
+{}
 
 // Copy Assignment Operator
 Server& Server::operator=(const Server& other)
 {
 	if (this != &other)
 	{
-		//Todo
+		serverSocket_ = other.serverSocket_;
+		pollFds_ = other.pollFds_;
+		clients_ = other.clients_;
+		//channels_ = other.channels_;
 	}
 	return *this;
 }
@@ -93,6 +102,26 @@ void	Server::setServerSocket( int serverSocketFd )
 	this->serverSocket_ = serverSocketFd;
 }
 
+// sends the entire string with send() even when more than one send() call is needed 
+// returns -1 on error;
+int		Server::safeSend(int fd, const std::string &string)
+{
+	int sendBytes;
+	int	total_sent = 0;
+	int	left_size = string.size();
+	
+	while (left_size)
+	{
+		sendBytes = send(fd, string.substr(total_sent, left_size).c_str(), left_size, 0);
+		if (sendBytes == -1)
+			return (-1);
+		total_sent += sendBytes;
+		left_size -= sendBytes; 
+	}
+	return (0);
+}
+
+
 // accepts a connection from client and adds it to pollFds_
 void	Server::acceptConnection( void )
 {
@@ -104,10 +133,11 @@ void	Server::acceptConnection( void )
 	addPollFd(clientFd, POLLIN, 0);
 	debug("[Server] accepted new connection");
 	std::string	clientFdString = toString(clientFd);
-	std::string welcomeMessage = "Welcome to this server, you are fildescriptor " + clientFdString + " connection";
-	if (-1 == send(clientFd, welcomeMessage.c_str(), welcomeMessage.size(), 0))
-		throw std::runtime_error("[Server] send error with client: " + clientFdString);
+	std::string welcomeMessage = "Welcome to this server, you are fildescriptor " + clientFdString + " connection\n";
+	if (-1 == safeSend(clientFd, welcomeMessage))
+			throw std::runtime_error("[Server] send error with client: " + clientFdString);
 	Client newcomer;
+	newcomer.setSocket(clientFd);
 	clients_.push_back(newcomer);
 }
 
@@ -117,29 +147,39 @@ void	Server::removeClient(int pollIndexToRemove)
 {
 	struct pollfd pollToRemove = pollFds_[pollIndexToRemove];
 	debug("removing Client");
-	std::cout << "[Server] Client on fd " << pollToRemove.fd << "has disconnected." << std::endl;
+	std::cout << "[Server] Client on fd " << pollToRemove.fd << " has disconnected." << std::endl;
+	shutdown(pollToRemove.fd, SHUT_RD);
 	if (-1 == close(pollToRemove.fd))
 		throw std::runtime_error("close error");
 	if (clients_[pollIndexToRemove - 1].getSocket() != pollFds_[pollIndexToRemove].fd)
 		throw std::logic_error("pollfds and clients should be indexwise only -1 apart");
-	// does this actually deconsctuct the client at that position if i just overwrite it?
 	clients_[pollIndexToRemove - 1] = clients_.back();
 	clients_.pop_back();
 	pollFds_[pollIndexToRemove] = pollFds_.back();
 	pollFds_.pop_back();
 }
 
-//TODO:
-void	Server::makeMessage(Client client)
+//attempts to extract a full message from the clients sent input
+//if it extraced a string, calls the parser and executes the command
+void	Server::makeMessage(Client &client)
 {
-	(void) client;
-	// loop if there is /n/r
-	// {
-	// extract upt to /n/r
-	// construct a message class
-	// execute message class
-	// save the rest that wasn't procesed back into message(setRawMessage)
-	// }
+	std::string	command;
+	std::string	raw_message = client.getRawMessage();
+	size_t		position;
+
+	while ((position = raw_message.find('\n')) != raw_message.npos)
+	{
+		if (position != 0 && raw_message[position - 1] == '\r')
+			command = raw_message.substr(0, position - 1);
+		else
+			command = raw_message.substr(0, position);
+		raw_message.erase(0, position + 1);
+		client.setRawMessage(raw_message);
+		std::cout << command << std::endl;
+		// CALL THE PARSER
+		// CALL THE COMMAND ECXECUTOR
+		debug(raw_message);
+	}
 }
 
 // this function should check if its a POLLHUP or POLLIN 
@@ -150,25 +190,26 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 	char	message[BUFSIZ];
 	int		bytesRead;
 
-	if (request.revents & POLLHUP)
-		removeClient(pollIndex);
-	else
-	{
+	// if (request.revents & POLLHUP)
+	// 	removeClient(pollIndex);
+	// else
+	// {
 		bytesRead = recv(request.fd, message, BUFSIZ, MSG_DONTWAIT);
 		if (bytesRead == 0)
 			removeClient(pollIndex);
-		if (bytesRead == -1)
-			//TODO:
-			//check errno, throw if neccessary
-			;
+		else if (bytesRead == -1)
+		{
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				return ;
+			throw std::runtime_error("[Server] recv error");
+		}
 		else
 		{
-			std::cout << CYN << "[received a message from client]" << RESET << std::endl << message << std::endl;
-			clients_[pollIndex - 1].appendRawMessage(message);
-			//TODO:
-			// makeMessage(clients_[pollIndex - 1]);
+			std::cout << CYN << "[received a message from client: " << request.fd <<" ]" << RESET << std::endl;
+			clients_[pollIndex - 1].appendRawMessage(message, bytesRead);
+			makeMessage(clients_[pollIndex - 1]);
 		}
-	}
+	// }
 }
 
 //main loop to be in while running
@@ -176,28 +217,34 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 //if ready, checks polls through and directs them toward acceptConnection or readFromSocket
 void	Server::waitForRequests(void)
 {
-	while (running_)
-	{
-		int	rdyPollsCount = 0;
-		rdyPollsCount = poll(&(pollFds_[0]), pollFds_.size(), TIMEOUT);
-		if (running_ && rdyPollsCount == -1)
-			throw std::runtime_error("[Server] poll error");
-		else if (rdyPollsCount == 0)
+	try {
+		while (running_)
 		{
-			std::cout << "[Server] Waiting for requests" << std::endl;
-			continue;
+			int	rdyPollsCount = 0;
+			rdyPollsCount = poll(&(pollFds_[0]), pollFds_.size(), TIMEOUT);
+			if (running_ && rdyPollsCount == -1)
+				throw std::runtime_error("[Server] poll error");
+			else if (rdyPollsCount == 0)
+			{
+				std::cout << "[Server] Waiting for requests" << std::endl;
+				continue;
+			}
+			int	rdyPollsChecked = 0;
+			for (size_t pollIndex = 0; running_ && pollIndex < pollFds_.size() && rdyPollsChecked < rdyPollsCount; pollIndex++)
+			{ 
+				if (((pollFds_[pollIndex].revents & (POLLIN | POLLHUP)) != 1))
+					continue; // this socket is not the ready one
+				++rdyPollsChecked;
+				if (pollIndex == 0)
+					acceptConnection();
+				else
+					processPollIn(pollFds_[pollIndex], pollIndex);
+				std::cout << std::endl;
+			}
 		}
-		int	rdyPollsChecked = 0;
-		for (size_t pollIndex = 0; running_ && pollIndex < pollFds_.size() && rdyPollsChecked < rdyPollsCount; pollIndex++)
-		{ 
-			if (((pollFds_[pollIndex].revents & (POLLIN | POLLHUP)) != 1))
-				continue; // this socket is not the ready one
-			++rdyPollsChecked;
-			if (pollIndex == 0)
-				acceptConnection();
-			else
-				processPollIn(pollFds_[pollIndex], pollIndex);
-		}
+	} catch (std::runtime_error &e) {
+		std::cerr << e.what() << ": " << strerror(errno) << std::endl;
+		serverShutdown();
 	}
 	std::cout << YEL << "[Server] Stopped listening for requests" << RESET << std::endl;
 }
@@ -206,13 +253,13 @@ void	Server::waitForRequests(void)
 void	Server::createListeningSocket(void)
 {
 	int	err = 0;
-	struct addrinfo	hints, *res = {0};
-	//TODO: replace bzero
-	bzero(&hints, sizeof(hints));
+	struct addrinfo	hints = {0, 0, 0, 0, 0, 0, 0, 0};
+	struct addrinfo	*res = {0};
 	hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
 	hints.ai_socktype = SOCK_STREAM; //TCP
 	hints.ai_flags = AI_PASSIVE; //put in my ip for me
 	std::string port_str = toString(port_);
+	int optval = 1;
 
 	err = (getaddrinfo(NULL, port_str.c_str(), &hints, &res));
 	if (err != 0)
@@ -227,9 +274,12 @@ void	Server::createListeningSocket(void)
 		freeaddrinfo(res);
 		throw std::runtime_error("[Server] socket error");
 	}
+	//reusing old socket, if still open, to circumvent TIME_WAIT
+	setsockopt(serverSocket_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 	//bind socket
 	if (-1 == bind(getServerSocket(), res->ai_addr, res->ai_addrlen))
 	{
+		close(serverSocket_);
 		freeaddrinfo(res);
 		throw std::runtime_error("[Server] bind error");
 	}
@@ -254,14 +304,16 @@ void	Server::serverShutdown(void)
 	std::cout << BRED << "==== STARTING SERVER SHUTDOWN ====" << RESET << std::endl;
 	for (size_t pollIndex = 1; pollIndex < pollFds_.size(); pollIndex++)
 	{
+		shutdown(pollFds_[pollIndex].fd,  SHUT_RDWR);
 		if (-1 == close(pollFds_[pollIndex].fd))
-			throw std::runtime_error(strerror(errno));
+			throw std::runtime_error("[Server] close error on fd: " + toString(pollFds_[pollIndex].fd));
 	}
 	std::cout << "[Server] diconnected all clients sockets" << RESET << std::endl;
 	if (serverSocket_ != -1)
 	{
+		shutdown(serverSocket_,  SHUT_RDWR);
 		if (-1 == close(serverSocket_))
-			throw std::runtime_error(strerror(errno));
+			throw std::runtime_error("[Server] close error on serverSocket");
 		std::cout << "[Server] diconnected listening socket" << RESET << std::endl;
 	}
 	std::cout << GREEN << "[Server] Shutdown complete" << RESET << std::endl;
