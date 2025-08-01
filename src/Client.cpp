@@ -107,10 +107,7 @@ void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 
 void	Client::sendMessage(Message toSend)
 {
-	//TODO: this can be optimized, make new method in message to concatenate to string
-	std::string msg = toString(toSend);
-
-	safeSend(msg);
+	safeSend(toSend.toString());
 }
 
 // sends the entire string with send() even when more than one send() call is needed 

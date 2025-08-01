@@ -19,6 +19,7 @@ public:
 	Message(MessageType type, const std::string& arg1, const std::string& arg2, const Client& source);
 	virtual ~Message();
 	static Message parseIncomingMessage(const std::string& raw);
+	std::string	toString() const;
 
 	// Optional note of where the message came from
 	const std::string* getSource() const;
@@ -32,8 +33,6 @@ private:
 	std::string* source_;
 	MessageType type_;
 	std::vector<std::string> params_;
-
-	std::string	toString() const;
 
 	class UnknownMessageTypeException : std::exception {
 	private:
