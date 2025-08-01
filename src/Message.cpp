@@ -8,9 +8,39 @@ Message::Message(MessageType type, const std::vector<std::string>& params)
 {
 }
 
-Message::Message(const std::string& source, MessageType type, const std::vector<std::string>& params)
-: source_(source.empty() ? NULL : new std::string(source)), type_(type), params_(params)
+Message::Message(MessageType type, const std::vector<std::string>& params, const std::string& source)
+	: source_(source.empty() ? NULL : new std::string(source)), type_(type), params_(params)
 {
+}
+
+Message::Message(MessageType type, const std::vector<std::string>& params, const Client& source)
+	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_(params)
+{
+}
+
+Message::Message(MessageType type, const std::string& arg1)
+	: source_(NULL), type_(type), params_(1, arg1)
+{
+}
+
+Message::Message(MessageType type, const std::string& arg1, const std::string& arg2)
+	: source_(NULL), type_(type), params_()
+{
+	params_.push_back(arg1);
+	params_.push_back(arg2);
+}
+
+Message::Message(MessageType type, const std::string& arg1, const Client& source)
+	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_()
+{
+	params_.push_back(arg1);
+}
+
+Message::Message(MessageType type, const std::string& arg1, const std::string& arg2, const Client& source)
+	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_()
+{
+	params_.push_back(arg1);
+	params_.push_back(arg2);
 }
 
 Message::Message(const Message& other)
