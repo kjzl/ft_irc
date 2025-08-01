@@ -5,7 +5,8 @@
 #include <vector>
 #include <exception>
 #include "MessageType.hpp"
-#include "Client.hpp"
+
+class Client;
 
 class Message {
 public:

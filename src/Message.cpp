@@ -2,6 +2,7 @@
 #include "../include/ircUtils.hpp"
 #include <cctype>
 #include <sstream>
+#include "Client.hpp"
 
 Message::Message(MessageType type, const std::vector<std::string>& params)
 	: source_(NULL), type_(type), params_(params)

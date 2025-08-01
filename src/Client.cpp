@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <stdexcept>
 #include <sys/socket.h>
+#include "Message.hpp"
 
 Client::Client() : is_authenticated_(false), socket_(-1), nickname_(""), username_(""), realname_(""), rawMessage_("")
 {}
