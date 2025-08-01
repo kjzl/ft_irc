@@ -26,6 +26,7 @@ UserCommand::~UserCommand() {
 
 Command* UserCommand::fromMessage(const Message& message, const Client& sender)
 {
+	(void)sender;
 	// dont think we need to check whether params 1 and 2 are "0" and "*" as theyre unused anyway
 	return new UserCommand(message.getParams()[0], message.getParams()[3]);
 }
@@ -43,4 +44,5 @@ void UserCommand::execute(Server& server, Client& sender)
 	// TODO is this the right place to set the authenticated flag?
 	sender.setAuthenticated(true);
 	// TODO do we need to send a reply?
+	(void)server;
 }

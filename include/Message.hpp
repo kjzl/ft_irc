@@ -1,3 +1,6 @@
+#ifndef MESSAGE_HPP
+#define MESSAGE_HPP
+
 #include <string>
 #include <vector>
 #include <exception>
@@ -44,3 +47,5 @@ private:
 		const char* what() const throw();
 	};
 };
+
+#endif // MESSAGE_HPP

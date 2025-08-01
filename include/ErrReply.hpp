@@ -8,7 +8,7 @@
 class ErrReply : std::exception {
 public:
 	ErrReply(const Client& client, MessageType errType);
-	virtual ~ErrReply();
+	virtual ~ErrReply() throw();
 	const char* what() const throw();
 	Message toMessage() const;
 

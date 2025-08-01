@@ -8,7 +8,7 @@ ErrAlreadyRegistered::ErrAlreadyRegistered(const Client& client)
 	params_.push_back("You may not reregister");
 }
 
-ErrAlreadyRegistered::~ErrAlreadyRegistered()
+ErrAlreadyRegistered::~ErrAlreadyRegistered() throw()
 {
 	debug("ErrAlreadyRegistered destructor called");
 }

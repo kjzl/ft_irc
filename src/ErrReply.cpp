@@ -7,7 +7,7 @@ ErrReply::ErrReply(const Client& client, MessageType errType) : errType_(errType
 	params_.push_back(client.getNickname());
 }
 
-ErrReply::~ErrReply()
+ErrReply::~ErrReply() throw()
 {
 	debug("ErrReply destructor called");
 }

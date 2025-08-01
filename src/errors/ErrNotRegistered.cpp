@@ -8,7 +8,7 @@ ErrNotRegistered::ErrNotRegistered(const Client& client)
 	params_.push_back("You have not registered");
 }
 
-ErrNotRegistered::~ErrNotRegistered()
+ErrNotRegistered::~ErrNotRegistered() throw()
 {
 	debug("ErrNotRegistered destructor called");
 

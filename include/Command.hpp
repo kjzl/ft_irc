@@ -8,7 +8,7 @@
 
 class Command {
 public:
-	virtual ~Command() = 0;
+	virtual ~Command();
 	virtual void execute(Server& server, Client& sender) = 0;
 };
 
@@ -19,5 +19,6 @@ struct CommandFactory {
 };
 
 Command* convertMessageToCommand(const Message& message, const Client& sender);
+void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage);
 
 #endif // COMMAND_HPP

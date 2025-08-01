@@ -6,7 +6,7 @@
 class ErrNotRegistered : ErrReply {
 public:
 	ErrNotRegistered(const Client& client);
-	virtual ~ErrNotRegistered();
+	virtual ~ErrNotRegistered() throw();
 };
 
 #endif // ERRNOTREGISTERED_HPP

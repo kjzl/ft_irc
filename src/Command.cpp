@@ -4,12 +4,21 @@
 #include "ErrNotRegistered.hpp"
 #include "UserCommand.hpp"
 
-void fillCommandFactories(std::map<MessageType, CommandFactory>& commandFactories)
+static CommandFactory factory(int minArgs, bool requiresAuth, Command* (*createCommand)(const Message&, const Client&))
 {
-	commandFactories[USER] = {4, false, UserCommand::fromMessage};
+	CommandFactory commandFactory;
+	commandFactory.minArgs = minArgs;
+	commandFactory.requiresAuth = requiresAuth;
+	commandFactory.createCommand = createCommand;
+	return commandFactory;
 }
 
-static Command* convertMessageToCommand(const Message& message, const Client& sender)
+static void fillCommandFactories(std::map<MessageType, CommandFactory>& commandFactories)
+{
+	commandFactories[USER] = factory(4, false, UserCommand::fromMessage);
+}
+
+Command* convertMessageToCommand(const Message& message, const Client& sender)
 {
 	static std::map<MessageType, CommandFactory> commandFactories;
 
@@ -23,13 +32,13 @@ static Command* convertMessageToCommand(const Message& message, const Client& se
 		debug("Command requires authentication but client is not authenticated");
 		throw ErrNotRegistered(sender);
 	}
-	if (factory.minArgs <= message.getParams().size())
+	if (static_cast<size_t>(factory.minArgs) <= message.getParams().size())
 		return factory.createCommand(message, sender);
 	else
 		throw ErrNeedMoreParams(sender, message.getTypeAsString());
 }
 
-static void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage)
+void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage)
 {
 	try {
 		Message message = Message::parseIncomingMessage(rawMessage);
@@ -47,7 +56,14 @@ static void executeIncomingCommandMessage(Server& server, Client& sender, const 
 		// TODO send errorMessage to the client
 	} catch (const std::exception& e) {
 		debug("Exception caught: " + std::string(e.what()));
-		Message errorMessage(MessageType::ERR_UNKNOWNERROR, {sender.getNickname(), e.what()});
+		std::vector<std::string> params;
+		params.push_back(sender.getNickname());
+		params.push_back(e.what());
+		Message errorMessage(ERR_UNKNOWNERROR, params);
 		// TODO send errorMessage to the client
 	}
+}
+
+Command::~Command()
+{
 }

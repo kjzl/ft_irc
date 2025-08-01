@@ -9,7 +9,7 @@ ErrNeedMoreParams::ErrNeedMoreParams(const Client& client, const std::string& co
 	params_.push_back("Not enough parameters");
 }
 
-ErrNeedMoreParams::~ErrNeedMoreParams()
+ErrNeedMoreParams::~ErrNeedMoreParams() throw()
 {
 	debug("ErrNeedMoreParams destructor called");
 }

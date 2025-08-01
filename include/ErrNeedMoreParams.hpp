@@ -6,7 +6,7 @@
 class ErrNeedMoreParams : public ErrReply {
 public:
 	ErrNeedMoreParams(const Client& client, const std::string& command);
-	virtual ~ErrNeedMoreParams();
+	virtual ~ErrNeedMoreParams() throw();
 };
 
 #endif // ERRNEEDMOREPARAMS_HPP

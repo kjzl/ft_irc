@@ -7,7 +7,7 @@
 class ErrAlreadyRegistered : ErrReply {
 public:
 	ErrAlreadyRegistered(const Client& client);
-	virtual ~ErrAlreadyRegistered();
+	virtual ~ErrAlreadyRegistered() throw();
 };
 
 #endif // ERRALREADYREGISTERED_HPP
