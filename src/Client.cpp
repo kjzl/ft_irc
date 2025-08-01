@@ -97,7 +97,7 @@ void Client::setRawMessage(const std::string &rawMessage)
 }
 
 
-void Client::appendRawMessage(const char partialMessage[BUFSIZ])
+void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 {
-	rawMessage_ += partialMessage;
+	rawMessage_ += std::string(partialMessage, length);
 }

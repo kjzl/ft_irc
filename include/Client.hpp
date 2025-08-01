@@ -35,7 +35,7 @@ class   Client
 		void setRawMessage(const std::string &rawMessage);
 		void setSocket(int socket); 
 
-		void appendRawMessage(const char partialMessage[BUFSIZ]);
+		void appendRawMessage(const char partialMessage[BUFSIZ], size_t length);
 		void clearMessage();
 };
 

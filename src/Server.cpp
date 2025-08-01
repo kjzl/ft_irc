@@ -152,7 +152,8 @@ void	Server::makeMessage(Client &client)
 			command = raw_message.substr(0, position - 1);
 		else
 			command = raw_message.substr(0, position);
-		client.setRawMessage(raw_message.erase(0, position + 1));
+		raw_message.erase(0, position + 1);
+		client.setRawMessage(raw_message);
 		std::cout << command << std::endl;
 		// CALL THE PARSER
 		// CALL THE COMMAND ECXECUTOR
@@ -184,7 +185,7 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 		else
 		{
 			std::cout << CYN << "[received a message from client: " << request.fd <<" ]" << RESET << std::endl;
-			clients_[pollIndex - 1].appendRawMessage(message);
+			clients_[pollIndex - 1].appendRawMessage(message, bytesRead);
 			makeMessage(clients_[pollIndex - 1]);
 		}
 	// }
