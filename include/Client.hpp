@@ -3,7 +3,8 @@
 
 #include <cstdio>
 #include <string>
-#include "../include/Message.hpp"
+
+class Message;
 
 class   Client
 {
