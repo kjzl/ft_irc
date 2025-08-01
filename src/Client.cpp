@@ -1,5 +1,6 @@
 #include "../include/Client.hpp"
 #include <cstdio>
+#include <iostream>
 
 Client::Client() : is_authenticated_(false), socket_(-1), nickname_(""), username_(""), realname_(""), rawMessage_("")
 {}
@@ -96,8 +97,10 @@ void Client::setRawMessage(const std::string &rawMessage)
     rawMessage_ = rawMessage;
 }
 
+#include "../include/Debug.hpp"
 
 void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 {
+	std::cerr << BLUE << "appending rawMessage with: '" << std::string(partialMessage, length) << "'" << RESET << std::endl;
 	rawMessage_ += std::string(partialMessage, length);
 }

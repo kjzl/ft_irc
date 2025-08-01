@@ -128,10 +128,12 @@ void	Server::removeClient(int pollIndexToRemove)
 	struct pollfd pollToRemove = pollFds_[pollIndexToRemove];
 	debug("removing Client");
 	std::cout << "[Server] Client on fd " << pollToRemove.fd << " has disconnected." << std::endl;
+	shutdown(pollToRemove.fd, SHUT_RD);
 	if (-1 == close(pollToRemove.fd))
 		throw std::runtime_error("close error");
 	if (clients_[pollIndexToRemove - 1].getSocket() != pollFds_[pollIndexToRemove].fd)
 		throw std::logic_error("pollfds and clients should be indexwise only -1 apart");
+	clients_[pollIndexToRemove - 1].clearMessage();
 	clients_[pollIndexToRemove - 1] = clients_.back();
 	clients_.pop_back();
 	pollFds_[pollIndexToRemove] = pollFds_.back();
@@ -185,6 +187,7 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 		else
 		{
 			std::cout << CYN << "[received a message from client: " << request.fd <<" ]" << RESET << std::endl;
+			std::cout << CYN << "[size of message: " << bytesRead <<" ]" << RESET << std::endl;
 			clients_[pollIndex - 1].appendRawMessage(message, bytesRead);
 			makeMessage(clients_[pollIndex - 1]);
 		}
