@@ -9,15 +9,15 @@
 class Command {
 public:
 	virtual ~Command() = 0;
-	virtual void execute(Server& server) = 0;
+	virtual void execute(Server& server, Client& sender) = 0;
 };
 
 struct CommandFactory {
-	int minArgs;
+	int		minArgs;
 	bool	requiresAuth;
-	Command* (*createCommand)(const Message&);
+	Command* (*createCommand)(const Message&, const Client&);
 };
 
-Command* convertMessageToCommand(const Message& message);
+Command* convertMessageToCommand(const Message& message, const Client& sender);
 
 #endif // COMMAND_HPP

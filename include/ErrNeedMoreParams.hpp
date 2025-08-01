@@ -5,7 +5,7 @@
 
 class ErrNeedMoreParams : public ErrReply {
 public:
-	ErrNeedMoreParams(std::string client, std::string command);
+	ErrNeedMoreParams(const Client& client, const std::string& command);
 	virtual ~ErrNeedMoreParams();
 };
 

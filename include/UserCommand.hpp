@@ -3,15 +3,17 @@
 
 #include "Command.hpp"
 
+// https://modern.ircdocs.horse/#user-message
+
 class UserCommand : Command {
 public:
-	UserCommand(std::string username, std::string realname);
+	UserCommand(const std::string& username, const std::string& realname);
 	UserCommand(const UserCommand& other);
 	UserCommand& operator=(const UserCommand& other);
 	virtual ~UserCommand();
 
-	UserCommand(const Message& message);
-	void execute(Server& server);
+	static Command* fromMessage(const Message& message, const Client& sender);
+	void execute(Server& server, Client& sender);
 private:
 	std::string username_;
 	std::string realname_;

@@ -1,13 +1,14 @@
 #include "Message.hpp"
 #include <cctype>
 #include <sstream>
+#include <ircUtils.hpp>
 
-Message::Message(MessageType type, std::vector<std::string> params)
+Message::Message(MessageType type, const std::vector<std::string>& params)
 	: source_(NULL), type_(type), params_(params)
 {
 }
 
-Message::Message(const std::string& source, MessageType type, std::vector<std::string> params)
+Message::Message(const std::string& source, MessageType type, const std::vector<std::string>& params)
 : source_(source.empty() ? NULL : new std::string(source)), type_(type), params_(params)
 {
 }
@@ -65,6 +66,11 @@ const std::string* Message::getSource() const
 MessageType Message::getType() const
 {
 	return type_;
+}
+
+std::string Message::getTypeAsString() const
+{
+	return toString(type_);
 }
 
 const std::vector<std::string>& Message::getParams() const
