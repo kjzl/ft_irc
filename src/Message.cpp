@@ -4,6 +4,11 @@
 #include <sstream>
 #include "Client.hpp"
 
+Message::Message(const std::string &msg)
+{
+	parseIncomingMessage(msg);
+}
+
 Message::Message(MessageType type, const std::vector<std::string>& params)
 	: source_(NULL), type_(type), params_(params)
 {
@@ -79,12 +84,10 @@ Message::~Message()
 }
 
 // input message must not end with crlf
-Message Message::parseIncomingMessage(const std::string& msg)
+void Message::parseIncomingMessage(const std::string& msg)
 {
 	std::istringstream			iss(msg);
 	std::string					token;
-	MessageType					type;
-	std::vector<std::string>	params;
 	bool 						lastParam = false;
 
 	iss >> token;
@@ -93,22 +96,21 @@ Message Message::parseIncomingMessage(const std::string& msg)
 	// client messages cant have a source and we do not support tags
 	if (token[0] == ':' || token[0] == '@')
 		throw WrongMessageFormatException("Message must not include a source or tag.");
-	type = parseCommandType(token);
-	if (type == UNKNOWN)
+	type_ = parseCommandType(token);
+	if (type_ == UNKNOWN)
 		throw UnknownMessageTypeException(token);
 	while (iss >> token)
 	{
 		if (lastParam)
-			params.back() += " " + token;
+			params_.back() += " " + token;
 		else if (token[0] == ':')
 		{
 			lastParam = true;
-			params.push_back(token.substr(1));
+			params_.push_back(token.substr(1));
 		}
 		else
-			params.push_back(token);
+			params_.push_back(token);
 	}
-	return Message(type, params);
 }
 
 const std::string* Message::getSource() const

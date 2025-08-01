@@ -48,7 +48,8 @@ Command* convertMessageToCommand(const Message& message, const Client& sender)
 void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage)
 {
 	try {
-		Message message = Message::parseIncomingMessage(rawMessage);
+		// Message message = Message::parseIncomingMessage(rawMessage);
+		Message message(rawMessage);
 		debug("Parsed message: " + message.getTypeAsString() + " with params: " + toString(message.getParams().size()));
 
 		Command* command = convertMessageToCommand(message, sender);
@@ -60,6 +61,13 @@ void executeIncomingCommandMessage(Server& server, Client& sender, const std::st
 	} catch (const ErrReply& errReply) {
 		debug("Error reply: " + std::string(errReply.what()));
 		Message errorMessage = errReply.toMessage();
+		sender.sendMessage(errorMessage);
+	} catch (const Message::UnknownMessageTypeException& e) {
+		debug("Exception caught: " + std::string(e.what()));
+		std::vector<std::string> params;
+		params.push_back(sender.getNickname());
+		params.push_back(e.what());
+		Message errorMessage(ERR_UNKNOWNERROR, params);
 		sender.sendMessage(errorMessage);
 	} catch (const std::exception& e) {
 		debug("Exception caught: " + std::string(e.what()));

@@ -1,6 +1,7 @@
 #include "../include/Server.hpp"
 #include "../include/Debug.hpp"
 #include "../include/ircUtils.hpp"
+#include "../include/Command.hpp"
 #include <cerrno>
 #include <csignal>
 #include <cstdio>
@@ -154,8 +155,7 @@ void	Server::makeMessage(Client &client)
 		raw_message.erase(0, position + 1);
 		client.setRawMessage(raw_message);
 		std::cout << command << std::endl;
-		// CALL THE PARSER
-		// CALL THE COMMAND ECXECUTOR
+		executeIncomingCommandMessage(*this, client, command);
 		debug(raw_message);
 	}
 }

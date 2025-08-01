@@ -18,8 +18,8 @@ public:
 	Message(MessageType type, const std::string& arg1, const std::string& arg2);
 	Message(MessageType type, const std::string& arg1, const Client& source);
 	Message(MessageType type, const std::string& arg1, const std::string& arg2, const Client& source);
+	Message(const std::string &msg);
 	virtual ~Message();
-	static Message parseIncomingMessage(const std::string& raw);
 	std::string	toString() const;
 
 	// Optional note of where the message came from
@@ -29,11 +29,6 @@ public:
 	std::string getTypeAsString() const;
 	// If it exists, data relevant to this specific command.
 	const std::vector<std::string>& getParams() const;
-
-private:
-	std::string* source_;
-	MessageType type_;
-	std::vector<std::string> params_;
 
 	class UnknownMessageTypeException : std::exception {
 	private:
@@ -54,6 +49,13 @@ private:
 		~WrongMessageFormatException() throw();
 		const char* what() const throw();
 	};
+private:
+	std::string* source_;
+	MessageType type_;
+	std::vector<std::string> params_;
+
+	void parseIncomingMessage(const std::string& raw);
+
 };
 
 std::ostream& operator<<(std::ostream& os, const Message& message);
