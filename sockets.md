@@ -29,6 +29,27 @@ that is the old way. let's go with the new, ipv6 compatible one.
 
 [guide](https://beej.us/guide/bgnet/html/#getaddrinfoman)
 
+#### bind a socket
+
+sometimes, when you quit the server and then restart, you get a bind error:
+==== STARTING SERVER ====
+[Server] bind error: Address already in use
+
+That happens not because of this program, but because of how TCP works.
+There is something calles [TIME_WAIT](https://superuser.com/questions/173535/what-are-close-wait-and-time-wait-states). It ensures that enough time has passed for delayed packages to arrive and be discarded.
+
+[short explanation of what happens on TIME_WAIT and CLOSE_WAIT](https://blog.csdn.net/fareast_mzh/article/details/146475207)
+
+so i do this:
+```c++
+	int optval = 1;
+	setsockopt(serverSocket_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+```
+SOL_SOCKET for general socket options
+SO_REUSEADDR is the important flag that lets us circumvent TIME_WAIT
+optval is the pointer to a value i want to set it to
+after that is the length of the value.
+
 #### poll
 
 [beej](https://beej.us/guide/bgnet/html/#poll)
@@ -46,5 +67,3 @@ how to check if an event happened?
 			if (((pollFds_[pollIndex].revents & POLLIN) == 1))
 ```
 the return events will be set by poll
-
-

@@ -47,7 +47,7 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		main.cpp \
 		Server.cpp \
 		Client.cpp \
-    	Message.cpp \
+		Message.cpp \
 		MessageType.cpp \
 		CaseMappedString.cpp \
 		Command.cpp \

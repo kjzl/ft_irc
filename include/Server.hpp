@@ -21,6 +21,7 @@ class Server {
 		Server(const Server& other);
 		Server& operator=( const Server& other );
 		void	waitForRequests(void);
+		void	serverShutdown(void);
 
 	private:
 		Server( void );
@@ -32,12 +33,12 @@ class Server {
 
 		void		createListeningSocket(void);
 		void		serverInit(void);
-		void	serverShutdown(void);
 		void	acceptConnection();
 		void	processPollIn(struct pollfd request, int pollIndex);
 		void	removeClient(int pollIndexToRemove);
 		static void	signalHandler(int signum);
-		void	makeMessage(Client client);
+		void	makeMessage(Client &client);
+		int		safeSend(int fd, const std::string &string);
 
 		const int						port_;
 		const std::string				password_;

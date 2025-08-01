@@ -25,17 +25,17 @@ class   Client
 		const std::string &getNickname() const;
 		const std::string &getUsername() const;
 		const std::string &getRealname() const;
-		const std::string &getMessage() const;
+		const std::string &getRawMessage() const;
 		int getSocket() const;
 
 		void setAuthenticated(bool authenticated);
 		void setNickname(const std::string &nickname);
 		void setUsername(const std::string &username);
 		void setRealname(const std::string &realname);
-		void	setRawMessage(const std::string &rawMessage);
+		void setRawMessage(const std::string &rawMessage);
 		void setSocket(int socket); 
 
-		void appendRawMessage(const char partialMessage[BUFSIZ]);
+		void appendRawMessage(const char partialMessage[BUFSIZ], size_t length);
 		void clearMessage();
 };
 
