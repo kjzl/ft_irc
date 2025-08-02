@@ -30,7 +30,7 @@ public:
 	// If it exists, data relevant to this specific command.
 	const std::vector<std::string>& getParams() const;
 
-	class UnknownMessageTypeException : std::exception {
+	class UnknownMessageTypeException : public std::exception {
 	private:
 		std::string type_;
 
@@ -40,7 +40,7 @@ public:
 		const char* what() const throw();
 	};
 
-	class WrongMessageFormatException : std::exception {
+	class WrongMessageFormatException : public std::exception {
 	private:
 		std::string message_;
 

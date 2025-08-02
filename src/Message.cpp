@@ -5,6 +5,7 @@
 #include "Client.hpp"
 
 Message::Message(const std::string &msg)
+: source_(NULL), type_(UNKNOWN), params_()
 {
 	parseIncomingMessage(msg);
 }

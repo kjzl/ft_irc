@@ -27,7 +27,11 @@ Command* convertMessageToCommand(const Message& message, const Client& sender)
 	if (commandFactories.empty())
 		fillCommandFactories(commandFactories);
 
-	CommandFactory factory = commandFactories[message.getType()];
+	std::map<MessageType, CommandFactory>::iterator it = commandFactories.find(message.getType());
+	if (it == commandFactories.end())
+		throw std::logic_error("No command factory found for message type " + message.getTypeAsString());
+
+	CommandFactory factory = it->second;
 
 	if (factory.auth == REQUIRES_AUTH && !sender.isAuthenticated())
 	{
@@ -61,13 +65,6 @@ void executeIncomingCommandMessage(Server& server, Client& sender, const std::st
 	} catch (const ErrReply& errReply) {
 		debug("Error reply: " + std::string(errReply.what()));
 		Message errorMessage = errReply.toMessage();
-		sender.sendMessage(errorMessage);
-	} catch (const Message::UnknownMessageTypeException& e) {
-		debug("Exception caught: " + std::string(e.what()));
-		std::vector<std::string> params;
-		params.push_back(sender.getNickname());
-		params.push_back(e.what());
-		Message errorMessage(ERR_UNKNOWNERROR, params);
 		sender.sendMessage(errorMessage);
 	} catch (const std::exception& e) {
 		debug("Exception caught: " + std::string(e.what()));

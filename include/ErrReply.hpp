@@ -5,7 +5,7 @@
 #include "Message.hpp"
 #include "Client.hpp"
 
-class ErrReply : std::exception {
+class ErrReply : public std::exception {
 public:
 	ErrReply(const Client& client, MessageType errType);
 	virtual ~ErrReply() throw();
