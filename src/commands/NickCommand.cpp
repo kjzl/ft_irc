@@ -46,32 +46,38 @@ Command Example:
   NICK Wiz                  ; Requesting the new nick "Wiz".*/
 void NickCommand::execute(Server& server, Client& sender)
 {
-	std::vector<std::string> params = inMessage_.getParams();
+	std::vector<std::string> inParams = inMessage_.getParams();
 	
 	// checkParamCount() => 431
-	if (params.empty())
+	if (inParams.empty())
 	{
-		Message outMessage(ERR_NONICKNAMEGIVEN, server.getName(), {sender.getNickname(), ":No nickname given"});
+		std::string arr[] = { sender.getNickname(), ":No nickname given" };
+		std::vector<std::string> outParams(arr, arr + 2);
+		Message outMessage(ERR_NONICKNAMEGIVEN, server.getName(), outParams);
 		return (sender.sendMessage(outMessage));
 	}
 	// checkRegistrationLevel(1) => kick_client or nothing ?
-	if (sender.getRegistrationLevel() == 0)
-		return;
+	// if (sender.getRegistrationLevel() == 0)
+	// 	return;
 	// check format => 432
-	if (checkNickFormat(params[0]))
+	if (checkNickFormat(inParams[0]))
 	{
-		Message outMessage(ERR_ERRONEUSNICKNAME, server.getName(), {sender.getNickname(), ":Erroneus nickname"});
+		std::string arr[] = { sender.getNickname(), ":Erroneus nickname" };
+		std::vector<std::string> outParams(arr, arr + 2);
+		Message outMessage(ERR_ERRONEUSNICKNAME, server.getName(), outParams);
 		return (sender.sendMessage(outMessage));
 	}
 	// check already in use => 433
-	CaseMappedString tmp(params[0]);
+	CaseMappedString tmp(inParams[0]);
 	if (server.nickCollision(tmp))
 	{
-		Message outMessage(ERR_NICKNAMEINUSE, server.getName(), {sender.getNickname(), ":Nickname is already in use"});
+		std::string arr[] = { sender.getNickname(), ":Nickname is already in use" };
+		std::vector<std::string> outParams(arr, arr + 2);
+		Message outMessage(ERR_NICKNAMEINUSE, server.getName(), outParams);
 		return (sender.sendMessage(outMessage));
 	}
 	// set Nickname on sucess !
-	sender.setNickname(params[0]);
+	sender.setNickname(inParams[0]);
 	sender.incrementRegistrationLevel();
 	return;
 }

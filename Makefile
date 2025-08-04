@@ -52,6 +52,7 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		CaseMappedString.cpp \
 		Command.cpp \
 		commands/UserCommand.cpp \
+		commands/NickCommand.cpp \
 		ErrReply.cpp \
 		errors/ErrNeedMoreParams.cpp \
 		errors/ErrNotRegistered.cpp \
@@ -74,6 +75,7 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		MessageType.hpp \
 		Server.hpp \
 		UserCommand.hpp \
+		NickCommand.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug

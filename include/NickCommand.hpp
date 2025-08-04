@@ -7,7 +7,7 @@
 
 class NickCommand : Command {
 public:
-	NickCommand::NickCommand(const Message& inMessage);
+	NickCommand(const Message& inMessage);
 	NickCommand(const NickCommand& other);
 	NickCommand& operator=(const NickCommand& other);
 	virtual ~NickCommand();

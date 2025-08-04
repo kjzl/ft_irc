@@ -35,8 +35,8 @@ void UserCommand::execute(Server& server, Client& sender)
 	sender.setUsername(username_);
 	sender.setRealname(realname_);
 	// TODO is this the right place to set the authenticated flag?
-	if (sender.getNickname().size() > 0)
-		sender.setAuthenticated(true);
+	// if (sender.getNickname().size() > 0)
+	// 	sender.setAuthenticated(true);
 	Message welcomeMsg("Welcome to the AspenWood our modest Internet Relay Chat Network" + sender.getNickname().str());
 	sender.sendMessage(welcomeMsg);
 	(void)server;
