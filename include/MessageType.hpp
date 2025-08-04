@@ -38,7 +38,8 @@ enum MessageType {
 	// https://modern.ircdocs.horse/#errneedmoreparams-461
 	ERR_NEEDMOREPARAMS = 461,
 	// https://modern.ircdocs.horse/#erralreadyregistered-462
-	ERR_ALREADYREGISTERED = 462
+	ERR_ALREADYREGISTERED = 462,
+	ERR_NONICKNAMEGIVEN = 431
 };
 
 MessageType parseCommandType(const std::string& type);

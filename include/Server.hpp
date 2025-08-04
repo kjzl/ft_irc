@@ -22,6 +22,7 @@ class Server {
 		void	waitForRequests(void);
 		void	serverShutdown(void);
 		int		safeSend(int fd, const std::string &string);
+		const std::string	&getName( void ) const;
 
 	private:
 		Server( void );
@@ -40,6 +41,8 @@ class Server {
 		void	makeMessage(Client &client);
 		void	executeIncomingCommandMessage(Client& sender, const std::string& rawMessage);
 
+		
+		const std::string				name_;				
 		const int						port_;
 		const std::string				password_;
 		int								serverSocket_;

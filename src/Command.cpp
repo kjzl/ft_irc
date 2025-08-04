@@ -18,6 +18,7 @@ static CommandFactory factory(int minArgs, AuthRequirement auth, Command* (*crea
 static void fillCommandFactories(std::map<MessageType, CommandFactory>& commandFactories)
 {
 	commandFactories[USER] = factory(4, REQUIRES_UNAUTH, UserCommand::fromMessage);
+	commandFactories[NICK] = factory(1, NO_AUTH_REQUIRED, NickCommand::fromMessage);
 }
 
 Command* convertMessageToCommand(const Message& message, const Client& sender)

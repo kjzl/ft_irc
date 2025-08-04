@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include "Message.hpp"
 
-Client::Client() : is_authenticated_(false), socket_(-1), nickname_(""), username_("*"), realname_(""), rawMessage_("")
+Client::Client() : registrationLevel_(0), socket_(-1), nickname_(""), username_("*"), realname_(""), rawMessage_("")
 {}
 
 Client::Client(const Client &other)
@@ -17,7 +17,7 @@ Client &Client::operator=(const Client &other)
 {
     if (this != &other) {
 		clearMessage();
-        this->is_authenticated_ = other.is_authenticated_;
+        this->registrationLevel_ = other.registrationLevel_;
         this->nickname_ = other.nickname_;
         this->username_ = other.username_;
         this->realname_ = other.realname_;
@@ -34,7 +34,7 @@ Client::~Client()
 
 bool Client::isAuthenticated() const
 {
-    return is_authenticated_;
+    return (registrationLevel_ == 2);
 }
 
 const CaseMappedString &Client::getNickname() const
@@ -67,13 +67,17 @@ void Client::clearMessage()
 	rawMessage_.clear();
 }
 
-// Setters
 
-void Client::setAuthenticated(bool authenticated)
+void Client::incrementRegistrationLevel(void)
 {
-    is_authenticated_ = authenticated;
+    registrationLevel_++;
+}
+const int Client::getRegistrationLevel(void) const
+{
+    return (registrationLevel_);
 }
 
+// Setters
 void Client::setNickname(const std::string &nickname)
 {
     nickname_ = nickname;

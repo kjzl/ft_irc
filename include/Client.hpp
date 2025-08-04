@@ -10,7 +10,7 @@ class Message;
 class   Client
 {
 	private:
-		bool				is_authenticated_;
+		int					registrationLevel_;
 		int					socket_;
 		CaseMappedString	nickname_;
 		std::string			username_;
@@ -31,6 +31,8 @@ class   Client
 		const std::string		&getRawMessage() const;
 		int getSocket()			const;
 
+		void incrementRegistrationLevel(void);
+		const int getRegistrationLevel(void) const;
 		void setAuthenticated(bool authenticated);
 		void setNickname(const std::string &nickname);
 		void setUsername(const std::string &username);

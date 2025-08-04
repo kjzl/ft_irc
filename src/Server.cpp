@@ -31,14 +31,14 @@ void	Server::signalHandler(int signum)
 }
 
 // Default Constructor
-Server::Server(void): port_(6667), password_("password")
+Server::Server(void): name_("AspenWood"), port_(6667), password_("password")
 {
 	running_ = true;
 	debug("Default Constructor called");
 }
 
 // Parameterized Constructor
-Server::Server(int port, std::string password): port_(port), password_(password), serverSocket_(-1)
+Server::Server(int port, std::string password): name_("AspenWood"), port_(port), password_(password), serverSocket_(-1)
 {
 	struct sigaction sa;
 	sa.sa_handler = signalHandler;
@@ -61,6 +61,7 @@ Server::~Server()
 
 // Copy Constructor
 Server::Server(const Server& other):
+	name_(other.name_),
 	port_(other.port_),
 	password_(other.password_),
 	serverSocket_(other.serverSocket_),
@@ -81,6 +82,12 @@ Server& Server::operator=(const Server& other)
 	}
 	return *this;
 }
+
+const std::string	&Server::getName( void ) const
+{
+	return (name_);
+}
+
 
 int	Server::getPort( void ) const
 {
