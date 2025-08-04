@@ -2,3 +2,4 @@ ircserv
 client
 *.o
 */*.o
+.idx
