@@ -70,9 +70,10 @@ void Client::clearMessage()
 
 void Client::incrementRegistrationLevel(void)
 {
-    registrationLevel_++;
+    ++registrationLevel_;
 }
-const int Client::getRegistrationLevel(void) const
+
+int Client::getRegistrationLevel(void) const
 {
     return (registrationLevel_);
 }

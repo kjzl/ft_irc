@@ -24,24 +24,25 @@ class   Client
 		Client &operator =(const Client &other);
 		virtual ~Client();
 
-		bool isAuthenticated()	const;
 		const CaseMappedString	&getNickname() const;
 		const std::string		&getUsername() const;
 		const std::string		&getRealname() const;
 		const std::string		&getRawMessage() const;
-		int getSocket()			const;
 
-		void incrementRegistrationLevel(void);
-		const int getRegistrationLevel(void) const;
-		void setAuthenticated(bool authenticated);
-		void setNickname(const std::string &nickname);
-		void setUsername(const std::string &username);
-		void setRealname(const std::string &realname);
-		void setRawMessage(const std::string &rawMessage);
-		void setSocket(int socket);
+		void	incrementRegistrationLevel(void);
+		int		getRegistrationLevel(void) const;
+		int		getSocket()			const;
 
-		void appendRawMessage(const char partialMessage[BUFSIZ], size_t length);
-		void clearMessage();
+		void	setAuthenticated(bool authenticated);
+		void	setNickname(const std::string &nickname);
+		void	setUsername(const std::string &username);
+		void	setRealname(const std::string &realname);
+		void	setRawMessage(const std::string &rawMessage);
+		void	setSocket(int socket);
+
+		bool	isAuthenticated()	const;
+		void	appendRawMessage(const char partialMessage[BUFSIZ], size_t length);
+		void	clearMessage();
 		int		safeSend(const std::string &string);
 		void	sendMessage(Message toSend);
 };
