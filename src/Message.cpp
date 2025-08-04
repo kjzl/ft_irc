@@ -15,12 +15,13 @@ Message::Message(MessageType type, const std::vector<std::string>& params)
 {
 }
 
-Message::Message(MessageType type, const std::vector<std::string>& params, const std::string& source)
+
+Message::Message(MessageType type, const std::string& source, const std::vector<std::string>& params)
 	: source_(source.empty() ? NULL : new std::string(source)), type_(type), params_(params)
 {
 }
 
-Message::Message(MessageType type, const std::vector<std::string>& params, const Client& source)
+Message::Message(MessageType type, const Client& source, const std::vector<std::string>& params)
 	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_(params)
 {
 }

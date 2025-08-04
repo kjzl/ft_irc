@@ -6,15 +6,14 @@ NickCommand::NickCommand(const Message& inMessage): inMessage_(inMessage)
 	debug("NickCommand default constructor called");
 }
 
-NickCommand::NickCommand(const NickCommand& other) {
+NickCommand::NickCommand(const NickCommand& other): inMessage_(other.inMessage_){
 	debug("NickCommand copy constructor called");
-	*this = other;
 }
 
 NickCommand& NickCommand::operator=(const NickCommand& other) {
 	debug("NickCommand assignment operator called");
 	if (this != &other) {
-
+		inMessage_ = other.inMessage_;
 	}
 	return *this;
 }
@@ -52,24 +51,25 @@ void NickCommand::execute(Server& server, Client& sender)
 	// checkParamCount() => 431
 	if (params.empty())
 	{
-		Message outMessage(ERR_NONICKNAMEGIVEN, {sender.getNickname(), ":No nickname given"}, server.getName());
+		Message outMessage(ERR_NONICKNAMEGIVEN, server.getName(), {sender.getNickname(), ":No nickname given"});
 		return (sender.sendMessage(outMessage));
 	}
-
 	// checkRegistrationLevel(1) => kick_client or nothing ?
 	if (sender.getRegistrationLevel() == 0)
-	{
 		return;
-	}
-
 	// check format => 432
 	if (checkNickFormat(params[0]))
 	{
-		Message outMessage(ERR_ERRONEUSNICKNAME, {sender.getNickname(), ":Erroneus nickname"}, server.getName());
+		Message outMessage(ERR_ERRONEUSNICKNAME, server.getName(), {sender.getNickname(), ":Erroneus nickname"});
 		return (sender.sendMessage(outMessage));
 	}
 	// check already in use => 433
-
+	CaseMappedString tmp(params[0]);
+	if (server.nickCollision(tmp))
+	{
+		Message outMessage(ERR_NICKNAMEINUSE, server.getName(), {sender.getNickname(), ":Nickname is already in use"});
+		return (sender.sendMessage(outMessage));
+	}
 	// set Nickname on sucess !
 	sender.setNickname(params[0]);
 	sender.incrementRegistrationLevel();

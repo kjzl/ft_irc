@@ -5,6 +5,7 @@
 #include "../include/ErrAlreadyRegistered.hpp"
 #include "../include/UserCommand.hpp"
 #include "../include/ircUtils.hpp"
+#include "../include/NickCommand.hpp"
 
 static CommandFactory factory(int minArgs, AuthRequirement auth, Command* (*createCommand)(const Message&, const Client&))
 {
@@ -33,21 +34,7 @@ Command* convertMessageToCommand(const Message& message, const Client& sender)
 		throw std::logic_error("No command factory found for message type " + message.getTypeAsString());
 
 	CommandFactory factory = it->second;
-
-	if (factory.auth == REQUIRES_AUTH && !sender.isAuthenticated())
-	{
-		debug("Command requires authentication but client is not authenticated");
-		throw ErrNotRegistered(sender);
-	}
-	else if (factory.auth == REQUIRES_UNAUTH && sender.isAuthenticated())
-	{
-		debug("Command requires unauthenticated client but client is authenticated");
-		throw ErrAlreadyRegistered(sender);
-	}
-	if (static_cast<size_t>(factory.minArgs) <= message.getParams().size())
-		return factory.createCommand(message, sender);
-	else
-		throw ErrNeedMoreParams(sender, message.getTypeAsString());
+	return factory.createCommand(message, sender);
 }
 
 void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage)

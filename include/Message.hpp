@@ -12,8 +12,8 @@ class Message {
 public:
 	Message(const Message& other);
 	Message(MessageType type, const std::vector<std::string>& params);
-	Message(MessageType type, const std::vector<std::string>& params, const std::string& source);
-	Message(MessageType type, const std::vector<std::string>& params,  const Client& source);
+	Message(MessageType type, const std::string& source, const std::vector<std::string>& params);
+	Message(MessageType type, const Client& source, const std::vector<std::string>& params);
 	Message(MessageType type, const std::string& arg1);
 	Message(MessageType type, const std::string& arg1, const std::string& arg2);
 	Message(MessageType type, const std::string& arg1, const Client& source);
