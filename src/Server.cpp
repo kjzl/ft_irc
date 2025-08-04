@@ -167,6 +167,16 @@ void Server::executeIncomingCommandMessage(Client& sender, const std::string& ra
 	}
 }
 
+bool	Server::nickCollision(CaseMappedString& toCheck)
+{
+	for (size_t clientIndex = 0; clientIndex < clients_.size(); clientIndex++)
+	{
+		Client	compareTo = clients_[clientIndex];
+		if (toCheck == compareTo.getNickname())
+			return (1);
+	}
+	return (0);
+}
 
 //attempts to extract a full message from the clients sent input
 //if it extraced a string, calls the parser and executes the command
