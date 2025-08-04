@@ -120,7 +120,8 @@ void	Client::sendMessage(Message toSend)
 
 void Client::sendErrorMessage(IrcError type, const Server& server, std::vector<std::string>& args)
 {
-	IrcErrorInfo info = ErrorMap.find(type)->second;
+	static std::map<IrcError, IrcErrorInfo> ErrorMap = getErrorMap();
+    IrcErrorInfo info = ErrorMap.find(type)->second;
     args.push_back(info.message);
     Message outMessage(info.code, server.getName(), args);
     sendMessage(outMessage);

@@ -145,27 +145,27 @@ void	Server::removeClient(int pollIndexToRemove)
 	pollFds_.pop_back();
 }
 
-void Server::executeIncomingCommandMessage(Client& sender, const std::string& rawMessage)
-{
-	try {
-		Message message(rawMessage);
-		debug("Parsed message: " + message.getTypeAsString() + " with params: " + toString(message.getParams().size()));
+// void Server::executeIncomingCommandMessage(Client& sender, const std::string& rawMessage)
+// {
+// 	try {
+// 		Message message(rawMessage);
+// 		debug("Parsed message: " + message.getTypeAsString() + " with params: " + toString(message.getParams().size()));
 
-		Command* command = convertMessageToCommand(message, sender);
-		if (command)
-		{
-			command->execute(*this, sender);
-			delete command;
-		}
-	} catch (const std::exception& e) {
-		debug("Exception caught: " + std::string(e.what()));
-		std::vector<std::string> params;
-		params.push_back(sender.getNickname());
-		params.push_back(e.what());
-		// Message errorMessage(ERR_UNKNOWNERROR, params); TODO: just send an err_msg !
-		sender.sendMessage(errorMessage);
-	}
-}
+// 		Command* command = convertMessageToCommand(message, sender);
+// 		if (command)
+// 		{
+// 			command->execute(*this, sender);
+// 			delete command;
+// 		}
+// 	} catch (const std::exception& e) {
+// 		debug("Exception caught: " + std::string(e.what()));
+// 		std::vector<std::string> params;
+// 		params.push_back(sender.getNickname());
+// 		params.push_back(e.what());
+// 		// Message errorMessage(ERR_UNKNOWNERROR, params); TODO: just send an err_msg !
+// 		sender.sendMessage(errorMessage);
+// 	}
+// }
 
 bool	Server::nickCollision(CaseMappedString& toCheck)
 {
@@ -195,7 +195,7 @@ void	Server::makeMessage(Client &client)
 		raw_message.erase(0, position + 1);
 		client.setRawMessage(raw_message);
 		std::cout << command << std::endl;
-		executeIncomingCommandMessage(client, command);
+		executeIncomingCommandMessage(*this, client, command);
 		debug(raw_message);
 	}
 }

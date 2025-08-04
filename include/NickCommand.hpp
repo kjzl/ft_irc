@@ -7,16 +7,11 @@
 
 class NickCommand : Command {
 public:
-	NickCommand(const Message& inMessage);
-	NickCommand(const NickCommand& other);
-	NickCommand& operator=(const NickCommand& other);
-	virtual ~NickCommand();
-
-	static Command* fromMessage(const Message& message, const Client& sender);
-	void execute(Server& server, Client& sender);
+	NickCommand(const Message& msg);
+	void			execute(Server& server, Client& sender);
+	static Command*	fromMessage(const Message& message);
 private:
-	Message inMessage_;
-	bool	checkNickFormat(std::string nickname);
+	bool			checkNickFormat(std::string nickname);
 };
 
 #endif // NickCOMMAND_HPP

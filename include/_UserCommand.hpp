@@ -12,7 +12,7 @@ public:
 	UserCommand& operator=(const UserCommand& other);
 	virtual ~UserCommand();
 
-	static Command* fromMessage(const Message& message, const Client& sender);
+	static Command* fromMessage(const Message& message);
 	void execute(Server& server, Client& sender);
 private:
 	std::string username_;

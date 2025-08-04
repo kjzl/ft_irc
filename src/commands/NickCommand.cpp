@@ -1,33 +1,15 @@
 #include "../../include/NickCommand.hpp"
 #include "../../include/Debug.hpp"
+#include "../../include/IrcError.hpp"
 
-NickCommand::NickCommand(const Message& inMessage): inMessage_(inMessage)
+NickCommand::NickCommand(const Message& msg) : Command(msg)
+{}
+
+Command* NickCommand::fromMessage(const Message& message)
 {
-	debug("NickCommand default constructor called");
-}
-
-NickCommand::NickCommand(const NickCommand& other): inMessage_(other.inMessage_){
-	debug("NickCommand copy constructor called");
-}
-
-NickCommand& NickCommand::operator=(const NickCommand& other) {
-	debug("NickCommand assignment operator called");
-	if (this != &other) {
-		inMessage_ = other.inMessage_;
-	}
-	return *this;
-}
-
-NickCommand::~NickCommand() {
-	debug("NickCommand destructor called");
-}
-
-Command* NickCommand::fromMessage(const Message& message, const Client& sender)
-{
-	(void)sender;
-	// dont think we need to check whether params 1 and 2 are "0" and "*" as theyre unused anyway
 	return new NickCommand(message);
 }
+
 /*
 The NICK command is used to give the client a nickname or change the previous one.
 If the server receives a NICK command from a client where the desired nickname is already in use on the network, it should issue an ERR_NICKNAMEINUSE numeric and ignore the NICK command.
@@ -48,33 +30,30 @@ void NickCommand::execute(Server& server, Client& sender)
 {
 	std::vector<std::string> inParams = inMessage_.getParams();
 	
-	// checkParamCount() => 431
+	// 431
 	if (inParams.empty())
 	{
-		std::string arr[] = { sender.getNickname(), ":No nickname given" };
-		std::vector<std::string> outParams(arr, arr + 2);
-		Message outMessage(ERR_NONICKNAMEGIVEN, server.getName(), outParams);
-		return (sender.sendMessage(outMessage));
+		std::string arr[] = {sender.getNickname()};
+		std::vector<std::string> outParams(arr, arr + 1);
+		return (sender.sendErrorMessage(ERR_NONICKNAMEGIVEN, server, outParams));
 	}
 	// checkRegistrationLevel(1) => kick_client or nothing ?
-	// if (sender.getRegistrationLevel() == 0)
+	// if (sender.getRegistrationLevel() == 0)  // TODO: DISABLE FOR TESTING while PASS isn't implemented...
 	// 	return;
-	// check format => 432
+	// 432
 	if (checkNickFormat(inParams[0]))
 	{
-		std::string arr[] = { sender.getNickname(), ":Erroneus nickname" };
+		std::string arr[] = {sender.getNickname(), inParams[0]};
 		std::vector<std::string> outParams(arr, arr + 2);
-		Message outMessage(ERR_ERRONEUSNICKNAME, server.getName(), outParams);
-		return (sender.sendMessage(outMessage));
+		return (sender.sendErrorMessage(ERR_ERRONEUSNICKNAME, server, outParams));
 	}
-	// check already in use => 433
+	// 433
 	CaseMappedString tmp(inParams[0]);
 	if (server.nickCollision(tmp))
 	{
-		std::string arr[] = { sender.getNickname(), ":Nickname is already in use" };
+		std::string arr[] = {sender.getNickname(), inParams[0]};
 		std::vector<std::string> outParams(arr, arr + 2);
-		Message outMessage(ERR_NICKNAMEINUSE, .getName(), outParams);
-		return (sender.sendMessage(outMessage));
+		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, server, outParams));
 	}
 	// set Nickname on sucess !
 	sender.setNickname(inParams[0]);

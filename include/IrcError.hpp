@@ -4,26 +4,23 @@
 #include <string>
 #include <map>
 
-enum class IrcError
+enum IrcError
 {
-    ERR_NONICKNAMEGIVEN,
-    ERR_ERRONEUSNICKNAME,
-    ERR_NICKNAMEINUSE
+	ERR_NONICKNAMEGIVEN,
+	ERR_ERRONEUSNICKNAME,
+	ERR_NICKNAMEINUSE
 };
-
 
 struct IrcErrorInfo
 {
-    std::string code;
-    std::string message;
+	std::string code;
+	std::string message;
+
+	IrcErrorInfo() {}
+	IrcErrorInfo(const std::string& c, const std::string& m) : code(c), message(m) {}
 };
 
-const std::map<IrcError, IrcErrorInfo> ErrorMap =    // default error text
-{
-    {IrcError::ERR_NONICKNAMEGIVEN,     {"431", ":No nickname given"} },
-    {IrcError::ERR_ERRONEUSNICKNAME,    {"432", ":Erroneous nickname"} },
-    {IrcError::ERR_NICKNAMEINUSE,       {"433", ":Nickname is already in use" }}
-    // ...
-};
+const std::map<IrcError, IrcErrorInfo>& getErrorMap();
 
 #endif
+

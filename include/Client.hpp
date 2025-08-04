@@ -5,8 +5,10 @@
 #include <string>
 #include <vector>
 #include "CaseMappedString.hpp"
+#include "IrcError.hpp"
 
 class Message;
+class Server;
 
 class   Client
 {

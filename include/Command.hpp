@@ -6,10 +6,14 @@
 #include "Message.hpp"
 #include "Server.hpp"
 
-class Command {
+class Command
+{
 public:
+	Command(const Message& msg);
 	virtual ~Command();
 	virtual void	execute(Server& server, Client& sender) = 0;
+protected:
+	Message inMessage_;
 };
 
 // enum AuthRequirement {
@@ -24,7 +28,8 @@ public:
 // 	Command* (*createCommand)(const Message&, const Client&);
 // };
 
-Command* convertMessageToCommand(const Message& message, const Client& sender);
+//TODO: Move those as member functions of the servers !
+Command* convertMessageToCommand(const Message& message);
 void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage);
 
 #endif // COMMAND_HPP

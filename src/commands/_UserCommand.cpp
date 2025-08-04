@@ -23,9 +23,8 @@ UserCommand::~UserCommand() {
 	debug("UserCommand destructor called");
 }
 
-Command* UserCommand::fromMessage(const Message& message, const Client& sender)
+Command* UserCommand::fromMessage(const Message& message)
 {
-	(void)sender;
 	// dont think we need to check whether params 1 and 2 are "0" and "*" as theyre unused anyway
 	return new UserCommand(message.getParams()[0], message.getParams()[3]);
 }

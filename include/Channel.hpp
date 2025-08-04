@@ -1,12 +1,12 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include "../include/Client.hpp"
 #include <string>
 #include <vector>
 #include <set>
 
-class Message{};
+class Message;
+class Client;
 
 
 class   Channel
