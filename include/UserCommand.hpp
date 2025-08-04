@@ -1,11 +1,11 @@
-#ifndef PASSCOMMAND_HPP
-#define PASSCOMMAND_HPP
+#ifndef USERCOMMAND_HPP
+#define USERCOMMAND_HPP
 
 #include "Command.hpp"
 
-class PassCommand : Command {
+class UserCommand : Command {
 public:
-	PassCommand(const Message& msg);
+	UserCommand(const Message& msg);
 	void			execute(Server& server, Client& sender);
 	static Command*	fromMessage(const Message& message);
 };

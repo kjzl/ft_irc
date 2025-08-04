@@ -88,6 +88,10 @@ const std::string	&Server::getName( void ) const
 	return (name_);
 }
 
+const std::string	&Server::getPassword( void ) const
+{
+	return (password_);
+}
 
 int	Server::getPort( void ) const
 {

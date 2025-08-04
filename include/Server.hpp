@@ -23,6 +23,7 @@ class Server {
 		void	serverShutdown(void);
 		int		safeSend(int fd, const std::string &string);
 		const std::string	&getName( void ) const;
+		const std::string	&getPassword( void ) const;
 		bool	nickCollision(CaseMappedString& toCheck);
 
 	private:

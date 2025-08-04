@@ -37,9 +37,9 @@ void NickCommand::execute(Server& server, Client& sender)
 		std::vector<std::string> outParams(arr, arr + 1);
 		return (sender.sendErrorMessage(ERR_NONICKNAMEGIVEN, server, outParams));
 	}
-	// checkRegistrationLevel(1) => kick_client or nothing ?
-	// if (sender.getRegistrationLevel() == 0)  // TODO: DISABLE FOR TESTING while PASS isn't implemented...
-	// 	return;
+	// checkRegistrationLevel => do nothing if no PASS given!
+	if (sender.getRegistrationLevel() == 0)
+		return;
 	// 432
 	if (checkNickFormat(inParams[0]))
 	{
@@ -55,7 +55,7 @@ void NickCommand::execute(Server& server, Client& sender)
 		std::vector<std::string> outParams(arr, arr + 2);
 		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, server, outParams));
 	}
-	// set Nickname on sucess !
+	// Sucess !
 	sender.setNickname(inParams[0]);
 	sender.incrementRegistrationLevel();
 	return;

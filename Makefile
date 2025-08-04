@@ -52,6 +52,8 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		CaseMappedString.cpp \
 		Command.cpp \
 		commands/NickCommand.cpp \
+		commands/PassCommand.cpp \
+		commands/UserCommand.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
@@ -66,6 +68,8 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		Message.hpp \
 		Server.hpp \
 		NickCommand.hpp \
+		PassCommand.hpp \
+		UserCommand.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug

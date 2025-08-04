@@ -1,8 +1,9 @@
 #include "../include/Command.hpp"
 #include "../include/Debug.hpp"
 #include "../include/ircUtils.hpp"
+#include "../include/PassCommand.hpp"
 #include "../include/NickCommand.hpp"
-// #include "../include/UserCommand.hpp"
+#include "../include/UserCommand.hpp"
 #include "Message.hpp"
 
 
@@ -16,10 +17,10 @@ typedef Command* (*CommandFactory)(const Message&);
 
 static void fillCommandMap(std::map<std::string, CommandFactory> &commandMap)
 {
-	// commandMap["PASS"] = 	&PassCommand::createFromMsg;
+	commandMap["PASS"] = 	&PassCommand::fromMessage;
 	commandMap["NICK"] = 	&NickCommand::fromMessage;
-	// commandMap["USER"] = 	&UserCommand::fromMessage;
-	// commandMap["PRIVMSG"] = &PrivmsgCommand::createFromMsg;
+	commandMap["USER"] = 	&UserCommand::fromMessage;
+	// commandMap["PRIVMSG"] = &PrivmsgCommand::fromMessage;
 	//...
 }
 
