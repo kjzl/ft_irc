@@ -138,6 +138,29 @@ void	Server::removeClient(int pollIndexToRemove)
 	pollFds_.pop_back();
 }
 
+void Server::executeIncomingCommandMessage(Client& sender, const std::string& rawMessage)
+{
+	try {
+		Message message(rawMessage);
+		debug("Parsed message: " + message.getTypeAsString() + " with params: " + toString(message.getParams().size()));
+
+		Command* command = convertMessageToCommand(message, sender);
+		if (command)
+		{
+			command->execute(*this, sender);
+			delete command;
+		}
+	} catch (const std::exception& e) {
+		debug("Exception caught: " + std::string(e.what()));
+		std::vector<std::string> params;
+		params.push_back(sender.getNickname());
+		params.push_back(e.what());
+		Message errorMessage(ERR_UNKNOWNERROR, params);
+		sender.sendMessage(errorMessage);
+	}
+}
+
+
 //attempts to extract a full message from the clients sent input
 //if it extraced a string, calls the parser and executes the command
 void	Server::makeMessage(Client &client)
@@ -155,7 +178,7 @@ void	Server::makeMessage(Client &client)
 		raw_message.erase(0, position + 1);
 		client.setRawMessage(raw_message);
 		std::cout << command << std::endl;
-		executeIncomingCommandMessage(*this, client, command);
+		executeIncomingCommandMessage(client, command);
 		debug(raw_message);
 	}
 }
@@ -267,6 +290,7 @@ void	Server::createListeningSocket(void)
 		throw std::runtime_error("[Server] listen error");
 }
 
+
 // makes first listeing socket and adds it to pollFds_
 void	Server::serverInit(void)
 {
@@ -296,3 +320,4 @@ void	Server::serverShutdown(void)
 	}
 	std::cout << GREEN << "[Server] Shutdown complete" << RESET << std::endl;
 }
+

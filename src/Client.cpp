@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include "Message.hpp"
 
-Client::Client() : is_authenticated_(false), socket_(-1), nickname_(""), username_(""), realname_(""), rawMessage_("")
+Client::Client() : is_authenticated_(false), socket_(-1), nickname_(""), username_("*"), realname_(""), rawMessage_("")
 {}
 
 Client::Client(const Client &other)

@@ -1,7 +1,6 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-#include <map>
 #include <vector>
 #include <string>
 
@@ -39,6 +38,7 @@ class Server {
 		void	removeClient(int pollIndexToRemove);
 		static void	signalHandler(int signum);
 		void	makeMessage(Client &client);
+		void	executeIncomingCommandMessage(Client& sender, const std::string& rawMessage);
 
 		const int						port_;
 		const std::string				password_;
