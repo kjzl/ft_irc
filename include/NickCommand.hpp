@@ -16,7 +16,7 @@ public:
 	void execute(Server& server, Client& sender);
 private:
 	Message inMessage_;
-	int	checkNickFormat(std::string nickname);
+	bool	checkNickFormat(std::string nickname);
 };
 
 #endif // NickCOMMAND_HPP

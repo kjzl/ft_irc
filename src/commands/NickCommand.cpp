@@ -57,7 +57,7 @@ void NickCommand::execute(Server& server, Client& sender)
 	}
 
 	// checkRegistrationLevel(1) => kick_client or nothing ?
-	if (sender.getRegistrationLevel() != 1)
+	if (sender.getRegistrationLevel() == 0)
 	{
 		return;
 	}
@@ -65,7 +65,8 @@ void NickCommand::execute(Server& server, Client& sender)
 	// check format => 432
 	if (checkNickFormat(params[0]))
 	{
-
+		Message outMessage(ERR_ERRONEUSNICKNAME, {sender.getNickname(), ":Erroneus nickname"}, server.getName());
+		return (sender.sendMessage(outMessage));
 	}
 	// check already in use => 433
 
@@ -74,7 +75,12 @@ void NickCommand::execute(Server& server, Client& sender)
 	sender.incrementRegistrationLevel();
 	return;
 }
-int	NickCommand::checkNickFormat(std::string nickname)
+bool	NickCommand::checkNickFormat(std::string nickname)
 {
-
+	if (nickname[0] == '#' // TODO: handles all CHANTYPES from Server ??
+	|| nickname[0] == ':') 
+		return (true);
+	if (nickname.find(" ") != std::string::npos)
+		return (true);
+	return (false);
 }
