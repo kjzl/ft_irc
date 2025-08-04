@@ -37,8 +37,7 @@ void UserCommand::execute(Server& server, Client& sender)
 	// TODO is this the right place to set the authenticated flag?
 	if (sender.getNickname().size() > 0)
 		sender.setAuthenticated(true);
-	//TODO send welcome message
-	// Message welcomeMsg("Welcome to the AspenWood our modest Internet Relay Chat Network" + getNickname());
-	// sender.sendMessage(welcomeMsg);
+	Message welcomeMsg("Welcome to the AspenWood our modest Internet Relay Chat Network" + sender.getNickname().str());
+	sender.sendMessage(welcomeMsg);
 	(void)server;
 }
