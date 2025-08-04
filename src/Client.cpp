@@ -1,11 +1,13 @@
 #include "../include/Client.hpp"
-#include "../include/ircUtils.hpp"
+#include "../include/Server.hpp"
+#include "../include/IrcError.hpp"
 #include <cstdio>
 #include <stdexcept>
 #include <sys/socket.h>
 #include "Message.hpp"
 
-Client::Client() : is_authenticated_(false), socket_(-1), nickname_(""), username_("*"), realname_(""), rawMessage_("")
+
+Client::Client() : registrationLevel_(0), socket_(-1), nickname_(""), username_("*"), realname_(""), rawMessage_("")
 {}
 
 Client::Client(const Client &other)
@@ -17,7 +19,7 @@ Client &Client::operator=(const Client &other)
 {
     if (this != &other) {
 		clearMessage();
-        this->is_authenticated_ = other.is_authenticated_;
+        this->registrationLevel_ = other.registrationLevel_;
         this->nickname_ = other.nickname_;
         this->username_ = other.username_;
         this->realname_ = other.realname_;
@@ -34,7 +36,7 @@ Client::~Client()
 
 bool Client::isAuthenticated() const
 {
-    return is_authenticated_;
+    return (registrationLevel_ == 2);
 }
 
 const CaseMappedString &Client::getNickname() const
@@ -67,13 +69,18 @@ void Client::clearMessage()
 	rawMessage_.clear();
 }
 
-// Setters
 
-void Client::setAuthenticated(bool authenticated)
+void Client::incrementRegistrationLevel(void)
 {
-    is_authenticated_ = authenticated;
+    ++registrationLevel_;
 }
 
+int Client::getRegistrationLevel(void) const
+{
+    return (registrationLevel_);
+}
+
+// Setters
 void Client::setNickname(const std::string &nickname)
 {
     nickname_ = nickname;
@@ -111,6 +118,15 @@ void	Client::sendMessage(Message toSend)
 	safeSend(toSend.toString());
 }
 
+void Client::sendErrorMessage(IrcError type, const Server& server, std::vector<std::string>& args)
+{
+	static std::map<IrcError, IrcErrorInfo> ErrorMap = getErrorMap();
+    IrcErrorInfo info = ErrorMap.find(type)->second;
+    args.push_back(info.message);
+    Message outMessage(info.code, server.getName(), args);
+    sendMessage(outMessage);
+}
+
 // sends the entire string with send() even when more than one send() call is needed
 // throws and error if send fails
 int		Client::safeSend(const std::string &string)
@@ -123,7 +139,7 @@ int		Client::safeSend(const std::string &string)
 	{
 		sendBytes = send(this->getSocket(), string.substr(total_sent, left_size).c_str(), left_size, 0);
 		if (sendBytes == -1)
-			throw std::runtime_error("[Server] send error with client: " + toString(getSocket()));
+			throw std::runtime_error("[Server] send error with client: X"); //TODO:  + toString(getSocket()));
 		total_sent += sendBytes;
 		left_size -= sendBytes;
 	}

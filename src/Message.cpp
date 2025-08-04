@@ -5,45 +5,46 @@
 #include "Client.hpp"
 
 Message::Message(const std::string &msg)
-: source_(NULL), type_(UNKNOWN), params_()
+: source_(NULL), type_(""), params_()
 {
 	parseIncomingMessage(msg);
 }
 
-Message::Message(MessageType type, const std::vector<std::string>& params)
+Message::Message(std::string type, const std::vector<std::string>& params)
 	: source_(NULL), type_(type), params_(params)
 {
 }
 
-Message::Message(MessageType type, const std::vector<std::string>& params, const std::string& source)
+
+Message::Message(std::string type, const std::string& source, const std::vector<std::string>& params)
 	: source_(source.empty() ? NULL : new std::string(source)), type_(type), params_(params)
 {
 }
 
-Message::Message(MessageType type, const std::vector<std::string>& params, const Client& source)
+Message::Message(std::string type, const Client& source, const std::vector<std::string>& params)
 	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_(params)
 {
 }
 
-Message::Message(MessageType type, const std::string& arg1)
+Message::Message(std::string type, const std::string& arg1)
 	: source_(NULL), type_(type), params_(1, arg1)
 {
 }
 
-Message::Message(MessageType type, const std::string& arg1, const std::string& arg2)
+Message::Message(std::string type, const std::string& arg1, const std::string& arg2)
 	: source_(NULL), type_(type), params_()
 {
 	params_.push_back(arg1);
 	params_.push_back(arg2);
 }
 
-Message::Message(MessageType type, const std::string& arg1, const Client& source)
+Message::Message(std::string type, const std::string& arg1, const Client& source)
 	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_()
 {
 	params_.push_back(arg1);
 }
 
-Message::Message(MessageType type, const std::string& arg1, const std::string& arg2, const Client& source)
+Message::Message(std::string type, const std::string& arg1, const std::string& arg2, const Client& source)
 	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_()
 {
 	params_.push_back(arg1);
@@ -68,7 +69,7 @@ std::string	Message::toString() const
 	std::string msg;
 	if (source_)
 		msg += ":" + *source_ + " ";
-	msg += getTypeAsString();
+	msg += type_;
 	if (getParams().empty())
 		return msg;
 	else
@@ -93,13 +94,11 @@ void Message::parseIncomingMessage(const std::string& msg)
 
 	iss >> token;
 	if (token.empty())
-		throw WrongMessageFormatException("Message must not be empty.");
+		throw WrongMessageFormatException("Message must not be empty."); //TODO: move this to an error_msg
 	// client messages cant have a source and we do not support tags
 	if (token[0] == ':' || token[0] == '@')
 		throw WrongMessageFormatException("Message must not include a source or tag.");
-	type_ = parseCommandType(token);
-	if (type_ == UNKNOWN)
-		throw UnknownMessageTypeException(token);
+	type_ = token;
 	while (iss >> token)
 	{
 		if (lastParam)
@@ -119,33 +118,14 @@ const std::string* Message::getSource() const
 	return source_;
 }
 
-MessageType Message::getType() const
+std::string Message::getType() const
 {
 	return type_;
-}
-
-std::string Message::getTypeAsString() const
-{
-	return ::toString(type_);
 }
 
 const std::vector<std::string>& Message::getParams() const
 {
 	return params_;
-}
-
-Message::UnknownMessageTypeException::UnknownMessageTypeException(const std::string& type)
-	: type_("\"" + type + "\" is not a valid message/command type.")
-{
-}
-
-Message::UnknownMessageTypeException::~UnknownMessageTypeException() throw()
-{
-}
-
-const char * Message::UnknownMessageTypeException::what() const throw()
-{
-	return type_.c_str();
 }
 
 Message::WrongMessageFormatException::WrongMessageFormatException(const std::string& message)

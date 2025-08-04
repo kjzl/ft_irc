@@ -1,43 +1,50 @@
 #include "../../include/UserCommand.hpp"
 #include "../../include/Debug.hpp"
+#include "../../include/IrcError.hpp"
 
-UserCommand::UserCommand(const std::string& username, const std::string& realname) : username_(username), realname_(realname)
+UserCommand::UserCommand(const Message& msg) : Command(msg)
+{}
+
+Command* UserCommand::fromMessage(const Message& message)
 {
-	debug("UserCommand default constructor called");
+	return new UserCommand(message);
 }
 
-UserCommand::UserCommand(const UserCommand& other) {
-	debug("UserCommand copy constructor called");
-	*this = other;
-}
-
-UserCommand& UserCommand::operator=(const UserCommand& other) {
-	debug("UserCommand assignment operator called");
-	if (this != &other) {
-
-	}
-	return *this;
-}
-
-UserCommand::~UserCommand() {
-	debug("UserCommand destructor called");
-}
-
-Command* UserCommand::fromMessage(const Message& message, const Client& sender)
-{
-	(void)sender;
-	// dont think we need to check whether params 1 and 2 are "0" and "*" as theyre unused anyway
-	return new UserCommand(message.getParams()[0], message.getParams()[3]);
-}
-
+/*
+    https://modern.ircdocs.horse/#user-message
+    ERR_NEEDMOREPARAMS (461)
+    ERR_ALREADYREGISTERED (462)
+*/
 void UserCommand::execute(Server& server, Client& sender)
 {
-	sender.setUsername(username_);
-	sender.setRealname(realname_);
-	// TODO is this the right place to set the authenticated flag?
-	if (sender.getNickname().size() > 0)
-		sender.setAuthenticated(true);
-	Message welcomeMsg("Welcome to the AspenWood our modest Internet Relay Chat Network" + sender.getNickname().str());
-	sender.sendMessage(welcomeMsg);
-	(void)server;
+	std::vector<std::string> inParams = inMessage_.getParams();
+	
+	// 461
+	if (inParams.size() < 4)
+	{
+		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
+		std::vector<std::string> outParams(arr, arr + 2);
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, server, outParams));
+	}
+	// 462
+	if (sender.getRegistrationLevel() == 3)
+	{
+		std::string arr[] = {sender.getNickname()};
+		std::vector<std::string> outParams(arr, arr + 1);
+		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, server, outParams));
+	}
+	// Sucess !
+	sender.setUsername(inParams[0]);
+	sender.setRealname(inParams[3]);
+	sender.incrementRegistrationLevel();
+	// TODO: implement that cleanly or just leave it like it is ?!...
+	// std::string arr[] = {sender.getNickname()};
+	// std::vector<std::string> outParams(arr, arr + 1);
+	// sender.sendErrorMessage(RPL_WELCOME, server, outParams);
+	// sender.sendErrorMessage(RPL_YOURHOST, server, outParams);
+	// sender.sendErrorMessage(RPL_CREATED , server, outParams);
+	// sender.sendErrorMessage(RPL_MYINFO , server, outParams);
+	sender.sendMessage(Message("Welcome to the AspenWood modest IRC Chat :)"));
+	sender.sendMessage(Message("You are now fully authenticated :D"));
+	return;
 }

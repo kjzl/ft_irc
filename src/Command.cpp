@@ -1,79 +1,51 @@
 #include "../include/Command.hpp"
 #include "../include/Debug.hpp"
-#include "../include/ErrNeedMoreParams.hpp"
-#include "../include/ErrNotRegistered.hpp"
-#include "../include/ErrAlreadyRegistered.hpp"
-#include "../include/UserCommand.hpp"
 #include "../include/ircUtils.hpp"
+#include "../include/PassCommand.hpp"
+#include "../include/NickCommand.hpp"
+#include "../include/UserCommand.hpp"
+#include "Message.hpp"
 
-static CommandFactory factory(int minArgs, AuthRequirement auth, Command* (*createCommand)(const Message&, const Client&))
+
+Command::Command(const Message& msg) : inMessage_(msg)
 {
-	CommandFactory commandFactory;
-	commandFactory.minArgs = minArgs;
-	commandFactory.auth = auth;
-	commandFactory.createCommand = createCommand;
-	return commandFactory;
+	debug("new command created :)");
 }
 
-static void fillCommandFactories(std::map<MessageType, CommandFactory>& commandFactories)
+
+typedef Command* (*CommandFactory)(const Message&);
+
+static void fillCommandMap(std::map<std::string, CommandFactory> &commandMap)
 {
-	commandFactories[USER] = factory(4, REQUIRES_UNAUTH, UserCommand::fromMessage);
+	commandMap["PASS"] = 	&PassCommand::fromMessage;
+	commandMap["NICK"] = 	&NickCommand::fromMessage;
+	commandMap["USER"] = 	&UserCommand::fromMessage;
+	// commandMap["PRIVMSG"] = &PrivmsgCommand::fromMessage;
+	//...
 }
 
-Command* convertMessageToCommand(const Message& message, const Client& sender)
+Command* convertMessageToCommand(const Message& message)
 {
-	static std::map<MessageType, CommandFactory> commandFactories;
-
-	if (commandFactories.empty())
-		fillCommandFactories(commandFactories);
-
-	std::map<MessageType, CommandFactory>::iterator it = commandFactories.find(message.getType());
-	if (it == commandFactories.end())
-		throw std::logic_error("No command factory found for message type " + message.getTypeAsString());
-
-	CommandFactory factory = it->second;
-
-	if (factory.auth == REQUIRES_AUTH && !sender.isAuthenticated())
-	{
-		debug("Command requires authentication but client is not authenticated");
-		throw ErrNotRegistered(sender);
-	}
-	else if (factory.auth == REQUIRES_UNAUTH && sender.isAuthenticated())
-	{
-		debug("Command requires unauthenticated client but client is authenticated");
-		throw ErrAlreadyRegistered(sender);
-	}
-	if (static_cast<size_t>(factory.minArgs) <= message.getParams().size())
-		return factory.createCommand(message, sender);
-	else
-		throw ErrNeedMoreParams(sender, message.getTypeAsString());
+	static std::map<std::string, CommandFactory> commandMap;
+	if (commandMap.empty())
+		fillCommandMap(commandMap);
+	std::string type = message.getType();
+	std::map<std::string, CommandFactory>::iterator it = commandMap.find(type);
+	if (it == commandMap.end())		
+		return NULL;
+	Command* cmd = it->second(message);
+	return cmd;
 }
 
 void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage)
 {
-	try {
-		// Message message = Message::parseIncomingMessage(rawMessage);
-		Message message(rawMessage);
-		debug("Parsed message: " + message.getTypeAsString() + " with params: " + toString(message.getParams().size()));
-
-		Command* command = convertMessageToCommand(message, sender);
-		if (command)
-		{
-			command->execute(server, sender);
-			delete command;
-		}
-	} catch (const ErrReply& errReply) {
-		debug("Error reply: " + std::string(errReply.what()));
-		Message errorMessage = errReply.toMessage();
-		sender.sendMessage(errorMessage);
-	} catch (const std::exception& e) {
-		debug("Exception caught: " + std::string(e.what()));
-		std::vector<std::string> params;
-		params.push_back(sender.getNickname());
-		params.push_back(e.what());
-		Message errorMessage(ERR_UNKNOWNERROR, params);
-		sender.sendMessage(errorMessage);
-	}
+	Message message(rawMessage);
+	debug("Parsed message: " + message.getType() + " with params: " + toString(message.getParams().size()));
+	Command* cmd = convertMessageToCommand(message);
+	if (!cmd)
+		return; // TODO: send ERROR_MSG 421
+	cmd->execute(server, sender);
+	delete cmd;
 }
 
 Command::~Command()

@@ -6,26 +6,30 @@
 #include "Message.hpp"
 #include "Server.hpp"
 
-class Command {
+class Command
+{
 public:
+	Command(const Message& msg);
 	virtual ~Command();
 	virtual void	execute(Server& server, Client& sender) = 0;
+protected:
+	Message inMessage_;
 };
 
-enum AuthRequirement {
-	REQUIRES_UNAUTH,
-	NO_AUTH_REQUIRED,
-	REQUIRES_AUTH
-};
+// enum AuthRequirement {
+// 	REQUIRES_UNAUTH,
+// 	NO_AUTH_REQUIRED,
+// 	REQUIRES_AUTH
+// };
 
-struct CommandFactory {
-	int		minArgs;
-	AuthRequirement	auth;
-	Command* (*createCommand)(const Message&, const Client&);
-};
+// struct CommandFactory {
+// 	int		minArgs;
+// 	AuthRequirement	auth;
+// 	Command* (*createCommand)(const Message&, const Client&);
+// };
 
-Command* convertMessageToCommand(const Message& message, const Client& sender);
+//TODO: Move those as member functions of the servers !
+Command* convertMessageToCommand(const Message& message);
 void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage);
-void	sendMessage(Server& server, int fd, Message toSend);
 
 #endif // COMMAND_HPP

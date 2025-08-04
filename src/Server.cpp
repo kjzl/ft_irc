@@ -31,14 +31,14 @@ void	Server::signalHandler(int signum)
 }
 
 // Default Constructor
-Server::Server(void): port_(6667), password_("password")
+Server::Server(void): name_("AspenWood"), port_(6667), password_("password")
 {
 	running_ = true;
 	debug("Default Constructor called");
 }
 
 // Parameterized Constructor
-Server::Server(int port, std::string password): port_(port), password_(password), serverSocket_(-1)
+Server::Server(int port, std::string password): name_("AspenWood"), port_(port), password_(password), serverSocket_(-1)
 {
 	struct sigaction sa;
 	sa.sa_handler = signalHandler;
@@ -61,6 +61,7 @@ Server::~Server()
 
 // Copy Constructor
 Server::Server(const Server& other):
+	name_(other.name_),
 	port_(other.port_),
 	password_(other.password_),
 	serverSocket_(other.serverSocket_),
@@ -80,6 +81,16 @@ Server& Server::operator=(const Server& other)
 		//channels_ = other.channels_;
 	}
 	return *this;
+}
+
+const std::string	&Server::getName( void ) const
+{
+	return (name_);
+}
+
+const std::string	&Server::getPassword( void ) const
+{
+	return (password_);
 }
 
 int	Server::getPort( void ) const
@@ -138,28 +149,38 @@ void	Server::removeClient(int pollIndexToRemove)
 	pollFds_.pop_back();
 }
 
-void Server::executeIncomingCommandMessage(Client& sender, const std::string& rawMessage)
+// void Server::executeIncomingCommandMessage(Client& sender, const std::string& rawMessage)
+// {
+// 	try {
+// 		Message message(rawMessage);
+// 		debug("Parsed message: " + message.getTypeAsString() + " with params: " + toString(message.getParams().size()));
+
+// 		Command* command = convertMessageToCommand(message, sender);
+// 		if (command)
+// 		{
+// 			command->execute(*this, sender);
+// 			delete command;
+// 		}
+// 	} catch (const std::exception& e) {
+// 		debug("Exception caught: " + std::string(e.what()));
+// 		std::vector<std::string> params;
+// 		params.push_back(sender.getNickname());
+// 		params.push_back(e.what());
+// 		// Message errorMessage(ERR_UNKNOWNERROR, params); TODO: just send an err_msg !
+// 		sender.sendMessage(errorMessage);
+// 	}
+// }
+
+bool	Server::nickCollision(CaseMappedString& toCheck)
 {
-	try {
-		Message message(rawMessage);
-		debug("Parsed message: " + message.getTypeAsString() + " with params: " + toString(message.getParams().size()));
-
-		Command* command = convertMessageToCommand(message, sender);
-		if (command)
-		{
-			command->execute(*this, sender);
-			delete command;
-		}
-	} catch (const std::exception& e) {
-		debug("Exception caught: " + std::string(e.what()));
-		std::vector<std::string> params;
-		params.push_back(sender.getNickname());
-		params.push_back(e.what());
-		Message errorMessage(ERR_UNKNOWNERROR, params);
-		sender.sendMessage(errorMessage);
+	for (size_t clientIndex = 0; clientIndex < clients_.size(); clientIndex++)
+	{
+		Client	compareTo = clients_[clientIndex];
+		if (toCheck == compareTo.getNickname())
+			return (1);
 	}
+	return (0);
 }
-
 
 //attempts to extract a full message from the clients sent input
 //if it extraced a string, calls the parser and executes the command
@@ -178,7 +199,7 @@ void	Server::makeMessage(Client &client)
 		raw_message.erase(0, position + 1);
 		client.setRawMessage(raw_message);
 		std::cout << command << std::endl;
-		executeIncomingCommandMessage(client, command);
+		executeIncomingCommandMessage(*this, client, command);
 		debug(raw_message);
 	}
 }

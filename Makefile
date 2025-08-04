@@ -48,14 +48,12 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		Server.cpp \
 		Client.cpp \
 		Message.cpp \
-		MessageType.cpp \
+		IrcError.cpp \
 		CaseMappedString.cpp \
 		Command.cpp \
+		commands/NickCommand.cpp \
+		commands/PassCommand.cpp \
 		commands/UserCommand.cpp \
-		ErrReply.cpp \
-		errors/ErrNeedMoreParams.cpp \
-		errors/ErrNotRegistered.cpp \
-		errors/ErrAlreadyRegistered.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
@@ -65,14 +63,12 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		Channel.hpp \
 		Client.hpp \
 		Command.hpp \
-		ErrAlreadyRegistered.hpp \
-		ErrNeedMoreParams.hpp \
-		ErrNotRegistered.hpp \
-		ErrReply.hpp \
+		IrcError.hpp \
 		ircUtils.hpp \
 		Message.hpp \
-		MessageType.hpp \
 		Server.hpp \
+		NickCommand.hpp \
+		PassCommand.hpp \
 		UserCommand.hpp \
 		)
 

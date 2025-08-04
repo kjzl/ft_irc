@@ -22,6 +22,9 @@ class Server {
 		void	waitForRequests(void);
 		void	serverShutdown(void);
 		int		safeSend(int fd, const std::string &string);
+		const std::string	&getName( void ) const;
+		const std::string	&getPassword( void ) const;
+		bool	nickCollision(CaseMappedString& toCheck);
 
 	private:
 		Server( void );
@@ -38,8 +41,10 @@ class Server {
 		void	removeClient(int pollIndexToRemove);
 		static void	signalHandler(int signum);
 		void	makeMessage(Client &client);
-		void	executeIncomingCommandMessage(Client& sender, const std::string& rawMessage);
+		// void	executeIncomingCommandMessage(Client& sender, const std::string& rawMessage);
 
+		
+		const std::string				name_;				
 		const int						port_;
 		const std::string				password_;
 		int								serverSocket_;
