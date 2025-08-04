@@ -67,3 +67,9 @@ how to check if an event happened?
 			if (((pollFds_[pollIndex].revents & POLLIN) == 1))
 ```
 the return events will be set by poll
+
+#### send and receive
+
+
+send and receive are like write and read. write and read only take an fd though.
+and since send and receive and be partial, i need to always take that into account, that is why there is the safeSend funtion we did.
