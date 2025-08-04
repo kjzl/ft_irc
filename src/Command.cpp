@@ -1,11 +1,10 @@
 #include "../include/Command.hpp"
 #include "../include/Debug.hpp"
-#include "../include/ErrNeedMoreParams.hpp"
-#include "../include/ErrNotRegistered.hpp"
-#include "../include/ErrAlreadyRegistered.hpp"
+// #include "../include/ErrNeedMoreParams.hpp"
+// #include "../include/ErrNotRegistered.hpp"
+// #include "../include/ErrAlreadyRegistered.hpp"
 #include "../include/UserCommand.hpp"
 #include "../include/ircUtils.hpp"
-#include "../include/NickCommand.hpp"
 
 static CommandFactory factory(int minArgs, AuthRequirement auth, Command* (*createCommand)(const Message&, const Client&))
 {
@@ -16,10 +15,9 @@ static CommandFactory factory(int minArgs, AuthRequirement auth, Command* (*crea
 	return commandFactory;
 }
 
-static void fillCommandFactories(std::map<MessageType, CommandFactory>& commandFactories)
+static void fillCommandFactories(std::map<std::string, CommandFactory>& commandFactories)
 {
 	commandFactories[USER] = factory(4, REQUIRES_UNAUTH, UserCommand::fromMessage);
-	commandFactories[NICK] = factory(1, NO_AUTH_REQUIRED, NickCommand::fromMessage);
 }
 
 Command* convertMessageToCommand(const Message& message, const Client& sender)
@@ -29,12 +27,22 @@ Command* convertMessageToCommand(const Message& message, const Client& sender)
 	if (commandFactories.empty())
 		fillCommandFactories(commandFactories);
 
-	std::map<MessageType, CommandFactory>::iterator it = commandFactories.find(message.getType());
-	if (it == commandFactories.end())
-		throw std::logic_error("No command factory found for message type " + message.getTypeAsString());
+	CommandFactory factory = commandFactories[message.getType()];
 
-	CommandFactory factory = it->second;
-	return factory.createCommand(message, sender);
+	if (factory.auth == REQUIRES_AUTH && !sender.isAuthenticated())
+	{
+		debug("Command requires authentication but client is not authenticated");
+		throw ErrNotRegistered(sender);
+	}
+	else if (factory.auth == REQUIRES_UNAUTH && sender.isAuthenticated())
+	{
+		debug("Command requires unauthenticated client but client is authenticated");
+		throw ErrAlreadyRegistered(sender);
+	}
+	if (static_cast<size_t>(factory.minArgs) <= message.getParams().size())
+		return factory.createCommand(message, sender);
+	else
+		throw ErrNeedMoreParams(sender, message.getTypeAsString());
 }
 
 void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage)
@@ -53,6 +61,13 @@ void executeIncomingCommandMessage(Server& server, Client& sender, const std::st
 	} catch (const ErrReply& errReply) {
 		debug("Error reply: " + std::string(errReply.what()));
 		Message errorMessage = errReply.toMessage();
+		sender.sendMessage(errorMessage);
+	} catch (const Message::UnknownMessageTypeException& e) {
+		debug("Exception caught: " + std::string(e.what()));
+		std::vector<std::string> params;
+		params.push_back(sender.getNickname());
+		params.push_back(e.what());
+		Message errorMessage(ERR_UNKNOWNERROR, params);
 		sender.sendMessage(errorMessage);
 	} catch (const std::exception& e) {
 		debug("Exception caught: " + std::string(e.what()));

@@ -73,7 +73,7 @@ void NickCommand::execute(Server& server, Client& sender)
 	{
 		std::string arr[] = { sender.getNickname(), ":Nickname is already in use" };
 		std::vector<std::string> outParams(arr, arr + 2);
-		Message outMessage(ERR_NICKNAMEINUSE, server.getName(), outParams);
+		Message outMessage(ERR_NICKNAMEINUSE, .getName(), outParams);
 		return (sender.sendMessage(outMessage));
 	}
 	// set Nickname on sucess !

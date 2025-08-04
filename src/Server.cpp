@@ -162,7 +162,7 @@ void Server::executeIncomingCommandMessage(Client& sender, const std::string& ra
 		std::vector<std::string> params;
 		params.push_back(sender.getNickname());
 		params.push_back(e.what());
-		Message errorMessage(ERR_UNKNOWNERROR, params);
+		// Message errorMessage(ERR_UNKNOWNERROR, params); TODO: just send an err_msg !
 		sender.sendMessage(errorMessage);
 	}
 }

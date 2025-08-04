@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <string>
+#include <vector>
 #include "CaseMappedString.hpp"
 
 class Message;
@@ -33,7 +34,6 @@ class   Client
 		int		getRegistrationLevel(void) const;
 		int		getSocket()			const;
 
-		void	setAuthenticated(bool authenticated);
 		void	setNickname(const std::string &nickname);
 		void	setUsername(const std::string &username);
 		void	setRealname(const std::string &realname);
@@ -45,6 +45,8 @@ class   Client
 		void	clearMessage();
 		int		safeSend(const std::string &string);
 		void	sendMessage(Message toSend);
+		void	sendErrorMessage(IrcError type, const Server& server, std::vector<std::string>& args);
+
 };
 
 #endif
