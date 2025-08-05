@@ -27,7 +27,7 @@ class   Client
 		Client &operator =(const Client &other);
 		virtual ~Client();
 
-		const CaseMappedString	&getNickname() const;
+		const std::string		&getNickname() const;
 		const std::string		&getUsername() const;
 		const std::string		&getRealname() const;
 		const std::string		&getRawMessage() const;

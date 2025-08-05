@@ -54,6 +54,7 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		commands/NickCommand.cpp \
 		commands/PassCommand.cpp \
 		commands/UserCommand.cpp \
+		commands/PrivmsgCommand.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
@@ -70,6 +71,7 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		NickCommand.hpp \
 		PassCommand.hpp \
 		UserCommand.hpp \
+		PrivmsgCommand.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug

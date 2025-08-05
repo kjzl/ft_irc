@@ -20,14 +20,15 @@ public:
 	Message(std::string type, const std::string& arg1, const std::string& arg2, const Client& source);
 	Message(const std::string &msg);
 	virtual ~Message();
-	std::string	toString() const;
+	std::string	toString();
 
 	// Optional note of where the message came from
 	const std::string* getSource() const;
+	void setSource(const std::string* source);
 	// The specific command this message represents.
 	std::string getType() const;
 	// If it exists, data relevant to this specific command.
-	const std::vector<std::string>& getParams() const;
+	std::vector<std::string>& getParams();
 
 	class WrongMessageFormatException : public std::exception {
 	private:
@@ -39,7 +40,7 @@ public:
 		const char* what() const throw();
 	};
 private:
-	std::string* 				source_; //TODO: why a pointer ????
+	const std::string* 			source_; //TODO: why a pointer ????
 	std::string					type_;
 	std::vector<std::string>	params_;
 
@@ -47,6 +48,6 @@ private:
 
 };
 
-std::ostream& operator<<(std::ostream& os, const Message& message);
+std::ostream& operator<<(std::ostream& os, Message& message);
 
-#endif // MESSAGE_HPP
+#endif

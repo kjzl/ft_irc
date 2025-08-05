@@ -4,6 +4,7 @@
 #include "../include/PassCommand.hpp"
 #include "../include/NickCommand.hpp"
 #include "../include/UserCommand.hpp"
+#include "../include/PrivmsgCommand.hpp"
 #include "Message.hpp"
 
 
@@ -20,7 +21,7 @@ static void fillCommandMap(std::map<std::string, CommandFactory> &commandMap)
 	commandMap["PASS"] = 	&PassCommand::fromMessage;
 	commandMap["NICK"] = 	&NickCommand::fromMessage;
 	commandMap["USER"] = 	&UserCommand::fromMessage;
-	// commandMap["PRIVMSG"] = &PrivmsgCommand::fromMessage;
+	commandMap["PRIVMSG"] = &PrivmsgCommand::fromMessage;
 	//...
 }
 

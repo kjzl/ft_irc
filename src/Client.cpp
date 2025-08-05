@@ -36,10 +36,10 @@ Client::~Client()
 
 bool Client::isAuthenticated() const
 {
-    return (registrationLevel_ == 2);
+    return (registrationLevel_ == 3);
 }
 
-const CaseMappedString &Client::getNickname() const
+const std::string &Client::getNickname() const
 {
     return nickname_;
 }

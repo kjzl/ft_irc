@@ -58,13 +58,13 @@ Message::Message(const Message& other)
 {
 }
 
-std::ostream& operator<<(std::ostream& os, const Message& message)
+std::ostream& operator<<(std::ostream& os, Message& message)
 {
 	os << message.toString();
 	return os;
 }
 
-std::string	Message::toString() const
+std::string	Message::toString()
 {
 	std::string msg;
 	if (source_)
@@ -123,7 +123,12 @@ std::string Message::getType() const
 	return type_;
 }
 
-const std::vector<std::string>& Message::getParams() const
+void Message::setSource(const std::string* source)
+{
+	source_ = source;
+}
+
+std::vector<std::string>& Message::getParams()
 {
 	return params_;
 }

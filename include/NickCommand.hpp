@@ -3,8 +3,6 @@
 
 #include "Command.hpp"
 
-// https://modern.ircdocs.horse/#Nick-message
-
 class NickCommand : Command {
 public:
 	NickCommand(const Message& msg);

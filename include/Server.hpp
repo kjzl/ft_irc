@@ -21,10 +21,10 @@ class Server {
 		Server& operator=( const Server& other );
 		void	waitForRequests(void);
 		void	serverShutdown(void);
-		int		safeSend(int fd, const std::string &string);
 		const std::string	&getName( void ) const;
 		const std::string	&getPassword( void ) const;
 		bool	nickCollision(CaseMappedString& toCheck);
+		std::vector<Client>&	getClients( void );
 
 	private:
 		Server( void );

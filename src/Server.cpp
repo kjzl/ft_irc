@@ -93,6 +93,12 @@ const std::string	&Server::getPassword( void ) const
 	return (password_);
 }
 
+std::vector<Client>& Server::getClients( void )
+{
+	return clients_;
+}
+
+
 int	Server::getPort( void ) const
 {
 	return (port_);
