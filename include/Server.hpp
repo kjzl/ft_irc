@@ -41,7 +41,7 @@ class Server {
 		void	removeClient(int pollIndexToRemove);
 		static void	signalHandler(int signum);
 		void	makeMessage(Client &client);
-		// void	executeIncomingCommandMessage(Client& sender, const std::string& rawMessage);
+		void	executeIncomingCommandMessage(Client& sender, const std::string& rawMessage);
 
 		
 		const std::string				name_;				

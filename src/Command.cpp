@@ -38,16 +38,16 @@ Command* convertMessageToCommand(const Message& message)
 	return cmd;
 }
 
-void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage)
-{
-	Message message(rawMessage);
-	debug("Parsed message: " + message.getType() + " with params: " + toString(message.getParams().size()));
-	Command* cmd = convertMessageToCommand(message);
-	if (!cmd)
-		return; // TODO: send ERROR_MSG 421
-	cmd->execute(server, sender);
-	delete cmd;
-}
+// void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage)
+// {
+// 	Message message(rawMessage);
+// 	debug("Parsed message: " + message.getType() + " with params: " + toString(message.getParams().size()));
+// 	Command* cmd = convertMessageToCommand(message);
+// 	if (!cmd)
+// 		return; // TODO: send ERROR_MSG 421
+// 	cmd->execute(server, sender);
+// 	delete cmd;
+// }
 
 Command::~Command()
 {
