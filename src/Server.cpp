@@ -31,14 +31,14 @@ void	Server::signalHandler(int signum)
 }
 
 // Default Constructor
-Server::Server(void): name_("AspenWood"), port_(6667), password_("password")
+Server::Server(void): name_(HOSTNAME), port_(6667), password_("password")
 {
 	running_ = true;
 	debug("Default Constructor called");
 }
 
 // Parameterized Constructor
-Server::Server(int port, std::string password): name_("AspenWood"), port_(port), password_(password), serverSocket_(-1)
+Server::Server(int port, std::string password): name_(HOSTNAME), port_(port), password_(password), serverSocket_(-1)
 {
 	struct sigaction sa;
 	sa.sa_handler = signalHandler;

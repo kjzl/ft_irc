@@ -49,8 +49,7 @@ enum MessageType {
 	ERR_NOSUCHNICK = 401,
 	ERR_CANNOTSENDTOCHAN = 404,
 	ERR_NORECIPIENT = 411,
-	ERR_NOTEXTTOSEND = 412,
-	RPL_AWAY = 301
+	ERR_NOTEXTTOSEND = 412
 };
 
 MessageType parseCommandType(const std::string& type);

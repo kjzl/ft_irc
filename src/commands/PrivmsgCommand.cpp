@@ -18,7 +18,7 @@ Command* PrivmsgCommand::fromMessage(const Message& message)
 	ERR_CANNOTSENDTOCHAN = 404,
 	ERR_NORECIPIENT = 411,
 	ERR_NOTEXTTOSEND = 412,
-	RPL_AWAY = 301
+	RPL_AWAY = 301 // not doing that one anymore, doesn't make sense, as we don't register users
 
 */
 void PrivmsgCommand::execute(Server& server, Client& sender)
@@ -28,32 +28,43 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	// Not Authenticated ==> ignore it...
 	if (!sender.isAuthenticated())
 		return;
-	// TODO: handle all errors...
-	
-	// Success !
 	Message outMessage = inMessage_;
 	outMessage.setSource(sender.getNickname(), sender.getUsername());
 	std::cerr << BLUE << "message: '" << outMessage << "'" << RESET << std::endl;
-	std::stringstream stream(inParams[0]);
-	std::string token;
-	while (std::getline(stream, token, ','))
+	// ERR_NORECIPIENT = 411, TODO:
+	//  "<client> :No recipient given (<command>)"
+	if (inParams[0].empty())
 	{
-		outMessage.getParams()[0] = token;
-		if (token[0] == '#')
+		std::string arr[] = {sender.getNickname()};
+		return (sender.sendErrorMessage(ERR_NORECIPIENT, arr, 1));
+	}
+	// ERR_NOTEXTTOSEND = 412, TODO: check this, i am unsure.
+	if (inParams.size() < 2)
+	{
+		std::string arr[] = {sender.getNickname()};
+		return (sender.sendErrorMessage(ERR_NOTEXTTOSEND, arr, 1));
+	}
+
+	std::stringstream stream(inParams[0]);
+	std::string recipient;
+	while (std::getline(stream, recipient, ','))
+	{
+		outMessage.getParams()[0] = recipient;
+		if (recipient[0] == '#')
 		{
 
 			// {
 			// 	// ERR_CANNOTSENDTOCHAN = 404, (not enough rights)
-			// 	std::string arr[] = {sender.getNickname(), token};
+			// 	std::string arr[] = {sender.getNickname(), recipient};
 			// 	return (sender.sendErrorMessage(ERR_CANNOTSENDTOCHAN, arr, 1));
 			// }
 		}
 		else
 		{
-			if (!sender.sendMessageTo(outMessage, token, server))
+			if (!sender.sendMessageTo(outMessage, recipient, server))
 			{
 				// ERR_NOSUCHNICK (401)
-				std::string arr[] = {sender.getNickname(), token};
+				std::string arr[] = {sender.getNickname(), recipient};
 				return (sender.sendErrorMessage(ERR_NOSUCHNICK, arr, 1));
 			}
 		}

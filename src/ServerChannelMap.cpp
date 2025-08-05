@@ -7,6 +7,8 @@ std::map<std::string, Channel>	&getChannelMap()
 	if (channelMap.empty())
 	{
 		channelMap["entrance"] = Channel();
+		channelMap["clearing"] = Channel();
+		channelMap["secretGrove"] = Channel();
 	}
 	return (channelMap);
 }
