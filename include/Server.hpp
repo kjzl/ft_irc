@@ -51,7 +51,6 @@ class Server {
 		int								serverSocket_;
 		static bool						running_;
 		std::vector<struct pollfd>		pollFds_;
-		// std::map<std::string, Client>	clients_;
 		std::vector<Client>				clients_;
 		// std::map<std::string, Channel>	channels_;
 };

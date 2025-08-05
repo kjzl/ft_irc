@@ -24,8 +24,10 @@ class   Client
 	public:
 		Client();
 		Client(const Client &other);
-		Client &operator =(const Client &other);
+		Client &operator=(const Client &other);
 		virtual ~Client();
+
+		bool	operator==(const std::string nickname);
 
 		const std::string		&getNickname() const;
 		const std::string		&getUsername() const;
@@ -47,6 +49,8 @@ class   Client
 		void	clearMessage();
 		int		safeSend(const std::string &string);
 		void	sendMessage(Message toSend);
+		// sends a message to recipient, returns false if recipientNickname not found and could not send, else true
+		bool	sendMessageTo(Message msg, const std::string recipientNickname, Server &server);
 		void	sendErrorMessage(MessageType type, std::vector<std::string>& args);
 		void 	sendErrorMessage(MessageType type, std::string args[], int size);
 

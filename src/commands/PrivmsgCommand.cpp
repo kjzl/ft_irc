@@ -1,6 +1,7 @@
 #include "../../include/PrivmsgCommand.hpp"
 #include "../../include/Debug.hpp"
 #include "../../include/MessageType.hpp"
+#include <cstdlib>
 #include <iostream>
 
 PrivmsgCommand::PrivmsgCommand(const Message& msg) : Command(msg)
@@ -13,15 +14,11 @@ Command* PrivmsgCommand::fromMessage(const Message& message)
 
 /*
     https://modern.ircdocs.horse/#privmsg-message
-    ERR_NOSUCHNICK (401)
-    ERR_NOSUCHSERVER (402)
-    ERR_CANNOTSENDTOCHAN (404)
-    ERR_TOOMANYTARGETS (407)
-    ERR_NORECIPIENT (411)
-    ERR_NOTEXTTOSEND (412)
-    ERR_NOTOPLEVEL (413)
-    ERR_WILDTOPLEVEL (414)
-    RPL_AWAY (301)
+	ERR_NOSUCHNICK = 401,
+	ERR_CANNOTSENDTOCHAN = 404,
+	ERR_NORECIPIENT = 411,
+	ERR_NOTEXTTOSEND = 412,
+	RPL_AWAY = 301
 
 */
 void PrivmsgCommand::execute(Server& server, Client& sender)
@@ -36,7 +33,7 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	// Success !
 	Message outMessage = inMessage_;
 	outMessage.setSource(sender.getNickname(), sender.getUsername());
-	std::cerr << BLUE << "message: '" << outMessage << "'" << std::endl;
+	std::cerr << BLUE << "message: '" << outMessage << "'" << RESET << std::endl;
 	std::stringstream stream(inParams[0]);
 	std::string token;
 	while (std::getline(stream, token, ','))
@@ -44,24 +41,23 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 		outMessage.getParams()[0] = token;
 		if (token[0] == '#')
 		{
-			// map to channel
-			// broadcast to channel
+
+			// {
+			// 	// ERR_CANNOTSENDTOCHAN = 404, (not enough rights)
+			// 	std::string arr[] = {sender.getNickname(), token};
+			// 	return (sender.sendErrorMessage(ERR_CANNOTSENDTOCHAN, arr, 1));
+			// }
 		}
 		else
 		{
-			// map to the receiver , Muehsam...
-			Client* receiver = NULL;
-			for (std::vector<Client>::iterator it = server.getClients().begin(); it != server.getClients().end(); ++it)
+			if (!sender.sendMessageTo(outMessage, token, server))
 			{
-				if (it->getNickname() == token)
-				{
-					receiver = &(*it);
-					break;
-				}
+				// ERR_NOSUCHNICK (401)
+				std::string arr[] = {sender.getNickname(), token};
+				return (sender.sendErrorMessage(ERR_NOSUCHNICK, arr, 1));
 			}
-			//send the message()
-			receiver->sendMessage(outMessage);
 		}
+
 	}
 	return;
 }

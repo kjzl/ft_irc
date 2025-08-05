@@ -1,6 +1,9 @@
 #include "../include/Client.hpp"
 #include "../include/MessageType.hpp"
+#include "Server.hpp"
+#include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 #include <stdexcept>
 #include <sys/socket.h>
 #include "Message.hpp"
@@ -30,6 +33,13 @@ Client &Client::operator=(const Client &other)
 
 Client::~Client()
 {}
+
+bool	Client::operator==(const std::string nickname)
+{
+	if (getNickname() == nickname)
+		return (true);
+	return (false);
+}
 
 // Getters
 
@@ -115,6 +125,18 @@ void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 void	Client::sendMessage(Message toSend)
 {
 	safeSend(toSend.toString());
+}
+
+bool	Client::sendMessageTo(Message msg, const std::string recipientNickname, Server &server)
+{
+	std::vector<Client> clients = server.getClients();
+	std::vector<Client>::iterator clientIt = std::find(clients.begin(), clients.end(), recipientNickname);
+	if (clientIt != clients.end())
+	{
+		clientIt->sendMessage(msg);
+		return (true);
+	}
+	return (false);
 }
 
 void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args)

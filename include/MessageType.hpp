@@ -32,8 +32,6 @@ enum MessageType {
 	RPL_YOURHOST = 2,
 	// https://modern.ircdocs.horse/#errunknownerror-400
 	ERR_UNKNOWNERROR = 400,
-	// https://modern.ircdocs.horse/#errnosuchnick-401
-	ERR_NOSUCHNICK = 401,
 	// https://modern.ircdocs.horse/#errnotregistered-451
 	ERR_NOTREGISTERED = 451,
 	// https://modern.ircdocs.horse/#errneedmoreparams-461
@@ -45,7 +43,14 @@ enum MessageType {
 	ERR_NONICKNAMEGIVEN,
 	ERR_ERRONEUSNICKNAME,
 	ERR_NICKNAMEINUSE,
-    ERR_PASSWDMISMATCH
+    ERR_PASSWDMISMATCH,
+
+	// https://modern.ircdocs.horse/#errnosuchnick-401
+	ERR_NOSUCHNICK = 401,
+	ERR_CANNOTSENDTOCHAN = 404,
+	ERR_NORECIPIENT = 411,
+	ERR_NOTEXTTOSEND = 412,
+	RPL_AWAY = 301
 };
 
 MessageType parseCommandType(const std::string& type);
