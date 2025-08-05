@@ -25,21 +25,21 @@ void PassCommand::execute(Server& server, Client& sender)
 	{
 		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
 		std::vector<std::string> outParams(arr, arr + 2);
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, server, outParams));
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, outParams));
 	}
 	// 462
 	if (sender.getRegistrationLevel() > 0)
 	{
 		std::string arr[] = {sender.getNickname()};
 		std::vector<std::string> outParams(arr, arr + 1);
-		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, server, outParams));
+		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, outParams));
 	}
 	// 464
 	if (inParams[0] != server.getPassword())
 	{
 		std::string arr[] = {sender.getNickname()};
 		std::vector<std::string> outParams(arr, arr + 1);
-		return (sender.sendErrorMessage(ERR_PASSWDMISMATCH, server, outParams));
+		return (sender.sendErrorMessage(ERR_PASSWDMISMATCH, outParams));
 	}
 	// Sucess !
 	sender.incrementRegistrationLevel();

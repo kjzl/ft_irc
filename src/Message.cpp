@@ -1,60 +1,64 @@
 #include "../include/Message.hpp"
 #include "../include/ircUtils.hpp"
+#include "Server.hpp"
 #include <cctype>
 #include <sstream>
 #include "Client.hpp"
 
 Message::Message(const std::string &msg)
-: source_(NULL), type_(""), params_()
+: hasSource_(false), nickname_(""), username_(""), hostname_(HOSTNAME), type_(""), params_()
 {
 	parseIncomingMessage(msg);
 }
 
 Message::Message(std::string type, const std::vector<std::string>& params)
-	: source_(NULL), type_(type), params_(params)
+	: hasSource_(false), nickname_(""), username_(""), hostname_(HOSTNAME), type_(type), params_(params)
 {
 }
 
 
-Message::Message(std::string type, const std::string& source, const std::vector<std::string>& params)
-	: source_(source.empty() ? NULL : new std::string(source)), type_(type), params_(params)
+Message::Message(std::string type, const std::string& nickname, const std::string& username, const std::vector<std::string>& params)
+	: hasSource_(true), nickname_(nickname), username_(username), hostname_(HOSTNAME), type_(type), params_(params)
 {
 }
 
 Message::Message(std::string type, const Client& source, const std::vector<std::string>& params)
-	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_(params)
+	: hasSource_(true), nickname_(source.getNickname()), username_(source.getUsername()), hostname_(HOSTNAME), type_(type), params_(params)
 {
 }
 
 Message::Message(std::string type, const std::string& arg1)
-	: source_(NULL), type_(type), params_(1, arg1)
+	: hasSource_(false), nickname_(""), username_(""), hostname_(HOSTNAME), type_(type), params_(1, arg1)
 {
 }
 
 Message::Message(std::string type, const std::string& arg1, const std::string& arg2)
-	: source_(NULL), type_(type), params_()
+	: hasSource_(false), nickname_(""), username_(""), hostname_(HOSTNAME), type_(type), params_()
 {
 	params_.push_back(arg1);
 	params_.push_back(arg2);
 }
 
 Message::Message(std::string type, const std::string& arg1, const Client& source)
-	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_()
+	: hasSource_(true), nickname_(source.getNickname()), username_(source.getUsername()), hostname_(HOSTNAME), type_(type), params_()
 {
 	params_.push_back(arg1);
 }
 
 Message::Message(std::string type, const std::string& arg1, const std::string& arg2, const Client& source)
-	: source_(source.getNickname().empty() ? NULL : new std::string(source.getNickname())), type_(type), params_()
+	: hasSource_(true), nickname_(source.getNickname()), username_(source.getUsername()), hostname_(HOSTNAME), type_(type), params_()
 {
 	params_.push_back(arg1);
 	params_.push_back(arg2);
 }
 
 Message::Message(const Message& other)
-	: source_(other.source_ ? new std::string(*other.source_) : NULL),
-	  type_(other.type_),
-	  params_(other.params_)
+	:	hasSource_(other.hasSource_),
+		nickname_(other.nickname_),
+		username_(other.username_),
+		hostname_(other.hostname_),
+		type_(other.type_),
+		params_(other.params_)
 {
 }
 
@@ -64,11 +68,12 @@ std::ostream& operator<<(std::ostream& os, Message& message)
 	return os;
 }
 
+//:nickname!username@host(or IP) type ... ... :back
 std::string	Message::toString()
 {
 	std::string msg;
-	if (source_)
-		msg += ":" + *source_ + " ";
+	if (hasSource_)
+		msg += ":" + nickname_ + " " + username_ + " ";
 	msg += type_;
 	if (getParams().empty())
 		return msg;
@@ -81,9 +86,7 @@ std::string	Message::toString()
 }
 
 Message::~Message()
-{
-	delete source_;
-}
+{}
 
 // input message must not end with crlf
 void Message::parseIncomingMessage(const std::string& msg)
@@ -113,9 +116,14 @@ void Message::parseIncomingMessage(const std::string& msg)
 	}
 }
 
-const std::string* Message::getSource() const
+const std::string Message::getUsername() const
 {
-	return source_;
+	return username_;
+}
+
+const std::string Message::getNickname() const
+{
+	return nickname_;
 }
 
 std::string Message::getType() const
@@ -123,9 +131,11 @@ std::string Message::getType() const
 	return type_;
 }
 
-void Message::setSource(const std::string* source)
+void Message::setSource(const std::string nickname, const std::string username)
 {
-	source_ = source;
+	hasSource_ = true;
+	nickname_ = nickname;
+	username_ = username;
 }
 
 std::vector<std::string>& Message::getParams()

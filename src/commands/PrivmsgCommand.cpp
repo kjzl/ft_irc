@@ -34,7 +34,7 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	
 	// Success !
 	Message outMessage = inMessage_;
-	outMessage.setSource(&sender.getNickname()); //TODO: whyyyyy a pointer ???
+	outMessage.setSource(sender.getNickname(), sender.getUsername()); //TODO: whyyyyy a pointer ???
 	std::stringstream stream(inParams[0]);
 	std::string token;
 	while (std::getline(stream, token, ','))

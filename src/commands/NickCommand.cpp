@@ -39,14 +39,14 @@ void NickCommand::execute(Server& server, Client& sender)
 	{
 		std::string arr[] = {sender.getNickname()};
 		std::vector<std::string> outParams(arr, arr + 1);
-		return (sender.sendErrorMessage(ERR_NONICKNAMEGIVEN, server, outParams));
+		return (sender.sendErrorMessage(ERR_NONICKNAMEGIVEN, outParams));
 	}
 	// 432
 	if (checkNickFormat(inParams[0]))
 	{
 		std::string arr[] = {sender.getNickname(), inParams[0]};
 		std::vector<std::string> outParams(arr, arr + 2);
-		return (sender.sendErrorMessage(ERR_ERRONEUSNICKNAME, server, outParams));
+		return (sender.sendErrorMessage(ERR_ERRONEUSNICKNAME, outParams));
 	}
 	// 433
 	CaseMappedString tmp(inParams[0]);
@@ -54,7 +54,7 @@ void NickCommand::execute(Server& server, Client& sender)
 	{
 		std::string arr[] = {sender.getNickname(), inParams[0]};
 		std::vector<std::string> outParams(arr, arr + 2);
-		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, server, outParams));
+		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, outParams));
 	}
 	if (registrationLevel == 1) // registering
 	{

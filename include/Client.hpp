@@ -47,7 +47,7 @@ class   Client
 		void	clearMessage();
 		int		safeSend(const std::string &string);
 		void	sendMessage(Message toSend);
-		void	sendErrorMessage(IrcError type, const Server& server, std::vector<std::string>& args);
+		void	sendErrorMessage(IrcError type, std::vector<std::string>& args);
 
 };
 

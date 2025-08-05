@@ -18,9 +18,9 @@ Command* UserCommand::fromMessage(const Message& message)
 */
 void UserCommand::execute(Server& server, Client& sender)
 {
+	(void) server;
 	std::vector<std::string> inParams = inMessage_.getParams();
 	
-	std::cerr << BLUE << "registration level: " << sender.getRegistrationLevel() << std::endl;
 	if (sender.getRegistrationLevel() < 2) // user needs to give pass or nick first
 	{
 		debug("registration level too low for user command");
@@ -31,14 +31,14 @@ void UserCommand::execute(Server& server, Client& sender)
 	{
 		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
 		std::vector<std::string> outParams(arr, arr + 2);
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, server, outParams));
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, outParams));
 	}
 	// 462
 	if (sender.isAuthenticated())
 	{
 		std::string arr[] = {sender.getNickname()};
 		std::vector<std::string> outParams(arr, arr + 1);
-		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, server, outParams));
+		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, outParams));
 	}
 	// Sucess !
 	else if (sender.getRegistrationLevel() == 2)
@@ -50,10 +50,10 @@ void UserCommand::execute(Server& server, Client& sender)
 	// TODO: implement that cleanly or just leave it like it is ?!...
 	// std::string arr[] = {sender.getNickname()};
 	// std::vector<std::string> outParams(arr, arr + 1);
-	// sender.sendErrorMessage(RPL_WELCOME, server, outParams);
-	// sender.sendErrorMessage(RPL_YOURHOST, server, outParams);
-	// sender.sendErrorMessage(RPL_CREATED , server, outParams);
-	// sender.sendErrorMessage(RPL_MYINFO , server, outParams);
+	// sender.sendErrorMessage(RPL_WELCOME, outParams);
+	// sender.sendErrorMessage(RPL_YOURHOST, outParams);
+	// sender.sendErrorMessage(RPL_CREATED , outParams);
+	// sender.sendErrorMessage(RPL_MYINFO , outParams);
 	sender.sendMessage(Message("Welcome to the AspenWood modest IRC Chat :)"));
 	sender.sendMessage(Message("You are now fully authenticated :D"));
 	}
