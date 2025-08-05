@@ -20,13 +20,19 @@ class Server {
 
 		Server(const Server& other);
 		Server& operator=( const Server& other );
+		// core
 		void	waitForRequests(void);
 		void	serverShutdown(void);
+		// getters
 		const std::string	&getName( void ) const;
 		const std::string	&getPassword( void ) const;
-
+		// ?
 		bool	nickCollision(CaseMappedString& toCheck);
-		std::vector<Client>&	getClients( void );
+		// everything is exposed :
+		std::vector<Client>&			getClients(void);
+		std::map<std::string, Channel>&	getChannels(void);
+		// Utils
+		Channel* mapChannel(const std::string& channelName);
 
 	private:
 		Server( void );

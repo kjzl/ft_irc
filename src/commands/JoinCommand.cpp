@@ -24,9 +24,9 @@ Command* JoinCommand::fromMessage(const Message& message)
     ERR_CHANNELISFULL (471)		=> we ignore that... our limit is MAX_INT
     ERR_INVITEONLYCHAN (473)	=> done
     ERR_BADCHANMASK (476)		=> ???
-    RPL_TOPIC (332)				=> WIP
+    RPL_TOPIC (332)				=> done
     RPL_TOPICWHOTIME (333)		=> we don't do that (no history in our modest server)
-    RPL_NAMREPLY (353)			=> WIP
+    RPL_NAMREPLY (353)			=> done
     RPL_ENDOFNAMES (366)		=> no necessarry IMO ?
 */
 void JoinCommand::execute(Server& server, Client& sender)
@@ -61,11 +61,12 @@ void JoinCommand::execute(Server& server, Client& sender)
 			sender.sendErrorMessage(ERR_NOSUCHCHANNEL, arr, 2);
 			continue;
 		}
-		Channel *channel = mapChannel(channelName, server); 
+		Channel *channel = server.mapChannel(channelName); 
 		// Creating a new channel
 		if (!channel)
 		{
-			createChannel(channelName, sender, server);
+			server.getChannels()[channelName] = Channel(channelName, sender);
+			// TODO: send confimation ??
 			continue;
 		}
 		// ERR_BADCHANNELKEY (475)
@@ -76,14 +77,14 @@ void JoinCommand::execute(Server& server, Client& sender)
 			continue;
 		}
 		// ERR_INVITEONLYCHAN (473)
-		if (channel->isInviteOnly() && !channel->isWhitelisted(sender))
+		if (channel->isInviteOnly() && !channel->isWhiteListed(sender))
 		{
 			std::string arr[] = {sender.getNickname(), channelName};
 			sender.sendErrorMessage(ERR_INVITEONLYCHAN, arr, 2);
 			continue;
 		}
 		// Success with adding member !
-		channel->addMember(sender); // TODO : addMember needs to check for duplicates !
+		channel->addMember(&sender);
 		// RPL_TOPIC (332)
 		// TODO: implement
 		// RPL_NAMREPLY (353)

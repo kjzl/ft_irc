@@ -17,6 +17,12 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
         errorMap[ERR_NEEDMOREPARAMS]	= IrcErrorInfo("461", ":Not enough parameters");
         errorMap[ERR_ALREADYREGISTERED]	= IrcErrorInfo("462", ":You may not reregister");
         errorMap[ERR_PASSWDMISMATCH]	= IrcErrorInfo("464", ":Password incorrect");
+
+		errorMap[ERR_NOSUCHCHANNEL]		= IrcErrorInfo("403", ":No such channel");
+		errorMap[ERR_BADCHANNELKEY]		= IrcErrorInfo("475", ":Cannot join channel (+k)");
+		errorMap[ERR_INVITEONLYCHAN]	= IrcErrorInfo("473", ":Cannot join channel (+i)");
+		// errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");
+		// errorMap[RPL_NAMREPLY]			= IrcErrorInfo("353", "");
 		// ...
 	}
 
