@@ -1,7 +1,16 @@
 #include "../include/Channel.hpp"
 
 Channel::Channel()
-    : topic_(""), password_(""), user_limit_(0)
+    : topic_(""), password_(""), userLimit_(0)
+{}
+
+Channel::Channel(std::vector<Client> members, std::set<std::string> whiteList, std::set<std::string> operators, std::string topic, std::string password, int userLimit)
+	:	members_(members),
+		whiteList_(whiteList),
+		operators_(operators),
+		topic_(topic),
+		password_(password),
+		userLimit_(userLimit)
 {}
 
 Channel::Channel(const Channel &other)
@@ -18,7 +27,7 @@ Channel &Channel::operator=(const Channel &other)
         this->operators_ = other.operators_;
         this->topic_ = other.topic_;
         this->password_ = other.password_;
-        this->user_limit_ = other.user_limit_;
+        this->userLimit_ = other.userLimit_;
     }
     return *this;
 }
@@ -27,7 +36,7 @@ Channel::~Channel()
 {}
 
 // Getters
-const std::vector<std::string> &Channel::getMembers() const
+const std::vector<Client> &Channel::getMembers() const
 {
     return members_;
 }

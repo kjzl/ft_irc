@@ -12,21 +12,22 @@ class Client;
 class   Channel
 {
 	private:
-		std::vector<std::string>	members_;  //(quicker iteration) // we could also use the unique fd ?
+		std::vector<Client>			members_;  //(quicker iteration) // we could also use the unique fd ?
 		std::set<std::string>		whiteList_; //(quicker search) if is not empty, is invite only channel
 		std::set<std::string>		operators_;
 		std::string					topic_;
 		std::string					password_;
-		int							user_limit_;
+		int							userLimit_;
 
 	public:
 		Channel();
+		Channel(std::vector<Client> members, std::set<std::string> whiteList, std::set<std::string> operators, std::string topic, std::string password, int userLimit);
 		Channel(const Channel &other);
 		Channel &operator =(const Channel &other);
 		virtual ~Channel();
 
 		// Getters => necessary or only Utils?? 
-		const std::vector<std::string> &getMembers() const;
+		const std::vector<Client> &getMembers() const;
 		const std::set<std::string> &getWhiteList() const;
 		const std::set<std::string> &getOperators() const;
 		const std::string &getTopic() const;
