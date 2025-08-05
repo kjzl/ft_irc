@@ -29,7 +29,11 @@ Command Example:
 void NickCommand::execute(Server& server, Client& sender)
 {
 	std::vector<std::string> inParams = inMessage_.getParams();
+	int	registrationLevel = sender.getRegistrationLevel();
 	
+	// checkRegistrationLevel => do nothing if no PASS given!
+	if (registrationLevel == 0)
+		return;
 	// 431
 	if (inParams.empty())
 	{
@@ -37,9 +41,6 @@ void NickCommand::execute(Server& server, Client& sender)
 		std::vector<std::string> outParams(arr, arr + 1);
 		return (sender.sendErrorMessage(ERR_NONICKNAMEGIVEN, server, outParams));
 	}
-	// checkRegistrationLevel => do nothing if no PASS given!
-	if (sender.getRegistrationLevel() == 0)
-		return;
 	// 432
 	if (checkNickFormat(inParams[0]))
 	{
@@ -55,9 +56,13 @@ void NickCommand::execute(Server& server, Client& sender)
 		std::vector<std::string> outParams(arr, arr + 2);
 		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, server, outParams));
 	}
-	// Sucess !
-	sender.setNickname(inParams[0]);
-	sender.incrementRegistrationLevel();
+	if (registrationLevel == 1) // registering
+	{
+		sender.incrementRegistrationLevel();
+		sender.setNickname(inParams[0]);
+	}
+	else if (registrationLevel == 3 || registrationLevel == 2) // auth, just changing nick
+		sender.setNickname(inParams[0]);
 	return;
 }
 bool	NickCommand::checkNickFormat(std::string nickname)

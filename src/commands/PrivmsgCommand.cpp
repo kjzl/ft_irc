@@ -28,9 +28,10 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	std::vector<std::string> inParams = inMessage_.getParams();
 	
 	// Not Authenticated ==> ignore it...
-	if (sender.getRegistrationLevel() < 3)
+	if (!sender.isAuthenticated())
 		return;
 	// TODO: handle all errors...
+	
 	// Success !
 	Message outMessage = inMessage_;
 	outMessage.setSource(&sender.getNickname()); //TODO: whyyyyy a pointer ???

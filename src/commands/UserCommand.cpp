@@ -1,6 +1,7 @@
 #include "../../include/UserCommand.hpp"
 #include "../../include/Debug.hpp"
 #include "../../include/IrcError.hpp"
+#include <iostream>
 
 UserCommand::UserCommand(const Message& msg) : Command(msg)
 {}
@@ -19,6 +20,12 @@ void UserCommand::execute(Server& server, Client& sender)
 {
 	std::vector<std::string> inParams = inMessage_.getParams();
 	
+	std::cerr << BLUE << "registration level: " << sender.getRegistrationLevel() << std::endl;
+	if (sender.getRegistrationLevel() < 2) // user needs to give pass or nick first
+	{
+		debug("registration level too low for user command");
+		return ;
+	}
 	// 461
 	if (inParams.size() < 4)
 	{
@@ -27,13 +34,16 @@ void UserCommand::execute(Server& server, Client& sender)
 		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, server, outParams));
 	}
 	// 462
-	if (sender.getRegistrationLevel() == 3)
+	if (sender.isAuthenticated())
 	{
 		std::string arr[] = {sender.getNickname()};
 		std::vector<std::string> outParams(arr, arr + 1);
 		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, server, outParams));
 	}
 	// Sucess !
+	else if (sender.getRegistrationLevel() == 2)
+	{
+	debug("now setting user, incrementing registration level");
 	sender.setUsername(inParams[0]);
 	sender.setRealname(inParams[3]);
 	sender.incrementRegistrationLevel();
@@ -46,5 +56,6 @@ void UserCommand::execute(Server& server, Client& sender)
 	// sender.sendErrorMessage(RPL_MYINFO , server, outParams);
 	sender.sendMessage(Message("Welcome to the AspenWood modest IRC Chat :)"));
 	sender.sendMessage(Message("You are now fully authenticated :D"));
+	}
 	return;
 }
