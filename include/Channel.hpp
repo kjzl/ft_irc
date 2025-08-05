@@ -24,12 +24,6 @@ class   Channel
 		Channel(const Channel &other);
 		Channel &operator =(const Channel &other);
 		virtual ~Channel();
-		const std::vector<std::string> &getMembers() const;
-		const std::set<std::string> &getWhiteList() const;
-		const std::set<std::string> &getOperators() const;
-		const std::string &getTopic() const;
-		const std::string &getPassword() const;
-		int getUserLimit() const;
 
 		// Getters => necessary or only Utils?? 
 		const std::vector<std::string> &getMembers() const;
