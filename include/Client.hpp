@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include "CaseMappedString.hpp"
-#include "IrcError.hpp"
+#include "MessageType.hpp"
 
 class Message;
 class Server;
@@ -47,7 +47,7 @@ class   Client
 		void	clearMessage();
 		int		safeSend(const std::string &string);
 		void	sendMessage(Message toSend);
-		void	sendErrorMessage(IrcError type, const Server& server, std::vector<std::string>& args);
+		void	sendErrorMessage(MessageType type, const Server& server, std::vector<std::string>& args);
 
 };
 

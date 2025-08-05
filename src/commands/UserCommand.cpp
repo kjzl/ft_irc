@@ -1,6 +1,6 @@
 #include "../../include/UserCommand.hpp"
 #include "../../include/Debug.hpp"
-#include "../../include/IrcError.hpp"
+#include "../../include/MessageType.hpp"
 
 UserCommand::UserCommand(const Message& msg) : Command(msg)
 {}

@@ -1,6 +1,6 @@
 #include "../../include/PrivmsgCommand.hpp"
 #include "../../include/Debug.hpp"
-#include "../../include/IrcError.hpp"
+#include "../../include/MessageType.hpp"
 
 PrivmsgCommand::PrivmsgCommand(const Message& msg) : Command(msg)
 {}

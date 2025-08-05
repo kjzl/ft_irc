@@ -1,6 +1,6 @@
 #include "../include/Client.hpp"
 #include "../include/Server.hpp"
-#include "../include/IrcError.hpp"
+#include "../include/MessageType.hpp"
 #include <cstdio>
 #include <stdexcept>
 #include <sys/socket.h>
@@ -118,9 +118,9 @@ void	Client::sendMessage(Message toSend)
 	safeSend(toSend.toString());
 }
 
-void Client::sendErrorMessage(IrcError type, const Server& server, std::vector<std::string>& args)
+void Client::sendErrorMessage(MessageType type, const Server& server, std::vector<std::string>& args)
 {
-	static std::map<IrcError, IrcErrorInfo> ErrorMap = getErrorMap();
+	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
     IrcErrorInfo info = ErrorMap.find(type)->second;
     args.push_back(info.message);
     Message outMessage(info.code, server.getName(), args);
