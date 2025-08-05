@@ -1,4 +1,5 @@
 #include "../include/Server.hpp"
+#include "../include/Channel.hpp"
 #include "../include/Debug.hpp"
 #include "../include/ircUtils.hpp"
 #include "../include/Command.hpp"

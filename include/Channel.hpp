@@ -41,18 +41,18 @@ class   Channel
 
 		// Action Utilities -- WIP BELOW => no cpp yet...
 		void broadcastMsg(const Client &sender, Message &message);
-		//
-		// void addMember(const std::string &nickname);
-		// void removeMember(const std::string &nickname);
-		// bool isMember(const std::string &nickname) const;
-		//
-		// void addOperator(const std::string &nickname);
-		// void removeOperator(const std::string &nickname);
-		// bool isOperator(const std::string &nickname) const;
-		//
-		// void addToWhiteList(const std::string &nickname);
-		// void removeFromWhiteList(const std::string &nickname);
-		// bool isInWhiteList(const std::string &nickname) const;
+		
+		void addMember(const std::string &nickname);
+		void removeMember(const std::string &nickname);
+		bool isMember(const std::string &nickname) const;
+		
+		void addOperator(const std::string &nickname);
+		void removeOperator(const std::string &nickname);
+		bool isOperator(const std::string &nickname) const;
+		
+		void addToWhiteList(const std::string &nickname);
+		void removeFromWhiteList(const std::string &nickname);
+		bool isInWhiteList(const std::string &nickname) const;
 };
 
 #endif
