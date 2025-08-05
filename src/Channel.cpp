@@ -90,6 +90,6 @@ void Channel::broadcastMsg(const Client &sender, Message &message)
 	for (std::vector<const Client*>::iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
 	{
 		// if (memberIt != sender)
-		*memberIt->sendMessage(message);
+		(*memberIt)->sendMessage(message);
 	}
 }
