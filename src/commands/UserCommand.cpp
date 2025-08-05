@@ -23,15 +23,13 @@ void UserCommand::execute(Server& server, Client& sender)
 	if (inParams.size() < 4)
 	{
 		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-		std::vector<std::string> outParams(arr, arr + 2);
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, server, outParams));
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, server, arr, 2));
 	}
 	// 462
 	if (sender.getRegistrationLevel() == 3)
 	{
 		std::string arr[] = {sender.getNickname()};
-		std::vector<std::string> outParams(arr, arr + 1);
-		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, server, outParams));
+		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, server, arr, 1));
 	}
 	// Sucess !
 	sender.setUsername(inParams[0]);

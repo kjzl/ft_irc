@@ -48,6 +48,7 @@ class   Client
 		int		safeSend(const std::string &string);
 		void	sendMessage(Message toSend);
 		void	sendErrorMessage(MessageType type, const Server& server, std::vector<std::string>& args);
+		void 	sendErrorMessage(MessageType type, const Server& server, std::string args[], int size);
 
 };
 

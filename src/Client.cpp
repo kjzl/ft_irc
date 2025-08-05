@@ -127,6 +127,16 @@ void Client::sendErrorMessage(MessageType type, const Server& server, std::vecto
     sendMessage(outMessage);
 }
 
+void Client::sendErrorMessage(MessageType type, const Server& server, std::string args[], int size)
+{
+	std::vector<std::string> outParams(args, args + size);
+    static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
+    IrcErrorInfo info = ErrorMap.find(type)->second;
+    outParams.push_back(info.message);
+    Message outMessage(info.code, server.getName(), outParams);
+    sendMessage(outMessage);
+}
+
 // sends the entire string with send() even when more than one send() call is needed
 // throws and error if send fails
 int		Client::safeSend(const std::string &string)
