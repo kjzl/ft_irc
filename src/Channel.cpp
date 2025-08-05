@@ -7,7 +7,7 @@ Channel::Channel()
     : topic_(""), password_(""), userLimit_(0)
 {}
 
-Channel::Channel(std::vector<Client> members, std::set<std::string> whiteList, std::set<std::string> operators, std::string topic, std::string password, int userLimit)
+Channel::Channel(std::vector<const Client*> members, std::set<std::string> whiteList, std::set<std::string> operators, std::string topic, std::string password, int userLimit)
 	:	members_(members),
 		whiteList_(whiteList),
 		operators_(operators),
@@ -39,7 +39,7 @@ Channel::~Channel()
 {}
 
 // Getters
-const std::vector<Client> &Channel::getMembers() const
+const std::vector<const Client*> &Channel::getMembers() const
 {
     return members_;
 }
@@ -89,7 +89,7 @@ void Channel::broadcastMsg(const Client &sender, Message &message)
 {
 	for (std::vector<const Client*>::iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
 	{
-		// if (memberIt != sender)
-		(*memberIt)->sendMessage(message);
+		if (*memberIt != &sender)
+			(*memberIt)->sendMessage(message);
 	}
 }
