@@ -1,6 +1,7 @@
 #include "../../include/PrivmsgCommand.hpp"
 #include "../../include/Debug.hpp"
 #include "../../include/IrcError.hpp"
+#include <iostream>
 
 PrivmsgCommand::PrivmsgCommand(const Message& msg) : Command(msg)
 {}
@@ -34,7 +35,8 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	
 	// Success !
 	Message outMessage = inMessage_;
-	outMessage.setSource(sender.getNickname(), sender.getUsername()); //TODO: whyyyyy a pointer ???
+	outMessage.setSource(sender.getNickname(), sender.getUsername());
+	std::cerr << BLUE << "message: '" << outMessage << "'" << std::endl;
 	std::stringstream stream(inParams[0]);
 	std::string token;
 	while (std::getline(stream, token, ','))

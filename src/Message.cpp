@@ -73,7 +73,7 @@ std::string	Message::toString()
 {
 	std::string msg;
 	if (hasSource_)
-		msg += ":" + nickname_ + " " + username_ + " ";
+		msg += ":" + nickname_ + "!" + username_ + "@" + hostname_ + " ";
 	msg += type_;
 	if (getParams().empty())
 		return msg;
@@ -81,7 +81,7 @@ std::string	Message::toString()
 		msg += " ";
 	for (size_t i = 0; i < getParams().size() - 1; i++)
 		msg += getParams()[i] + " ";
-	msg += ":" + getParams().back() + "\r\n";
+	msg += getParams().back() + "\r\n";
 	return (msg);
 }
 
