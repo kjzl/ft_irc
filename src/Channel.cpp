@@ -63,7 +63,7 @@ const std::string &Channel::getPassword() const
 
 int Channel::getUserLimit() const
 {
-    return user_limit_;
+    return userLimit_;
 }
 
 // Setters
@@ -79,5 +79,5 @@ void Channel::setPassword(const std::string &password)
 
 void Channel::setUserLimit(int limit)
 {
-    user_limit_ = limit;
+    userLimit_ = limit;
 }
