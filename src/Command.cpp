@@ -33,7 +33,7 @@ Command* convertMessageToCommand(const Message& message)
 	std::string type = message.getType();
 	std::map<std::string, CommandFactory>::iterator it = commandMap.find(type);
 	if (it == commandMap.end())		
-		return NULL;
+		return nullptr;
 	Command* cmd = it->second(message);
 	return cmd;
 }

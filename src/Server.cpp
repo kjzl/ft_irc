@@ -161,7 +161,12 @@ void Server::executeIncomingCommandMessage(Client& sender, const std::string& ra
 	debug("Parsed message: " + message.getType() + " with params: " + toString(message.getParams().size()));
 	Command* cmd = convertMessageToCommand(message);
 	if (!cmd)
-		return; // TODO: send ERROR_MSG 421
+	{
+		std::string arr[] = {sender.getNickname(), message.getParams()[0]};
+		std::vector<std::string> outParams(arr, arr + 2);
+		sender.sendErrorMessage(ERR_UNKNOWNCOMMAND, *this, outParams);
+		return;
+	}
 	cmd->execute(*this, sender);
 	delete cmd;
 }
