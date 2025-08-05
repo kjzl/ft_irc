@@ -41,6 +41,8 @@ bool	Client::operator==(const std::string nickname)
 	return (false);
 }
 
+bool	Client::operator==(const Client &other);
+
 // Getters
 
 bool Client::isAuthenticated() const
@@ -122,12 +124,12 @@ void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 }
 
 
-void	Client::sendMessage(Message toSend)
+void	Client::sendMessage(Message toSend) const
 {
 	safeSend(toSend.toString());
 }
 
-bool	Client::sendMessageTo(Message msg, const std::string recipientNickname, Server &server)
+bool	Client::sendMessageTo(Message msg, const std::string recipientNickname, Server &server) const
 {
 	std::vector<Client> clients = server.getClients();
 	std::vector<Client>::iterator clientIt = std::find(clients.begin(), clients.end(), recipientNickname);
@@ -139,7 +141,7 @@ bool	Client::sendMessageTo(Message msg, const std::string recipientNickname, Ser
 	return (false);
 }
 
-void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args)
+void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args) const
 {
 	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
     IrcErrorInfo info = ErrorMap.find(type)->second;
@@ -148,7 +150,7 @@ void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args)
     sendMessage(outMessage);
 }
 
-void Client::sendErrorMessage(MessageType type, std::string args[], int size)
+void Client::sendErrorMessage(MessageType type, std::string args[], int size) const
 {
 	std::vector<std::string> outParams(args, args + size);
     static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();

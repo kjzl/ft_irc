@@ -12,7 +12,7 @@ class Client;
 class   Channel
 {
 	private:
-		std::vector<Client>			members_;  //(quicker iteration) // we could also use the unique fd ?
+		std::vector<const Client*>			members_;  //(quicker iteration) // we could also use the unique fd ?
 		std::set<std::string>		whiteList_; //(quicker search) if is not empty, is invite only channel
 		std::set<std::string>		operators_;
 		std::string					topic_;
@@ -41,18 +41,18 @@ class   Channel
 
 		// Action Utilities -- WIP BELOW => no cpp yet...
 		void broadcastMsg(const Client &sender, Message &message);
-
-		void addMember(const std::string &nickname);
-		void removeMember(const std::string &nickname);
-		bool isMember(const std::string &nickname) const;
-
-		void addOperator(const std::string &nickname);
-		void removeOperator(const std::string &nickname);
-		bool isOperator(const std::string &nickname) const;
-
-		void addToWhiteList(const std::string &nickname);
-		void removeFromWhiteList(const std::string &nickname);
-		bool isInWhiteList(const std::string &nickname) const;
+		//
+		// void addMember(const std::string &nickname);
+		// void removeMember(const std::string &nickname);
+		// bool isMember(const std::string &nickname) const;
+		//
+		// void addOperator(const std::string &nickname);
+		// void removeOperator(const std::string &nickname);
+		// bool isOperator(const std::string &nickname) const;
+		//
+		// void addToWhiteList(const std::string &nickname);
+		// void removeFromWhiteList(const std::string &nickname);
+		// bool isInWhiteList(const std::string &nickname) const;
 };
 
 #endif

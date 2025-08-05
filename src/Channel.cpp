@@ -1,4 +1,7 @@
 #include "../include/Channel.hpp"
+#include <vector>
+#include "Client.hpp"
+#include "Message.hpp"
 
 Channel::Channel()
     : topic_(""), password_(""), userLimit_(0)
@@ -80,4 +83,13 @@ void Channel::setPassword(const std::string &password)
 void Channel::setUserLimit(int limit)
 {
     userLimit_ = limit;
+}
+
+void Channel::broadcastMsg(const Client &sender, Message &message)
+{
+	for (std::vector<const Client*>::iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
+	{
+		// if (memberIt != sender)
+		*memberIt->sendMessage(message);
+	}
 }

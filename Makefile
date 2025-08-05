@@ -51,6 +51,8 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		MessageType.cpp \
 		CaseMappedString.cpp \
 		Command.cpp \
+		Channel.cpp \
+		ServerChannelMap.cpp \
 		commands/NickCommand.cpp \
 		commands/PassCommand.cpp \
 		commands/UserCommand.cpp \
@@ -64,6 +66,7 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		Channel.hpp \
 		Client.hpp \
 		Command.hpp \
+		Channel.hpp \
 		MessageType.hpp \
 		ircUtils.hpp \
 		Message.hpp \
