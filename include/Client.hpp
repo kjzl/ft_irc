@@ -48,7 +48,7 @@ class   Client
 		bool	isAuthenticated()	const;
 		void	appendRawMessage(const char partialMessage[BUFSIZ], size_t length);
 		void	clearMessage();
-		int		safeSend(const std::string &string);
+		int		safeSend(const std::string &string) const;
 		void	sendMessage(Message toSend) const;
 		// sends a message to recipient, returns false if recipientNickname not found and could not send, else true
 		bool	sendMessageTo(Message msg, const std::string recipientNickname, Server &server) const;

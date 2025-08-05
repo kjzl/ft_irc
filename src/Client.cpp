@@ -41,8 +41,6 @@ bool	Client::operator==(const std::string nickname)
 	return (false);
 }
 
-bool	Client::operator==(const Client &other);
-
 // Getters
 
 bool Client::isAuthenticated() const
@@ -162,7 +160,7 @@ void Client::sendErrorMessage(MessageType type, std::string args[], int size) co
 
 // sends the entire string with send() even when more than one send() call is needed
 // throws and error if send fails
-int		Client::safeSend(const std::string &string)
+int		Client::safeSend(const std::string &string) const
 {
 	int sendBytes;
 	int	total_sent = 0;
