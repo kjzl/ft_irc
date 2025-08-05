@@ -1,6 +1,7 @@
 #include "../../include/PrivmsgCommand.hpp"
 #include "../../include/Debug.hpp"
 #include "../../include/MessageType.hpp"
+#include <iostream>
 
 PrivmsgCommand::PrivmsgCommand(const Message& msg) : Command(msg)
 {}
@@ -28,12 +29,14 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	std::vector<std::string> inParams = inMessage_.getParams();
 	
 	// Not Authenticated ==> ignore it...
-	if (sender.getRegistrationLevel() < 3)
+	if (!sender.isAuthenticated())
 		return;
 	// TODO: handle all errors...
+	
 	// Success !
 	Message outMessage = inMessage_;
-	outMessage.setSource(&sender.getNickname()); //TODO: whyyyyy a pointer ???
+	outMessage.setSource(sender.getNickname(), sender.getUsername());
+	std::cerr << BLUE << "message: '" << outMessage << "'" << std::endl;
 	std::stringstream stream(inParams[0]);
 	std::string token;
 	while (std::getline(stream, token, ','))

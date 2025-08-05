@@ -13,7 +13,7 @@ class   Channel
 {
 	private:
 		std::vector<std::string>	members_;  //(quicker iteration) // we could also use the unique fd ?
-		std::set<std::string>		whiteList_; //(quicker search)
+		std::set<std::string>		whiteList_; //(quicker search) if is not empty, is invite only channel
 		std::set<std::string>		operators_;
 		std::string					topic_;
 		std::string					password_;

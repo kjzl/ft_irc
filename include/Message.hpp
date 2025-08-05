@@ -12,7 +12,7 @@ class Message {
 public:
 	Message(const Message& other);
 	Message(std::string type, const std::vector<std::string>& params);
-	Message(std::string type, const std::string& source, const std::vector<std::string>& params);
+	Message(std::string type, const std::string& nickname, const std::string& username, const std::vector<std::string>& params);
 	Message(std::string type, const Client& source, const std::vector<std::string>& params);
 	Message(std::string type, const std::string& arg1);
 	Message(std::string type, const std::string& arg1, const std::string& arg2);
@@ -23,8 +23,9 @@ public:
 	std::string	toString();
 
 	// Optional note of where the message came from
-	const std::string* getSource() const;
-	void setSource(const std::string* source);
+	const std::string	getNickname() const;
+	const std::string	getUsername() const;
+	void	setSource(const std::string nickname, const std::string username);
 	// The specific command this message represents.
 	std::string getType() const;
 	// If it exists, data relevant to this specific command.
@@ -40,7 +41,10 @@ public:
 		const char* what() const throw();
 	};
 private:
-	const std::string* 			source_; //TODO: why a pointer ????
+	bool 						hasSource_; 
+	std::string					nickname_;
+	std::string					username_;
+	const std::string			hostname_;
 	std::string					type_;
 	std::vector<std::string>	params_;
 

@@ -1,6 +1,10 @@
 #include "../include/Client.hpp"
+<<<<<<< HEAD
 #include "../include/Server.hpp"
 #include "../include/MessageType.hpp"
+=======
+#include "../include/IrcError.hpp"
+>>>>>>> feat/fixingCommands
 #include <cstdio>
 #include <stdexcept>
 #include <sys/socket.h>
@@ -118,22 +122,22 @@ void	Client::sendMessage(Message toSend)
 	safeSend(toSend.toString());
 }
 
-void Client::sendErrorMessage(MessageType type, const Server& server, std::vector<std::string>& args)
+void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args)
 {
 	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
     IrcErrorInfo info = ErrorMap.find(type)->second;
     args.push_back(info.message);
-    Message outMessage(info.code, server.getName(), args);
+    Message outMessage(info.code,  args);
     sendMessage(outMessage);
 }
 
-void Client::sendErrorMessage(MessageType type, const Server& server, std::string args[], int size)
+void Client::sendErrorMessage(MessageType type, std::string args[], int size)
 {
 	std::vector<std::string> outParams(args, args + size);
     static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
     IrcErrorInfo info = ErrorMap.find(type)->second;
     outParams.push_back(info.message);
-    Message outMessage(info.code, server.getName(), outParams);
+    Message outMessage(info.code, outParams);
     sendMessage(outMessage);
 }
 

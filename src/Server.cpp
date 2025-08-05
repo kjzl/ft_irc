@@ -163,7 +163,7 @@ void Server::executeIncomingCommandMessage(Client& sender, const std::string& ra
 	if (!cmd)
 	{
 		std::string arr[] = {sender.getNickname(), message.getType()};
-		sender.sendErrorMessage(ERR_UNKNOWNCOMMAND, *this, arr, 2);
+		sender.sendErrorMessage(ERR_UNKNOWNCOMMAND, arr, 2);
 		return;
 	}
 	cmd->execute(*this, sender);
