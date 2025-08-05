@@ -1,10 +1,5 @@
 #include "../include/Client.hpp"
-<<<<<<< HEAD
-#include "../include/Server.hpp"
 #include "../include/MessageType.hpp"
-=======
-#include "../include/IrcError.hpp"
->>>>>>> feat/fixingCommands
 #include <cstdio>
 #include <stdexcept>
 #include <sys/socket.h>
