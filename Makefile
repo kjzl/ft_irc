@@ -57,6 +57,7 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		commands/UserCommand.cpp \
 		commands/PrivmsgCommand.cpp \
 		commands/JoinCommand.cpp \
+		commands/KickCommand.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
@@ -76,6 +77,7 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		UserCommand.hpp \
 		PrivmsgCommand.hpp \
 		JoinCommand.hpp \
+		KickCommand.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug

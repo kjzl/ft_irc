@@ -3,7 +3,7 @@
 #include "../../include/MessageType.hpp"
 #include "Channel.hpp"
 #include <cstdlib>
-#include <iostream>
+#include <sstream>
 
 PrivmsgCommand::PrivmsgCommand(const Message& msg) : Command(msg)
 {}
