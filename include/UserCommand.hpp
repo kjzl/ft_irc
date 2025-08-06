@@ -3,7 +3,7 @@
 
 #include "Command.hpp"
 
-class UserCommand : Command {
+class UserCommand : public Command {
 public:
 	UserCommand(const Message& msg);
 	void			execute(Server& server, Client& sender);

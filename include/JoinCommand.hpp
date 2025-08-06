@@ -4,7 +4,7 @@
 #include "Command.hpp"
 #include "Channel.hpp"
 
-class JoinCommand : Command {
+class JoinCommand : public Command {
 public:
 	JoinCommand(const Message& msg);
 	void			execute(Server& server, Client& sender);

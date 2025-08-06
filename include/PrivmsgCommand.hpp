@@ -2,9 +2,8 @@
 #define PRIVMSGCOMMAND_HPP
 
 #include "Command.hpp"
-#include <sstream>
 
-class PrivmsgCommand : Command {
+class PrivmsgCommand : public Command {
 public:
 	PrivmsgCommand(const Message& msg);
 	void			execute(Server& server, Client& sender);
