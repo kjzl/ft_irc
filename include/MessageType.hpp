@@ -52,7 +52,10 @@ enum MessageType {
 	ERR_NORECIPIENT = 411,
 	ERR_NOTEXTTOSEND = 412,
 	ERR_BADCHANNELKEY,
-	ERR_INVITEONLYCHAN
+	ERR_INVITEONLYCHAN,
+	RPL_TOPIC,
+	RPL_NAMREPLY,
+	RPL_ENDOFNAMES
 };
 
 MessageType parseCommandType(const std::string& type);

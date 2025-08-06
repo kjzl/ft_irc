@@ -64,6 +64,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 		if (!channel)
 		{
 			server.getChannels()[channelName] = Channel(channelName, sender);
+			channel = &server.getChannels()[channelName];
 			sendValidationMessages(sender, *channel);
 			continue;
 		}
@@ -89,16 +90,34 @@ void JoinCommand::execute(Server& server, Client& sender)
 
 void JoinCommand::sendValidationMessages(Client& sender, Channel& channel)
 {
-	// send back the JOIN ==> TODO: put that in a client function...
-	Message outMessage(inMessage_);
-	outMessage.setSource(sender.getNickname(),sender.getUsername());
-	sender.sendMessage(outMessage);
-
-	
+	sender.sendCmdValidation(inMessage_); //TODO: send it to other members as well ??
 	// RPL_TOPIC (332)
-	(void)channel;
-	// RPL_NAMREPLY (353)
-	
+	if (channel.getTopic().length())
+	{
+		std::string params[] = {sender.getNickname(), channel.getName(), channel.getTopic()};
+		sender.sendErrorMessage(RPL_TOPIC, params, 3);
+	}
+	// RPL_NAMREPLY (353) TODO: Hexchat don't see that list ? => fix if we have time ?
+	{
+		std::vector<std::string> params;
+		params.push_back(sender.getNickname());
+		params.push_back(channel.getName());
+		for (std::map<std::string, int>::const_iterator it = channel.getMembers().begin(); it != channel.getMembers().end(); ++it)
+		{
+			if (it->first != sender.getNickname())
+			{
+				if (channel.getOperators().find(it->first) == channel.getOperators().end())
+					params.push_back(it->first);
+				else
+					params.push_back("@" + it->first);
+			}
+		}
+		if (!params.empty())
+			sender.sendErrorMessage(RPL_NAMREPLY, params);
+	}
 	// RPL_ENDOFNAMES (366)
-
+	{
+		std::string params[] = {sender.getNickname(), channel.getName()};
+		sender.sendErrorMessage(RPL_ENDOFNAMES, params, 2);
+	}
 }

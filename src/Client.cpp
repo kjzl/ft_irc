@@ -200,3 +200,9 @@ int		Client::safeSend(const std::string &string) const
 	return (0);
 }
 
+void Client::sendCmdValidation(const Message inMessage) const
+{
+	Message outMessage(inMessage);
+	outMessage.setSource(nickname_, username_);
+	sendMessage(outMessage);
+}
