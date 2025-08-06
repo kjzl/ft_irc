@@ -11,7 +11,7 @@
 #define	WELCOME_MESSAGE "Welcome to this server. You are the "
 #define	HOSTNAME "AspenWood"
 
-class	Channel;
+// class	Channel;
 
 class Server {
 	public:
@@ -34,7 +34,7 @@ class Server {
 		int		getPort( void ) const;
 		int		getServerSocket( void ) const;
 		void	setServerSocket( int serverSocketFd );
-		const std::map<std::string, Channel>	&getChannelMap() const;
+		// const std::map<std::string, Channel>	&getChannelMap() const;
 		void	addPollFd(const int fd, const short events, const short revents);
 
 		void	createListeningSocket(void);
@@ -54,7 +54,7 @@ class Server {
 		static bool						running_;
 		std::vector<struct pollfd>		pollFds_;
 		std::vector<Client>				clients_;
-		std::map<std::string, Channel>	channels_;
+		// std::map<std::string, Channel>	channels_;
 };
 
 #endif // !SERVER_HPP
