@@ -42,8 +42,7 @@ class   Channel
 		void setPassword(const std::string &password);
 		void setUserLimit(int limit);
 
-		// Action Utilities -- WIP BELOW => no cpp yet...
-		void broadcastMsg(const Client &sender, Message &message);
+		void broadcastMsg(const Client &sender, const Message &message);
 		
 		void addMember(const Client *client);
 		void removeMember(const Client *client);

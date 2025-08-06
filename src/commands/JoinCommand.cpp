@@ -32,7 +32,6 @@ Command* JoinCommand::fromMessage(const Message& message)
 void JoinCommand::execute(Server& server, Client& sender)
 {
 	std::vector<std::string> inParams = inMessage_.getParams();
-	
 	// 451
 	if (!sender.isAuthenticated())
 	{
@@ -53,7 +52,6 @@ void JoinCommand::execute(Server& server, Client& sender)
 	std::string channelName, key;
 	while (std::getline(stream_channel, channelName, ','))
 	{
-		std::getline(stream_key, key, ',');
 		// 403
 		if (channelName[0] != '#')
 		{
@@ -69,6 +67,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 			// TODO: send confimation ??
 			continue;
 		}
+		std::getline(stream_key, key, ',');
 		// ERR_BADCHANNELKEY (475)
 		if(!channel->checkKey(key))
 		{

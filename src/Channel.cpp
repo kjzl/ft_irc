@@ -98,7 +98,7 @@ void Channel::setUserLimit(int limit)
 	userLimit_ = limit;
 }
 
-void Channel::broadcastMsg(const Client &sender, Message &message)
+void Channel::broadcastMsg(const Client &sender, const Message &message)
 {
 	for (std::vector<const Client*>::iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
 	{
