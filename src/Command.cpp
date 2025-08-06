@@ -5,6 +5,7 @@
 #include "../include/NickCommand.hpp"
 #include "../include/UserCommand.hpp"
 #include "../include/PrivmsgCommand.hpp"
+#include "../include/JoinCommand.hpp"
 #include "Message.hpp"
 
 
@@ -22,6 +23,7 @@ static void fillCommandMap(std::map<std::string, CommandFactory> &commandMap)
 	commandMap["NICK"] = 	&NickCommand::fromMessage;
 	commandMap["USER"] = 	&UserCommand::fromMessage;
 	commandMap["PRIVMSG"] = &PrivmsgCommand::fromMessage;
+	commandMap["JOIN"] =	&JoinCommand::fromMessage;
 	//...
 }
 
