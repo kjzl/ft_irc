@@ -28,6 +28,7 @@ class Server {
 		const std::string	&getPassword( void ) const;
 		// ?
 		bool	nickCollision(CaseMappedString& toCheck);
+		void	BroadcaseMsgToChannel(const std::string &channelname, const Message &message);
 		// everything is exposed :
 		std::vector<Client>&			getClients(void);
 		std::map<std::string, Channel>&	getChannels(void);
