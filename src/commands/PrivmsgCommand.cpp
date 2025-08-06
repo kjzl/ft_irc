@@ -1,6 +1,7 @@
 #include "../../include/PrivmsgCommand.hpp"
 #include "../../include/Debug.hpp"
 #include "../../include/MessageType.hpp"
+#include "Channel.hpp"
 #include <cstdlib>
 #include <iostream>
 
@@ -12,12 +13,38 @@ Command* PrivmsgCommand::fromMessage(const Message& message)
 	return new PrivmsgCommand(message);
 }
 
+void	PrivmsgCommand::privmsgRecipient(std::string recipient, const Message& message, Server& server, Client& sender)
+{
+	bool	messageSentSuccessfully = false;
+	if (recipient[0] == '#')
+	{
+		Channel *recipientChannel = server.mapChannel(recipient); 
+		if (recipientChannel)
+		{
+			messageSentSuccessfully = true;
+			recipientChannel->broadcastMsg(sender, message);
+		}
+		// {// this error reply is a should and we don't have to implement it!!!
+		// 	// ERR_CANNOTSENDTOCHAN = 404, (not enough rights)
+		// 	std::string arr[] = {sender.getNickname(), recipient};
+		// 	return (sender.sendErrorMessage(ERR_CANNOTSENDTOCHAN, arr, 1));
+		// }
+	}
+	else
+		 messageSentSuccessfully = (sender.sendMessageTo(message, recipient, server));
+	if (!messageSentSuccessfully)
+	{
+		std::string arr[] = {sender.getNickname(), recipient};
+		return (sender.sendErrorMessage(ERR_NOSUCHNICK, arr, 1));
+	}
+}
+
 /*
     https://modern.ircdocs.horse/#privmsg-message
-	ERR_NOSUCHNICK = 401,
-	ERR_CANNOTSENDTOCHAN = 404,
-	ERR_NORECIPIENT = 411,
-	ERR_NOTEXTTOSEND = 412,
+	ERR_NOSUCHNICK = 401, x
+	ERR_CANNOTSENDTOCHAN = 404, TODO:
+	ERR_NORECIPIENT = 411, x
+	ERR_NOTEXTTOSEND = 412, x
 	RPL_AWAY = 301 // not doing that one anymore, doesn't make sense, as we don't register users
 
 */
@@ -30,15 +57,12 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 		return;
 	Message outMessage = inMessage_;
 	outMessage.setSource(sender.getNickname(), sender.getUsername());
-	std::cerr << BLUE << "message: '" << outMessage << "'" << RESET << std::endl;
-	// ERR_NORECIPIENT = 411, TODO:
-	//  "<client> :No recipient given (<command>)"
+	debug("message to send: " + outMessage.toString());
 	if (inParams[0].empty())
 	{
-		std::string arr[] = {sender.getNickname()};
+		std::string arr[] = {sender.getNickname(), };
 		return (sender.sendErrorMessage(ERR_NORECIPIENT, arr, 1));
 	}
-	// ERR_NOTEXTTOSEND = 412, TODO: check this, i am unsure.
 	if (inParams.size() < 2)
 	{
 		std::string arr[] = {sender.getNickname()};
@@ -49,26 +73,7 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	std::string recipient;
 	while (std::getline(stream, recipient, ','))
 	{
-		outMessage.getParams()[0] = recipient;
-		if (recipient[0] == '#')
-		{
-
-			// {
-			// 	// ERR_CANNOTSENDTOCHAN = 404, (not enough rights)
-			// 	std::string arr[] = {sender.getNickname(), recipient};
-			// 	return (sender.sendErrorMessage(ERR_CANNOTSENDTOCHAN, arr, 1));
-			// }
-		}
-		else
-		{
-			if (!sender.sendMessageTo(outMessage, recipient, server))
-			{
-				// ERR_NOSUCHNICK (401)
-				std::string arr[] = {sender.getNickname(), recipient};
-				return (sender.sendErrorMessage(ERR_NOSUCHNICK, arr, 1));
-			}
-		}
-
+		privmsgRecipient(recipient, outMessage, server, sender);
 	}
 	return;
 }

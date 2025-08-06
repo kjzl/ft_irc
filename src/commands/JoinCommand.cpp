@@ -32,7 +32,6 @@ void sendValidationMessages(Client& sender, Channel& channel);
 void JoinCommand::execute(Server& server, Client& sender)
 {
 	std::vector<std::string> inParams = inMessage_.getParams();
-	
 	// 451
 	if (!sender.isAuthenticated())
 	{
@@ -53,7 +52,6 @@ void JoinCommand::execute(Server& server, Client& sender)
 	std::string channelName, key;
 	while (std::getline(stream_channel, channelName, ','))
 	{
-		std::getline(stream_key, key, ',');
 		// 403
 		if (channelName[0] != '#')
 		{
@@ -69,6 +67,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 			sendValidationMessages(sender, *channel);
 			continue;
 		}
+		std::getline(stream_key, key, ',');
 		// ERR_BADCHANNELKEY (475)
 		if(!channel->checkKey(key))
 		{
@@ -77,7 +76,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 			continue;
 		}
 		// ERR_INVITEONLYCHAN (473)
-		if (channel->isInviteOnly() && !channel->isWhiteListed(sender))
+		if (channel->isInviteOnly() && !channel->isWhiteListed(sender.getNickname()))
 		{
 			std::string arr[] = {sender.getNickname(), channelName};
 			sender.sendErrorMessage(ERR_INVITEONLYCHAN, arr, 2);

@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <sys/socket.h>
 #include "Message.hpp"
+#include "ircUtils.hpp"
 
 
 Client::Client() : registrationLevel_(0), socket_(-1), nickname_(""), username_("*"), realname_(""), rawMessage_("")
@@ -158,6 +159,28 @@ void Client::sendErrorMessage(MessageType type, std::string args[], int size) co
     sendMessage(outMessage);
 }
 
+void	Client::sendMessageToFd(Message msg, int fd) const
+{
+	sendToFd(msg.toString(), fd);
+}
+
+
+void	Client::sendToFd(const std::string &string, int fd) const
+{
+	int sendBytes;
+	int	total_sent = 0;
+	int	left_size = string.size();
+
+	while (left_size)
+	{
+		sendBytes = send(fd, string.substr(total_sent, left_size).c_str(), left_size, 0);
+		if (sendBytes == -1)
+			throw std::runtime_error("[Server] send error with client: " + toString(fd));
+		total_sent += sendBytes;
+		left_size -= sendBytes;
+	}
+}
+
 // sends the entire string with send() even when more than one send() call is needed
 // throws and error if send fails
 int		Client::safeSend(const std::string &string) const
@@ -170,7 +193,7 @@ int		Client::safeSend(const std::string &string) const
 	{
 		sendBytes = send(this->getSocket(), string.substr(total_sent, left_size).c_str(), left_size, 0);
 		if (sendBytes == -1)
-			throw std::runtime_error("[Server] send error with client: X"); //TODO:  + toString(getSocket()));
+			throw std::runtime_error("[Server] send error with client: " + toString(this->getSocket()));
 		total_sent += sendBytes;
 		left_size -= sendBytes;
 	}

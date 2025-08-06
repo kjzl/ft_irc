@@ -171,6 +171,15 @@ void Server::executeIncomingCommandMessage(Client& sender, const std::string& ra
 	delete cmd;
 }
 
+void	Server::BroadcaseMsgToChannel(const std::string &channelname, const Message &message)
+{
+	std::map<std::string, int> channelMembersList = channels_[channelname].getMembers();
+	Client	tmp;
+	for (std::map<std::string, int>::iterator memberIt = (channelMembersList.begin()); memberIt != channelMembersList.end(); memberIt++)
+		tmp.sendMessageToFd(message, memberIt->second);
+}
+
+
 bool	Server::nickCollision(CaseMappedString& toCheck)
 {
 	for (size_t clientIndex = 0; clientIndex < clients_.size(); clientIndex++)

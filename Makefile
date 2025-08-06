@@ -52,7 +52,6 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		CaseMappedString.cpp \
 		Command.cpp \
 		Channel.cpp \
-		ServerChannelMap.cpp \
 		commands/NickCommand.cpp \
 		commands/PassCommand.cpp \
 		commands/UserCommand.cpp \

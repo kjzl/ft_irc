@@ -54,6 +54,9 @@ class   Client
 		bool	sendMessageTo(Message msg, const std::string recipientNickname, Server &server) const;
 		void	sendErrorMessage(MessageType type, std::vector<std::string>& args) const;
 		void 	sendErrorMessage(MessageType type, std::string args[], int size) const;
+		//send to fd stuff
+		void	sendToFd(const std::string &string, int fd) const;
+		void	sendMessageToFd(Message msg, int fd) const;
 
 };
 
