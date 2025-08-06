@@ -2,6 +2,7 @@
 # define MESSAGE_TYPE
 
 # include <string>
+# include <map>
 
 enum MessageType {
 	UNKNOWN,
@@ -31,20 +32,38 @@ enum MessageType {
 	RPL_YOURHOST = 2,
 	// https://modern.ircdocs.horse/#errunknownerror-400
 	ERR_UNKNOWNERROR = 400,
-	// https://modern.ircdocs.horse/#errnosuchnick-401
-	ERR_NOSUCHNICK = 401,
 	// https://modern.ircdocs.horse/#errnotregistered-451
 	ERR_NOTREGISTERED = 451,
 	// https://modern.ircdocs.horse/#errneedmoreparams-461
 	ERR_NEEDMOREPARAMS = 461,
 	// https://modern.ircdocs.horse/#erralreadyregistered-462
 	ERR_ALREADYREGISTERED = 462,
-	ERR_NONICKNAMEGIVEN = 431,
-	ERR_ERRONEUSNICKNAME = 432,
-	ERR_NICKNAMEINUSE = 433
+
+	ERR_UNKNOWNCOMMAND,
+	ERR_NONICKNAMEGIVEN,
+	ERR_ERRONEUSNICKNAME,
+	ERR_NICKNAMEINUSE,
+    ERR_PASSWDMISMATCH,
+
+	// https://modern.ircdocs.horse/#errnosuchnick-401
+	ERR_NOSUCHNICK = 401,
+	ERR_CANNOTSENDTOCHAN = 404,
+	ERR_NORECIPIENT = 411,
+	ERR_NOTEXTTOSEND = 412
 };
 
 MessageType parseCommandType(const std::string& type);
 std::ostream& operator<<(std::ostream& os, const MessageType& type);
+
+struct IrcErrorInfo
+{
+	std::string code;
+	std::string message;
+
+	IrcErrorInfo() {}
+	IrcErrorInfo(const std::string& c, const std::string& m) : code(c), message(m) {}
+};
+
+const std::map<MessageType, IrcErrorInfo>& getErrorMap();
 
 #endif

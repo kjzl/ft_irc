@@ -12,31 +12,26 @@ class Client;
 class   Channel
 {
 	private:
-		std::vector<std::string>	members_;  //(quicker iteration) // we could also use the unique fd ?
-		std::set<std::string>		whiteList_; //(quicker search)
+		std::vector<const Client*>			members_;  //(quicker iteration) // we could also use the unique fd ?
+		std::set<std::string>		whiteList_; //(quicker search) if is not empty, is invite only channel
 		std::set<std::string>		operators_;
 		std::string					topic_;
 		std::string					password_;
-		int							user_limit_;
+		int							userLimit_;
 
 	public:
 		Channel();
+		Channel(std::vector<const Client*> members, std::set<std::string> whiteList, std::set<std::string> operators, std::string topic, std::string password, int userLimit);
 		Channel(const Channel &other);
 		Channel &operator =(const Channel &other);
 		virtual ~Channel();
-		const std::vector<std::string> &getMembers() const;
-		const std::set<std::string> &getWhiteList() const;
-		const std::set<std::string> &getOperators() const;
-		const std::string &getTopic() const;
-		const std::string &getPassword() const;
-		int getUserLimit() const;
 
 		// Getters => necessary or only Utils?? 
-		const std::vector<std::string> &getMembers() const;
-		const std::set<std::string> &getWhiteList() const;
-		const std::set<std::string> &getOperators() const;
-		const std::string &getTopic() const;
-		const std::string &getPassword() const;
+		const	std::vector<const Client*> &getMembers() const;
+		const	std::set<std::string> &getWhiteList() const;
+		const	std::set<std::string> &getOperators() const;
+		const	std::string &getTopic() const;
+		const	std::string &getPassword() const;
 		int getUserLimit() const;
 
 		// Setters => necessary or only Utils and full constructor?? 
@@ -46,18 +41,18 @@ class   Channel
 
 		// Action Utilities -- WIP BELOW => no cpp yet...
 		void broadcastMsg(const Client &sender, Message &message);
-
-		void addMember(const std::string &nickname);
-		void removeMember(const std::string &nickname);
-		bool isMember(const std::string &nickname) const;
-
-		void addOperator(const std::string &nickname);
-		void removeOperator(const std::string &nickname);
-		bool isOperator(const std::string &nickname) const;
-
-		void addToWhiteList(const std::string &nickname);
-		void removeFromWhiteList(const std::string &nickname);
-		bool isInWhiteList(const std::string &nickname) const;
+		//
+		// void addMember(const std::string &nickname);
+		// void removeMember(const std::string &nickname);
+		// bool isMember(const std::string &nickname) const;
+		//
+		// void addOperator(const std::string &nickname);
+		// void removeOperator(const std::string &nickname);
+		// bool isOperator(const std::string &nickname) const;
+		//
+		// void addToWhiteList(const std::string &nickname);
+		// void removeFromWhiteList(const std::string &nickname);
+		// bool isInWhiteList(const std::string &nickname) const;
 };
 
 #endif

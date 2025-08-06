@@ -1,7 +1,19 @@
 #include "../include/Channel.hpp"
+#include <vector>
+#include "Client.hpp"
+#include "Message.hpp"
 
 Channel::Channel()
-    : topic_(""), password_(""), user_limit_(0)
+    : topic_(""), password_(""), userLimit_(0)
+{}
+
+Channel::Channel(std::vector<const Client*> members, std::set<std::string> whiteList, std::set<std::string> operators, std::string topic, std::string password, int userLimit)
+	:	members_(members),
+		whiteList_(whiteList),
+		operators_(operators),
+		topic_(topic),
+		password_(password),
+		userLimit_(userLimit)
 {}
 
 Channel::Channel(const Channel &other)
@@ -18,7 +30,7 @@ Channel &Channel::operator=(const Channel &other)
         this->operators_ = other.operators_;
         this->topic_ = other.topic_;
         this->password_ = other.password_;
-        this->user_limit_ = other.user_limit_;
+        this->userLimit_ = other.userLimit_;
     }
     return *this;
 }
@@ -27,7 +39,7 @@ Channel::~Channel()
 {}
 
 // Getters
-const std::vector<std::string> &Channel::getMembers() const
+const std::vector<const Client*> &Channel::getMembers() const
 {
     return members_;
 }
@@ -54,7 +66,7 @@ const std::string &Channel::getPassword() const
 
 int Channel::getUserLimit() const
 {
-    return user_limit_;
+    return userLimit_;
 }
 
 // Setters
@@ -70,5 +82,14 @@ void Channel::setPassword(const std::string &password)
 
 void Channel::setUserLimit(int limit)
 {
-    user_limit_ = limit;
+    userLimit_ = limit;
+}
+
+void Channel::broadcastMsg(const Client &sender, Message &message)
+{
+	for (std::vector<const Client*>::iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
+	{
+		if (*memberIt != &sender)
+			(*memberIt)->sendMessage(message);
+	}
 }

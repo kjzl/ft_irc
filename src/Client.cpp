@@ -1,7 +1,9 @@
 #include "../include/Client.hpp"
-#include "../include/Server.hpp"
-#include "../include/IrcError.hpp"
+#include "../include/MessageType.hpp"
+#include "Server.hpp"
+#include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 #include <stdexcept>
 #include <sys/socket.h>
 #include "Message.hpp"
@@ -32,14 +34,21 @@ Client &Client::operator=(const Client &other)
 Client::~Client()
 {}
 
+bool	Client::operator==(const std::string nickname)
+{
+	if (getNickname() == nickname)
+		return (true);
+	return (false);
+}
+
 // Getters
 
 bool Client::isAuthenticated() const
 {
-    return (registrationLevel_ == 2);
+    return (registrationLevel_ == 3);
 }
 
-const CaseMappedString &Client::getNickname() const
+const std::string &Client::getNickname() const
 {
     return nickname_;
 }
@@ -113,23 +122,45 @@ void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 }
 
 
-void	Client::sendMessage(Message toSend)
+void	Client::sendMessage(Message toSend) const
 {
 	safeSend(toSend.toString());
 }
 
-void Client::sendErrorMessage(IrcError type, const Server& server, std::vector<std::string>& args)
+bool	Client::sendMessageTo(Message msg, const std::string recipientNickname, Server &server) const
 {
-	static std::map<IrcError, IrcErrorInfo> ErrorMap = getErrorMap();
+	std::vector<Client> clients = server.getClients();
+	std::vector<Client>::iterator clientIt = std::find(clients.begin(), clients.end(), recipientNickname);
+	if (clientIt != clients.end())
+	{
+		clientIt->sendMessage(msg);
+		return (true);
+	}
+	return (false);
+}
+
+void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args) const
+{
+	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
     IrcErrorInfo info = ErrorMap.find(type)->second;
     args.push_back(info.message);
-    Message outMessage(info.code, server.getName(), args);
+    Message outMessage(info.code,  args);
+    sendMessage(outMessage);
+}
+
+void Client::sendErrorMessage(MessageType type, std::string args[], int size) const
+{
+	std::vector<std::string> outParams(args, args + size);
+    static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
+    IrcErrorInfo info = ErrorMap.find(type)->second;
+    outParams.push_back(info.message);
+    Message outMessage(info.code, outParams);
     sendMessage(outMessage);
 }
 
 // sends the entire string with send() even when more than one send() call is needed
 // throws and error if send fails
-int		Client::safeSend(const std::string &string)
+int		Client::safeSend(const std::string &string) const
 {
 	int sendBytes;
 	int	total_sent = 0;

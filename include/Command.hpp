@@ -30,6 +30,6 @@ protected:
 
 //TODO: Move those as member functions of the servers !
 Command* convertMessageToCommand(const Message& message);
-void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage);
+// void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage);
 
 #endif // COMMAND_HPP

@@ -4,6 +4,7 @@
 #include "../include/PassCommand.hpp"
 #include "../include/NickCommand.hpp"
 #include "../include/UserCommand.hpp"
+#include "../include/PrivmsgCommand.hpp"
 #include "Message.hpp"
 
 
@@ -20,7 +21,7 @@ static void fillCommandMap(std::map<std::string, CommandFactory> &commandMap)
 	commandMap["PASS"] = 	&PassCommand::fromMessage;
 	commandMap["NICK"] = 	&NickCommand::fromMessage;
 	commandMap["USER"] = 	&UserCommand::fromMessage;
-	// commandMap["PRIVMSG"] = &PrivmsgCommand::fromMessage;
+	commandMap["PRIVMSG"] = &PrivmsgCommand::fromMessage;
 	//...
 }
 
@@ -37,16 +38,16 @@ Command* convertMessageToCommand(const Message& message)
 	return cmd;
 }
 
-void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage)
-{
-	Message message(rawMessage);
-	debug("Parsed message: " + message.getType() + " with params: " + toString(message.getParams().size()));
-	Command* cmd = convertMessageToCommand(message);
-	if (!cmd)
-		return; // TODO: send ERROR_MSG 421
-	cmd->execute(server, sender);
-	delete cmd;
-}
+// void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage)
+// {
+// 	Message message(rawMessage);
+// 	debug("Parsed message: " + message.getType() + " with params: " + toString(message.getParams().size()));
+// 	Command* cmd = convertMessageToCommand(message);
+// 	if (!cmd)
+// 		return; // TODO: send ERROR_MSG 421
+// 	cmd->execute(server, sender);
+// 	delete cmd;
+// }
 
 Command::~Command()
 {

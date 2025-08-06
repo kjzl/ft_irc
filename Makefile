@@ -48,12 +48,15 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		Server.cpp \
 		Client.cpp \
 		Message.cpp \
-		IrcError.cpp \
+		MessageType.cpp \
 		CaseMappedString.cpp \
 		Command.cpp \
+		Channel.cpp \
+		ServerChannelMap.cpp \
 		commands/NickCommand.cpp \
 		commands/PassCommand.cpp \
 		commands/UserCommand.cpp \
+		commands/PrivmsgCommand.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
@@ -63,13 +66,15 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		Channel.hpp \
 		Client.hpp \
 		Command.hpp \
-		IrcError.hpp \
+		Channel.hpp \
+		MessageType.hpp \
 		ircUtils.hpp \
 		Message.hpp \
 		Server.hpp \
 		NickCommand.hpp \
 		PassCommand.hpp \
 		UserCommand.hpp \
+		PrivmsgCommand.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug
