@@ -24,7 +24,7 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, const Message& mess
 			messageSentSuccessfully = true;
 			recipientChannel->broadcastMsg(sender, message);
 		}
-		// {
+		// {// this error reply is a should and we don't have to implement it!!!
 		// 	// ERR_CANNOTSENDTOCHAN = 404, (not enough rights)
 		// 	std::string arr[] = {sender.getNickname(), recipient};
 		// 	return (sender.sendErrorMessage(ERR_CANNOTSENDTOCHAN, arr, 1));
