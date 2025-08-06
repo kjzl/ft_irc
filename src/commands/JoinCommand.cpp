@@ -11,7 +11,7 @@ Command* JoinCommand::fromMessage(const Message& message)
 {
 	return new JoinCommand(message);
 }
-
+void sendValidationMessages(Client& sender, Channel& channel);
 /*
     https://modern.ircdocs.horse/#join-message
 
@@ -66,7 +66,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 		if (!channel)
 		{
 			server.getChannels()[channelName] = Channel(channelName, sender);
-			// TODO: send confimation ??
+			sendValidationMessages(sender, *channel);
 			continue;
 		}
 		// ERR_BADCHANNELKEY (475)
@@ -85,9 +85,18 @@ void JoinCommand::execute(Server& server, Client& sender)
 		}
 		// Success with adding member !
 		channel->addMember(&sender);
-		// RPL_TOPIC (332)
-		// TODO: implement
-		// RPL_NAMREPLY (353)
-		// TODO: implement
+		sendValidationMessages(sender, *channel);
 	}
+}
+
+void sendValidationMessages(Client& sender, Channel& channel)
+{
+	// send back the JOIN
+	
+	// RPL_TOPIC (332)
+
+	// RPL_NAMREPLY (353)
+	
+	// RPL_ENDOFNAMES (366)
+
 }
