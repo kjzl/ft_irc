@@ -35,7 +35,7 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, const Message& mess
 	if (!messageSentSuccessfully)
 	{
 		std::string arr[] = {sender.getNickname(), recipient};
-		return (sender.sendErrorMessage(ERR_NOSUCHNICK, arr, 1));
+		return (sender.sendErrorMessage(ERR_NOSUCHNICK, arr, 2));
 	}
 }
 
@@ -60,7 +60,7 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	debug("message to send: " + outMessage.toString());
 	if (inParams[0].empty())
 	{
-		std::string arr[] = {sender.getNickname(), };
+		std::string arr[] = {sender.getNickname()};
 		return (sender.sendErrorMessage(ERR_NORECIPIENT, arr, 1));
 	}
 	if (inParams.size() < 2)
