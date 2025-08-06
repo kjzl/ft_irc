@@ -1,4 +1,5 @@
 #include "../include/Server.hpp"
+#include "../include/Channel.hpp"
 #include "../include/Debug.hpp"
 #include "../include/ircUtils.hpp"
 #include "../include/Command.hpp"
@@ -339,5 +340,18 @@ void	Server::serverShutdown(void)
 		std::cout << "[Server] diconnected listening socket" << RESET << std::endl;
 	}
 	std::cout << GREEN << "[Server] Shutdown complete" << RESET << std::endl;
+}
+
+Channel* Server::mapChannel(const std::string& channelName)
+{
+	std::map<std::string, Channel>::iterator it = channels_.find(channelName);
+	if (it != channels_.end())
+		return &(it->second);
+	return NULL;
+}
+
+std::map<std::string, Channel>&	Server::getChannels(void)
+{
+	return (channels_);
 }
 
