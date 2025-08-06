@@ -171,12 +171,38 @@ void Server::executeIncomingCommandMessage(Client& sender, const std::string& ra
 	delete cmd;
 }
 
-void	Server::BroadcaseMsgToChannel(const std::string &channelname, const Message &message)
+void	Server::broadcastMsgToChannel(const std::string &channelname, const Message &message) const
 {
 	std::map<std::string, int> channelMembersList = channels_[channelname].getMembers();
 	Client	tmp;
-	for (std::map<std::string, int>::iterator memberIt = (channelMembersList.begin()); memberIt != channelMembersList.end(); memberIt++)
+	for (std::map<std::string, int>::const_iterator memberIt = (channelMembersList.begin()); memberIt != channelMembersList.end(); memberIt++)
 		tmp.sendMessageToFd(message, memberIt->second);
+}
+
+void Server::broadcastErrorMessage(MessageType type, std::vector<std::string>& args) const
+{
+	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
+    IrcErrorInfo info = ErrorMap.find(type)->second;
+    args.push_back(info.message);
+    Message outMessage(info.code,  args);
+	broadcastMsg(outMessage);
+}
+
+void	Server::broadcastErrorMessage(MessageType type, std::string args[], int size) const
+{
+	std::vector<std::string> outParams(args, args + size);
+    static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
+    IrcErrorInfo info = ErrorMap.find(type)->second;
+    outParams.push_back(info.message);
+    Message outMessage(info.code, outParams);
+	broadcastMsg(outMessage);
+}
+
+void	Server::broadcastMsg(const Message &message) const
+{
+	Client	tmp;
+	for (std::vector<Client>::const_iterator clientIt = (clients_.begin()); clientIt != clients_.end(); clientIt++)
+		tmp.sendMessageToFd(message, clientIt->getSocket());
 }
 
 

@@ -30,6 +30,9 @@ enum MessageType {
 	RPL_WELCOME = 1,
 	// https://modern.ircdocs.horse/#rplyourhost-002
 	RPL_YOURHOST = 2,
+
+	// https://modern.ircdocs.horse/#error-message
+	ERROR,
 	// https://modern.ircdocs.horse/#errunknownerror-400
 	ERR_UNKNOWNERROR = 400,
 	// https://modern.ircdocs.horse/#errnotregistered-451

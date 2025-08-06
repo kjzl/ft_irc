@@ -7,6 +7,7 @@
 #include "../include/PrivmsgCommand.hpp"
 #include "../include/JoinCommand.hpp"
 #include "../include/KickCommand.hpp"
+#include "../include/QuitCommand.hpp"
 #include "Message.hpp"
 
 // Default Constructor
@@ -53,6 +54,7 @@ static void fillCommandMap(std::map<std::string, CommandFactory> &commandMap)
 	commandMap["PRIVMSG"] = &PrivmsgCommand::fromMessage;
 	commandMap["JOIN"] =	&JoinCommand::fromMessage;
 	commandMap["KICK"] =	&KickCommand::fromMessage;
+	commandMap["QUIT"] =	&QuitCommand::fromMessage;
 	//...
 }
 

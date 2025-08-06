@@ -10,12 +10,17 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 
 	if (errorMap.empty())
 	{
+ // generic
+		errorMap[ERROR]					= IrcErrorInfo("ERROR", "");
+
 		errorMap[ERR_UNKNOWNCOMMAND]	= IrcErrorInfo("421", ":Unknown command");
+// nick
 		errorMap[ERR_NONICKNAMEGIVEN] 	= IrcErrorInfo("431", ":No nickname given");
 		errorMap[ERR_ERRONEUSNICKNAME]	= IrcErrorInfo("432", ":Erroneous nickname");
 		errorMap[ERR_NICKNAMEINUSE]		= IrcErrorInfo("433", ":Nickname is already in use");
         errorMap[ERR_NEEDMOREPARAMS]	= IrcErrorInfo("461", ":Not enough parameters");
         errorMap[ERR_ALREADYREGISTERED]	= IrcErrorInfo("462", ":You may not reregister");
+//pass
         errorMap[ERR_PASSWDMISMATCH]	= IrcErrorInfo("464", ":Password incorrect");
 //PRIVMSG
 		errorMap[ERR_NOSUCHNICK]		= IrcErrorInfo("401", ":No such nick/channel");
@@ -26,6 +31,8 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 //JOIN
 		errorMap[ERR_BADCHANNELKEY]		= IrcErrorInfo("475", ":Cannot join channel (+k)");
 		errorMap[ERR_INVITEONLYCHAN]	= IrcErrorInfo("473", ":Cannot join channel (+i)");
+// QUIT
+		errorMap[QUIT]	= IrcErrorInfo("QUIT", ":Quit");
 		// errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");
 		// errorMap[RPL_NAMREPLY]			= IrcErrorInfo("353", "");
 		// ...
