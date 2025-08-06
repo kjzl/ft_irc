@@ -57,7 +57,7 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 		return;
 	Message outMessage = inMessage_;
 	outMessage.setSource(sender.getNickname(), sender.getUsername());
-	debug("message to send: " + outMessage);
+	debug("message to send: " + outMessage.toString());
 	if (inParams[0].empty())
 	{
 		std::string arr[] = {sender.getNickname(), };
