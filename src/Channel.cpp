@@ -116,7 +116,7 @@ bool Channel::checkKey(const std::string& key) const
 
 bool Channel::isInviteOnly() const
 {
-	return (whiteList_.empty());
+	return (isInviteOnly_);
 }
 
 void Channel::addToWhiteList(const std::string &nickname)

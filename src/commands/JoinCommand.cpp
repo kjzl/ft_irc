@@ -11,7 +11,6 @@ Command* JoinCommand::fromMessage(const Message& message)
 {
 	return new JoinCommand(message);
 }
-void sendValidationMessages(Client& sender, Channel& channel);
 /*
     https://modern.ircdocs.horse/#join-message
 
@@ -52,6 +51,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 	std::string channelName, key;
 	while (std::getline(stream_channel, channelName, ','))
 	{
+		std::getline(stream_key, key, ',');
 		// 403
 		if (channelName[0] != '#')
 		{
@@ -67,7 +67,6 @@ void JoinCommand::execute(Server& server, Client& sender)
 			sendValidationMessages(sender, *channel);
 			continue;
 		}
-		std::getline(stream_key, key, ',');
 		// ERR_BADCHANNELKEY (475)
 		if(!channel->checkKey(key))
 		{
@@ -88,12 +87,16 @@ void JoinCommand::execute(Server& server, Client& sender)
 	}
 }
 
-void sendValidationMessages(Client& sender, Channel& channel)
+void JoinCommand::sendValidationMessages(Client& sender, Channel& channel)
 {
-	// send back the JOIN
+	// send back the JOIN ==> TODO: put that in a client function...
+	Message outMessage(inMessage_);
+	outMessage.setSource(sender.getNickname(),sender.getUsername());
+	sender.sendMessage(outMessage);
+
 	
 	// RPL_TOPIC (332)
-
+	(void)channel;
 	// RPL_NAMREPLY (353)
 	
 	// RPL_ENDOFNAMES (366)
