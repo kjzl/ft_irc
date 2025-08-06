@@ -16,6 +16,20 @@ Channel::Channel()
 // 		userLimit_(userLimit)
 // {}
 
+Channel::Channel(const std::string& name, const Client& sender)
+    : name_(name),
+      members_(),        // initialize explicitly or leave it out (default)
+      whiteList_(),
+      operators_(),
+      topic_(""),
+      password_(""),
+      userLimit_(0),
+      isInviteOnly_(false)
+{
+	members_[sender.getNickname()] = sender.getSocket();
+    operators_.insert(sender.getNickname());
+}
+
 Channel::Channel(const Channel &other)
 {
     *this = other;

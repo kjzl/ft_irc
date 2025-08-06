@@ -83,7 +83,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 			continue;
 		}
 		// Success with adding member !
-		channel->addMember(&sender);
+		channel->addMember(sender.getNickname());
 		// RPL_TOPIC (332)
 		// TODO: implement
 		// RPL_NAMREPLY (353)
