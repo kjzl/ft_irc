@@ -76,14 +76,14 @@ void JoinCommand::execute(Server& server, Client& sender)
 			continue;
 		}
 		// ERR_INVITEONLYCHAN (473)
-		if (channel->isInviteOnly() && !channel->isWhiteListed(sender))
+		if (channel->isInviteOnly() && !channel->isWhiteListed(sender.getNickname()))
 		{
 			std::string arr[] = {sender.getNickname(), channelName};
 			sender.sendErrorMessage(ERR_INVITEONLYCHAN, arr, 2);
 			continue;
 		}
 		// Success with adding member !
-		channel->addMember(sender.getNickname());
+		channel->addMember(&sender);
 		// RPL_TOPIC (332)
 		// TODO: implement
 		// RPL_NAMREPLY (353)

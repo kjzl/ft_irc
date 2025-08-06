@@ -2,7 +2,6 @@
 #define CHANNEL_HPP
 
 #include <string>
-#include <vector>
 #include <set>
 #include <map>
 
@@ -45,7 +44,7 @@ class   Channel
 
 		void broadcastMsg(const Client &sender, const Message &message);
 
-		void addMember(const std::string &nickname);
+		void addMember(const Client* client);
 		void removeMember(const std::string &nickname);
 		bool isMember(const std::string &nickname) const;
 		
@@ -55,12 +54,10 @@ class   Channel
 		
 		void addToWhiteList(const std::string &nickname);
 		void removeFromWhiteList(const std::string &nickname);
-		bool isInWhiteList(const std::string &nickname) const;
+		bool isWhiteListed(const std::string &nickname) const;
 		
-	//old
 		bool checkKey(const std::string& key) const;
 		bool isInviteOnly() const;
-		bool isWhiteListed(const Client& sender) const;
 };
 
 #endif

@@ -1,5 +1,4 @@
 #include "../include/Channel.hpp"
-#include <vector>
 #include "Client.hpp"
 #include "Message.hpp"
 
@@ -120,17 +119,28 @@ bool Channel::isInviteOnly() const
 	return isInviteOnly_;
 }
 
-bool Channel::isWhiteListed(const Client& sender) const
+void Channel::addToWhiteList(const std::string &nickname)
 {
-	return whiteList_.find(sender.getNickname()) != whiteList_.end();
+	whiteList_.insert(nickname);
+}
+
+void Channel::removeFromWhiteList(const std::string &nickname)
+{
+	whiteList_.erase(nickname);
+}
+
+bool Channel::isWhiteListed(const std::string &nickname) const
+{
+	return whiteList_.find(nickname) != whiteList_.end();
 }
 
 void Channel::addMember(const Client* client)
 {
-	for (std::vector<>::const_iterator it = members_.begin(); it != members_.end(); ++it)
+	const std::string nickname = client->getNickname();
+	for (std::map<std::string, int>::const_iterator it = members_.begin(); it != members_.end(); ++it)
 	{
-		if (*it == client)
+		if (it->first == nickname)
 			return;
 	}
-	members_.push_back(client);
+	members_[nickname] = client->getSocket();
 }
