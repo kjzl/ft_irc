@@ -8,6 +8,33 @@
 #include "../include/JoinCommand.hpp"
 #include "Message.hpp"
 
+// Default Constructor
+Command::Command( void ): inMessage_()
+{
+	debug("Default Constructor called");
+}
+
+// Destructor
+Command::~Command()
+{
+	debug("Destructor called");
+}
+
+// Copy Constructor
+Command::Command(const Command &copy): inMessage_(copy.inMessage_)
+{}
+
+// Copy Assignment Operator
+Command& Command::operator=( const Command &assign )
+{
+	if (this != &assign)
+	{
+		//cant assign to const message
+		debug("TRIED TO ASSIGN TO CONST MESSAGE, that should not happen");
+	}
+	return *this;
+}
+
 
 Command::Command(const Message& msg) : inMessage_(msg)
 {
@@ -50,7 +77,3 @@ Command* convertMessageToCommand(const Message& message)
 // 	cmd->execute(server, sender);
 // 	delete cmd;
 // }
-
-Command::~Command()
-{
-}

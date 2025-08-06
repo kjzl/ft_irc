@@ -5,6 +5,9 @@
 #include <sstream>
 #include "Client.hpp"
 
+Message::Message()
+{}
+
 Message::Message(const std::string &msg)
 : hasSource_(false), nickname_(""), username_(""), hostname_(HOSTNAME), type_(""), params_()
 {

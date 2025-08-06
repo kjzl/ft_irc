@@ -10,6 +10,7 @@ class Client;
 
 class Message {
 public:
+	Message();
 	Message(const Message& other);
 	Message(std::string type, const std::vector<std::string>& params);
 	Message(std::string type, const std::string& nickname, const std::string& username, const std::vector<std::string>& params);
@@ -49,7 +50,6 @@ private:
 	std::vector<std::string>	params_;
 
 	void parseIncomingMessage(const std::string& raw);
-
 };
 
 std::ostream& operator<<(std::ostream& os, Message& message);
