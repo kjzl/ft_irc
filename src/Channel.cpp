@@ -98,6 +98,18 @@ void Channel::setUserLimit(int limit)
 	userLimit_ = limit;
 }
 
+// // sends a message to members by fd
+// // sender can be -1 to send to all Clients in server, used for server replies
+// void	Channel::broadcastMsg(const Client &sender, const Message &message)
+// {
+// 	for (std::vector<int>::iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
+// 	{
+// 		int	senderFd = sender.getSocket();
+// 		if (senderFd != -1 && *memberIt != senderFd)
+// 			sender.sendMessageToFd( message, *memberIt);
+// 	}
+// }
+
 void Channel::broadcastMsg(const Client &sender, const Message &message)
 {
 	for (std::vector<const Client*>::iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)

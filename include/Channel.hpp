@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <map>
 
 class Message;
 class Client;
@@ -13,7 +14,7 @@ class   Channel
 {
 	private:
 		std::string					name_;
-		std::vector<const Client*>	members_;  //(quicker iteration) // we could also use the unique fd ?
+		map<std::string, int>		members_;  // we could also use the unique fd ?
 		std::set<const Client*>		whiteList_; //(quicker search) if is not empty, is invite only channel
 		std::set<const Client*>		operators_;
 		std::string					topic_;
