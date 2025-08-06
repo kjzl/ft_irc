@@ -107,3 +107,30 @@ void Channel::broadcastMsg(const Client &sender, const Message &message)
 			sender.sendMessageToFd(message, memberIt->second);
 	}
 }
+
+bool Channel::checkKey(const std::string& key) const
+{
+	if (password_.empty())
+		return true;
+	return key == password_;
+}
+
+bool Channel::isInviteOnly() const
+{
+	return isInviteOnly_;
+}
+
+bool Channel::isWhiteListed(const Client& sender) const
+{
+	return whiteList_.find(sender.getNickname()) != whiteList_.end();
+}
+
+void Channel::addMember(const Client* client)
+{
+	for (std::vector<>::const_iterator it = members_.begin(); it != members_.end(); ++it)
+	{
+		if (*it == client)
+			return;
+	}
+	members_.push_back(client);
+}
