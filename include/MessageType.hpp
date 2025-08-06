@@ -47,6 +47,7 @@ enum MessageType {
 
 	// https://modern.ircdocs.horse/#errnosuchnick-401
 	ERR_NOSUCHNICK = 401,
+	ERR_NOSUCHCHANNEL = 403,
 	ERR_CANNOTSENDTOCHAN = 404,
 	ERR_NORECIPIENT = 411,
 	ERR_NOTEXTTOSEND = 412

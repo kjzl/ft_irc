@@ -17,7 +17,11 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
         errorMap[ERR_NEEDMOREPARAMS]	= IrcErrorInfo("461", ":Not enough parameters");
         errorMap[ERR_ALREADYREGISTERED]	= IrcErrorInfo("462", ":You may not reregister");
         errorMap[ERR_PASSWDMISMATCH]	= IrcErrorInfo("464", ":Password incorrect");
-		// ...
+		errorMap[ERR_NOSUCHNICK]		= IrcErrorInfo("401", ":No such nick/channel");
+		errorMap[ERR_NOSUCHCHANNEL]		= IrcErrorInfo("403", ":No such channel");
+		errorMap[ERR_CANNOTSENDTOCHAN]	= IrcErrorInfo("404", ":Cannot send to channel");
+		errorMap[ERR_NORECIPIENT]		= IrcErrorInfo("411", ":No recipient given (PRIVMSG)"); // beware to never use this anywhere where outside of PRIVMSG, else we change it so this is empty here
+		errorMap[ERR_NOTEXTTOSEND]		= IrcErrorInfo("412", ":No text to send");
 	}
 
 	return errorMap;
