@@ -43,7 +43,7 @@ class   Channel
 		void setPassword(const std::string &password);
 		void setUserLimit(int limit);
 
-		void broadcastMsg(const Client &sender, const Message &message);
+		void broadcastMsg(const Client &sender, const Message &message) const;
 
 		void addMember(const Client* client);
 		void removeMember(const std::string &nickname);

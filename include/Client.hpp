@@ -9,6 +9,7 @@
 
 class Message;
 class Server;
+class Channel;
 
 class   Client
 {
@@ -51,6 +52,7 @@ class   Client
 		int		safeSend(const std::string &string) const;
 		void	sendMessage(Message toSend) const;
 		void 	sendCmdValidation(const Message inMessage) const;
+		void	sendCmdValidation(const Message inMessage, const Channel &channel) const;
 		// sends a message to recipient, returns false if recipientNickname not found and could not send, else true
 		bool	sendMessageTo(Message msg, const std::string recipientNickname, Server &server) const;
 		void	sendErrorMessage(MessageType type, std::vector<std::string>& args) const;

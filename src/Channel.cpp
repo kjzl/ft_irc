@@ -38,12 +38,14 @@ Channel &Channel::operator=(const Channel &other)
 {
 	if (this != &other)
 	{
+		this->name_ = other.name_;
 		this->members_ = other.members_;
 		this->whiteList_ = other.whiteList_;
 		this->operators_ = other.operators_;
 		this->topic_ = other.topic_;
 		this->password_ = other.password_;
 		this->userLimit_ = other.userLimit_;
+		this->isInviteOnly_ = other.isInviteOnly_;
 	}
 	return *this;
 }
@@ -103,9 +105,9 @@ void Channel::setUserLimit(int limit)
 	userLimit_ = limit;
 }
 
-void Channel::broadcastMsg(const Client &sender, const Message &message)
+void Channel::broadcastMsg(const Client &sender, const Message &message) const
 {
-	for (std::map<std::string, int>::iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
+	for (std::map<std::string, int>::const_iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
 	{
 		if (memberIt->first != sender.getNickname())
 			sender.sendMessageToFd(message, memberIt->second);

@@ -64,7 +64,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 		if (!channel)
 		{
 			server.getChannels()[channelName] = Channel(channelName, sender);
-			channel = &server.getChannels()[channelName];
+			channel = server.mapChannel(channelName);
 			sendValidationMessages(sender, *channel);
 			continue;
 		}
@@ -90,34 +90,31 @@ void JoinCommand::execute(Server& server, Client& sender)
 
 void JoinCommand::sendValidationMessages(Client& sender, Channel& channel)
 {
-	sender.sendCmdValidation(inMessage_); //TODO: send it to other members as well ??
+	sender.sendCmdValidation(inMessage_, channel);
+	debug("channel name : " + channel.getName());
 	// RPL_TOPIC (332)
 	if (channel.getTopic().length())
 	{
 		std::string params[] = {sender.getNickname(), channel.getName(), channel.getTopic()};
 		sender.sendErrorMessage(RPL_TOPIC, params, 3);
 	}
-	// RPL_NAMREPLY (353) TODO: Hexchat don't see that list ? => fix if we have time ?
+	// RPL_NAMREPLY (353) & RPL_ENDOFNAMES (366)
+	std::string memberList(":");
+	for (std::map<std::string, int>::const_iterator it = channel.getMembers().begin(); it != channel.getMembers().end(); ++it)
 	{
-		std::vector<std::string> params;
-		params.push_back(sender.getNickname());
-		params.push_back(channel.getName());
-		for (std::map<std::string, int>::const_iterator it = channel.getMembers().begin(); it != channel.getMembers().end(); ++it)
+		if (it->first != sender.getNickname())
 		{
-			if (it->first != sender.getNickname())
-			{
-				if (channel.getOperators().find(it->first) == channel.getOperators().end())
-					params.push_back(it->first);
-				else
-					params.push_back("@" + it->first);
-			}
+			if (channel.getOperators().find(it->first) != channel.getOperators().end())
+				memberList += "@";
+			memberList += it->first + " ";
 		}
-		if (!params.empty())
-			sender.sendErrorMessage(RPL_NAMREPLY, params);
 	}
-	// RPL_ENDOFNAMES (366)
+	if (memberList.size() > 1)
 	{
-		std::string params[] = {sender.getNickname(), channel.getName()};
-		sender.sendErrorMessage(RPL_ENDOFNAMES, params, 2);
+		std::string params[] = {sender.getNickname(), "=", channel.getName(), memberList};
+		sender.sendErrorMessage(RPL_NAMREPLY, params, 4);
+
+		std::string params2[] = {sender.getNickname(), channel.getName()};
+		sender.sendErrorMessage(RPL_ENDOFNAMES, params2, 2);
 	}
 }
