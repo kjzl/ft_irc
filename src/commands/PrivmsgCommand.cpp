@@ -55,7 +55,6 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	// Not Authenticated ==> ignore it...
 	if (!sender.isAuthenticated())
 		return;
-	debug("message to send: " + outMessage.toString());
 	if (inParams[0].empty())
 	{
 		std::string arr[] = {sender.getNickname()};

@@ -401,9 +401,9 @@ void	Server::serverShutdown(void)
 	std::cout << GREEN << "[Server] Shutdown complete" << RESET << std::endl;
 }
 
-const Channel* Server::mapChannel(const std::string& channelName)
+Channel* Server::mapChannel(const std::string& channelName)
 {
-	std::map<std::string, Channel>::const_iterator it = channels_.find(channelName);
+	std::map<std::string, Channel>::iterator it = channels_.find(channelName);
 	if (it != channels_.end())
 		return &(it->second);
 	return NULL;
