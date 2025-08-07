@@ -155,7 +155,6 @@ void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args) 
     IrcErrorInfo info = ErrorMap.find(type)->second;
     args.push_back(info.message);
     Message outMessage(info.code,  args);
-	outMessage.setSource(nickname_,  username_);
     sendMessage(outMessage);
 }
 
