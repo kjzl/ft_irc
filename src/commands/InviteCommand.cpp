@@ -102,8 +102,6 @@ void	InviteCommand::execute(Server& server, Client& sender)
 	std::string arr[] = {sender.getNickname(), invitedClient, channelName};
 	sender.sendErrorMessage(RPL_INVITING, arr, 3);
 	// sending the invitation !
-	Message outMessage(inMessage_);
-	outMessage.setSource(sender.getNickname(), sender.getUsername());
-	sender.sendMessageTo(outMessage, invitedClient, server);
+	sender.sendMessageTo(inMessage_, invitedClient, server);
 }
 

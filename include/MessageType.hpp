@@ -62,7 +62,7 @@ enum MessageType {
 	RPL_INVITING,
     ERR_NOTONCHANNEL,
     ERR_CHANOPRIVSNEEDED,
-    ERR_USERONCHANNEL
+    ERR_USERONCHANNEL,
 	//https://modern.ircdocs.horse/#rplumodeis-221
 	RPL_UMODEIS = 221,
 	ERR_USERSDONTMATCH = 502
