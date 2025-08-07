@@ -41,6 +41,7 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 		errorMap[RPL_ENDOFNAMES]		= IrcErrorInfo("366", ":End of /NAMES list");
 		errorMap[RPL_INVITING]			= IrcErrorInfo("341", "");
 // INVITE
+		errorMap[ERR_USERNOTINCHANNEL]	= IrcErrorInfo("441", ":They aren't on that channel");
 		errorMap[ERR_NOTONCHANNEL]		= IrcErrorInfo("442", ":You're not on that channel");
 		errorMap[ERR_CHANOPRIVSNEEDED]	= IrcErrorInfo("482", ":You're not channel operator");
 		errorMap[ERR_USERONCHANNEL]		= IrcErrorInfo("443", ":is already on channel");

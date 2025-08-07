@@ -65,7 +65,8 @@ enum MessageType {
     ERR_USERONCHANNEL,
 	//https://modern.ircdocs.horse/#rplumodeis-221
 	RPL_UMODEIS = 221,
-	ERR_USERSDONTMATCH = 502
+	ERR_USERSDONTMATCH = 502,
+	ERR_USERNOTINCHANNEL
 };
 
 MessageType parseCommandType(const std::string& type);
