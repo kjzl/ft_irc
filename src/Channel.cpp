@@ -166,7 +166,17 @@ bool Channel::isMember(const std::string &nickname) const
 	return (false);
 }
 
-bool Channel::isOperator(const std::string &nickname) const
+void	Channel::addOperator(const std::string &nickname)
+{
+	operators_.insert(nickname);
+}
+
+void	Channel::removeOperator(const std::string &nickname)
+{
+	operators_.erase(nickname);
+}
+
+bool	Channel::isOperator(const std::string &nickname) const
 {
 	if (operators_.find(nickname) != operators_.end())
 		return (true);

@@ -13,7 +13,7 @@ Command* PrivmsgCommand::fromMessage(const Message& message)
 	return new PrivmsgCommand(message);
 }
 
-void	PrivmsgCommand::privmsgRecipient(std::string recipient, const Message& message, Server& server, Client& sender)
+void	PrivmsgCommand::privmsgRecipient(std::string recipient, Server& server, Client& sender)
 {
 	bool	messageSentSuccessfully = false;
 	if (recipient[0] == '#')
@@ -22,7 +22,7 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, const Message& mess
 		if (recipientChannel)
 		{
 			messageSentSuccessfully = true;
-			recipientChannel->broadcastMsg(sender, message);
+			recipientChannel->broadcastMsg(sender, inMessage_);
 		}
 		// {// this error reply is a should and we don't have to implement it!!!
 		// 	// ERR_CANNOTSENDTOCHAN = 404, (not enough rights)
@@ -31,7 +31,7 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, const Message& mess
 		// }
 	}
 	else
-		 messageSentSuccessfully = (sender.sendMessageTo(message, recipient, server));
+		 messageSentSuccessfully = (sender.sendMessageTo(inMessage_, recipient, server));
 	if (!messageSentSuccessfully)
 	{
 		std::string arr[] = {sender.getNickname(), recipient};
@@ -55,8 +55,6 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	// Not Authenticated ==> ignore it...
 	if (!sender.isAuthenticated())
 		return;
-	Message outMessage = inMessage_;
-	outMessage.setSource(sender.getNickname(), sender.getUsername());
 	debug("message to send: " + outMessage.toString());
 	if (inParams[0].empty())
 	{
@@ -73,7 +71,7 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	std::string recipient;
 	while (std::getline(stream, recipient, ','))
 	{
-		privmsgRecipient(recipient, outMessage, server, sender);
+		privmsgRecipient(recipient, server, sender);
 	}
 	return;
 }

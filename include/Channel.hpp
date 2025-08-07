@@ -49,13 +49,13 @@ class   Channel
 		void removeMember(const std::string &nickname);
 		bool isMember(const std::string &nickname) const;
 		
-		void addOperator(const std::string &nickname);
-		void removeOperator(const std::string &nickname);
-		bool isOperator(const std::string &nickname) const;
-		
 		void addToWhiteList(const std::string &nickname);
 		void removeFromWhiteList(const std::string &nickname);
 		bool isWhiteListed(const std::string &nickname) const;
+		
+		void addOperator(const std::string &nickname);
+		void removeOperator(const std::string &nickname);
+		bool isOperator(const std::string &nickname) const;
 		
 		bool checkKey(const std::string& key) const;
 		bool isInviteOnly() const;
