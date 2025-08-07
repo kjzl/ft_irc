@@ -1,6 +1,7 @@
 #include "ModeCommand.hpp"
 #include "Debug.hpp"
 #include <vector>
+#include "ircUtils.hpp"
 // Default Constructor
 ModeCommand::ModeCommand( void ): Command()
 {
@@ -105,13 +106,51 @@ server is done processing the modes, a MODE command is sent to all members of
 the channel containing the mode changes. Servers MAY choose to hide sensitive
 information when sending the mode changes.
  */
-// void	ModeCommand::channelMode(Server& server, Client& sender)
-// {
-// 	std::vector<std::string> parameters = inMessage_.getParams();
-// 	Channel *channel = const_cast<Channel *>(server.mapChannel(parameters[0])); 
-// 	if (!channel)
-//
-// }
+void	ModeCommand::channelMode(Server& server, Client& sender)
+{
+	std::vector<std::string>	parameters = inMessage_.getParams();
+	std::string					channelName = parameters[0];
+	std::string					nickname = sender.getNickname();
+	Channel *channel = const_cast<Channel *>(server.mapChannel(channelName)); 
+	if (!channel)
+	{
+		sender.sendErrorMessage(ERR_NOSUCHCHANNEL, parameters);
+	}
+	if (parameters.size() == 1)
+	{
+	//RPL_CHANNELMODEIS
+		std::string	modetypes = "+";
+		if (channel->isInviteOnly())
+			modetypes += "i";
+		if (channel->isTopicProtected())
+			modetypes += "t";
+		std::string channelPassword = channel->getPassword();
+		if (!channelPassword.empty())
+			modetypes += "k";
+		int	channelLimit = channel->getUserLimit();
+		if (channelLimit)
+			modetypes += "l";
+		if (modetypes.size() > 1)
+		{
+			parameters.push_back(modetypes);
+			if (!channel->getPassword().empty())
+				parameters.push_back(channelPassword);
+			if (channelLimit)
+				parameters.push_back(toString(channelName));
+		}
+		//TODO:
+		//RPL_CREATIONTIME // not doing that one, it is a should, not a must.
+	}
+	else
+	{
+		if (!channel->isOperator(nickname))
+		{
+			std::string arr[] = {sender.getNickname(), channelName};
+			sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, arr, 2);
+		}
+		// set Channel Modes, may ERR_NEEDMOREPARAMS
+	}
+}
 
 /*
 https://modern.ircdocs.horse/#mode-message
@@ -130,8 +169,8 @@ void	ModeCommand::execute(Server& server, Client& sender)
 		std::string arr[] = {senderNick, inMessage_.getType()};
 		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
 	}
-	// if (parameters[0][0] == '#')
-	// 	return (channelMode(server, sender));
+	if (parameters[0][0] == '#')
+		return (channelMode(server, sender));
 	return (userMode(server, sender));
 }
 

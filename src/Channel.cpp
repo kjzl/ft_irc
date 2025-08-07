@@ -23,7 +23,8 @@ Channel::Channel(const std::string& name, const Client& sender)
 	  topic_(""),
 	  password_(""),
 	  userLimit_(0),
-	  isInviteOnly_(false)
+	  isInviteOnly_(false),
+	  isTopicProtected_(false)
 {
 	members_[sender.getNickname()] = sender.getSocket();
 	operators_.insert(sender.getNickname());
@@ -46,6 +47,7 @@ Channel &Channel::operator=(const Channel &other)
 		this->password_ = other.password_;
 		this->userLimit_ = other.userLimit_;
 		this->isInviteOnly_ = other.isInviteOnly_;
+		this->isTopicProtected_ = other.isTopicProtected_;
 	}
 	return *this;
 }
@@ -124,6 +126,11 @@ bool Channel::checkKey(const std::string& key) const
 bool Channel::isInviteOnly() const
 {
 	return (isInviteOnly_);
+}
+
+bool Channel::isTopicProtected() const
+{
+	return (isTopicProtected_);
 }
 
 void Channel::addToWhiteList(const std::string &nickname)

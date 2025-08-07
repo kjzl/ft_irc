@@ -62,7 +62,10 @@ enum MessageType {
 	//https://modern.ircdocs.horse/#rplumodeis-221
 	RPL_UMODEIS = 221,
 	ERR_USERSDONTMATCH = 502,
-	ERR_UMODEUNKNOWNFLAG = 501
+	ERR_UMODEUNKNOWNFLAG = 501,
+	RPL_CHANNELMODEIS = 324,
+	RPL_CREATIONTIME = 329,
+	ERR_CHANOPRIVSNEEDED = 482
 };
 
 MessageType parseCommandType(const std::string& type);

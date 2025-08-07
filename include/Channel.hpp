@@ -17,9 +17,11 @@ class   Channel
 		std::set<std::string>		whiteList_; //(quicker search) if is not empty, is invite only channel
 		std::set<std::string>		operators_;
 		std::string					topic_;
+
 		std::string					password_;
 		int							userLimit_;
 		bool						isInviteOnly_;
+		bool						isTopicProtected_; //If this mode is enabled, users must have channel privileges such as halfop or operator status in order to change the topic of a channel
 
 	public:
 		Channel();
@@ -59,6 +61,7 @@ class   Channel
 		
 		bool checkKey(const std::string& key) const;
 		bool isInviteOnly() const;
+		bool isTopicProtected() const;
 };
 
 #endif

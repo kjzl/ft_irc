@@ -36,8 +36,15 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 // MODE
 		errorMap[ERR_USERSDONTMATCH]	= IrcErrorInfo("502", ":Cant change mode for other users");
 		errorMap[ERR_UMODEUNKNOWNFLAG]	= IrcErrorInfo("501", ":Unknown MODE flag");
-// RPL
+
+		errorMap[ERR_CHANOPRIVSNEEDED]		= IrcErrorInfo("482", ":You're not channel operator"); //"<client> <channel> :You're not channel operator"
+
+// errorMap[RPL]
+		errorMap[RPL_CHANNELMODEIS]		= IrcErrorInfo("324", "");
+		errorMap[RPL_CREATIONTIME]		= IrcErrorInfo("329", "");
+
 		errorMap[RPL_UMODEIS]			= IrcErrorInfo("221", ""); // "<client> <user modes>"
+		//
 		errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");
 		errorMap[RPL_NAMREPLY]			= IrcErrorInfo("353", "");
 		errorMap[RPL_ENDOFNAMES]		= IrcErrorInfo("366", ":End of /NAMES list");
