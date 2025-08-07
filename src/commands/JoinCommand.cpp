@@ -11,7 +11,6 @@ Command* JoinCommand::fromMessage(const Message& message)
 {
 	return new JoinCommand(message);
 }
-
 /*
     https://modern.ircdocs.horse/#join-message
 
@@ -52,6 +51,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 	std::string channelName, key;
 	while (std::getline(stream_channel, channelName, ','))
 	{
+		std::getline(stream_key, key, ',');
 		// 403
 		if (channelName[0] != '#')
 		{
@@ -64,10 +64,10 @@ void JoinCommand::execute(Server& server, Client& sender)
 		if (!channel)
 		{
 			server.getChannels()[channelName] = Channel(channelName, sender);
-			// TODO: send confimation ??
+			channel = server.mapChannel(channelName);
+			sendValidationMessages(sender, *channel);
 			continue;
 		}
-		std::getline(stream_key, key, ',');
 		// ERR_BADCHANNELKEY (475)
 		if(!channel->checkKey(key))
 		{
@@ -84,9 +84,37 @@ void JoinCommand::execute(Server& server, Client& sender)
 		}
 		// Success with adding member !
 		channel->addMember(&sender);
-		// RPL_TOPIC (332)
-		// TODO: implement
-		// RPL_NAMREPLY (353)
-		// TODO: implement
+		sendValidationMessages(sender, *channel);
+	}
+}
+
+void JoinCommand::sendValidationMessages(Client& sender, Channel& channel)
+{
+	sender.sendCmdValidation(inMessage_, channel);
+	debug("channel name : " + channel.getName());
+	// RPL_TOPIC (332)
+	if (channel.getTopic().length())
+	{
+		std::string params[] = {sender.getNickname(), channel.getName(), channel.getTopic()};
+		sender.sendErrorMessage(RPL_TOPIC, params, 3);
+	}
+	// RPL_NAMREPLY (353) & RPL_ENDOFNAMES (366)
+	std::string memberList(":");
+	for (std::map<std::string, int>::const_iterator it = channel.getMembers().begin(); it != channel.getMembers().end(); ++it)
+	{
+		if (it->first != sender.getNickname())
+		{
+			if (channel.getOperators().find(it->first) != channel.getOperators().end())
+				memberList += "@";
+			memberList += it->first + " ";
+		}
+	}
+	if (memberList.size() > 1)
+	{
+		std::string params[] = {sender.getNickname(), "=", channel.getName(), memberList};
+		sender.sendErrorMessage(RPL_NAMREPLY, params, 4);
+
+		std::string params2[] = {sender.getNickname(), channel.getName()};
+		sender.sendErrorMessage(RPL_ENDOFNAMES, params2, 2);
 	}
 }

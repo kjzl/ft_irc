@@ -30,12 +30,13 @@ class   Channel
 		virtual ~Channel();
 
 		// Getters => necessary or only Utils?? 
-		const	std::map<std::string, int> &getMembers() const;
-		const	std::set<std::string> &getWhiteList() const;
-		const	std::set<std::string> &getOperators() const;
-		const	std::string &getTopic() const;
-		const	std::string &getPassword() const;
-		int getUserLimit() const;
+		const	std::string					&getName() const;
+		const	std::map<std::string, int>	&getMembers() const;
+		const	std::set<std::string>		&getWhiteList() const;
+		const	std::set<std::string>		&getOperators() const;
+		const	std::string 				&getTopic() const;
+		const	std::string 				&getPassword() const;
+		int 								getUserLimit() const;
 
 		// Setters => necessary or only Utils and full constructor?? 
 		void setTopic(const std::string &topic);
@@ -43,7 +44,6 @@ class   Channel
 		void setUserLimit(int limit);
 
 		void broadcastMsg(const Client &sender, const Message &message) const;
-		void broadcastErrorMsg(const int type, const Client &sender, const Message &message);
 
 		void addMember(const Client* client);
 		void removeMember(const std::string &nickname);

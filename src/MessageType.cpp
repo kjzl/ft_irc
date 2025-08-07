@@ -33,8 +33,10 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 		errorMap[ERR_INVITEONLYCHAN]	= IrcErrorInfo("473", ":Cannot join channel (+i)");
 // QUIT
 		errorMap[QUIT]	= IrcErrorInfo("QUIT", ":Quit");
-		// errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");
-		// errorMap[RPL_NAMREPLY]			= IrcErrorInfo("353", "");
+// RPL
+		errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");
+		errorMap[RPL_NAMREPLY]			= IrcErrorInfo("353", "");
+		errorMap[RPL_ENDOFNAMES]		= IrcErrorInfo("366", ":End of /NAMES list");
 		// ...
 	}
 
