@@ -38,12 +38,13 @@ Command*	InviteCommand::fromMessage(const Message& message)
 /*
 https://modern.ircdocs.horse/#invite-message
 
-    RPL_INVITING (341)
+    RPL_INVITING (341)			=> done
     ERR_NEEDMOREPARAMS (461)	=> done
     ERR_NOSUCHCHANNEL (403)		=> done
     ERR_NOTONCHANNEL (442)		=> done
     ERR_CHANOPRIVSNEEDED (482)	=> done
     ERR_USERONCHANNEL (443)		=> done
+	ERR_NOSUCHNICK (401)		=> done
 */
 void	InviteCommand::execute(Server& server, Client& sender)
 {
@@ -88,13 +89,18 @@ void	InviteCommand::execute(Server& server, Client& sender)
 		std::string arr[] = {sender.getNickname(), invitedClient, channelName};
 		return (sender.sendErrorMessage(ERR_USERONCHANNEL, arr, 3));
 	}
+	// ERR_NOSUCHNICK (401)
+	CaseMappedString tmp(invitedClient);
+	if (!server.clientNickExists(tmp))
+	{
+		std::string arr[] = {sender.getNickname(), invitedClient};
+		return (sender.sendErrorMessage(ERR_NOSUCHNICK, arr, 2));
+	}
 	// ===> Success :)
 	channel->addToWhiteList(invitedClient);
 	// RPL_INVITING (341)
-	{
-		std::string arr[] = {sender.getNickname(), invitedClient, channelName};
-		return (sender.sendErrorMessage(RPL_INVITING, arr, 3));
-	}
+	std::string arr[] = {sender.getNickname(), invitedClient, channelName};
+	sender.sendErrorMessage(RPL_INVITING, arr, 3);
 	// sending the invitation !
 	Message outMessage(inMessage_);
 	outMessage.setSource(sender.getNickname(), sender.getUsername());
