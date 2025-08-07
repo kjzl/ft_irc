@@ -18,7 +18,7 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, const Message& mess
 	bool	messageSentSuccessfully = false;
 	if (recipient[0] == '#')
 	{
-		Channel *recipientChannel = server.mapChannel(recipient); 
+		const Channel *recipientChannel = server.mapChannel(recipient); 
 		if (recipientChannel)
 		{
 			messageSentSuccessfully = true;

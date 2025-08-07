@@ -1,6 +1,7 @@
 #include "../include/Channel.hpp"
 #include "Client.hpp"
 #include "Message.hpp"
+#include <vector>
 
 Channel::Channel()
     : topic_(""), password_(""), userLimit_(0)
@@ -98,9 +99,23 @@ void Channel::setUserLimit(int limit)
     userLimit_ = limit;
 }
 
-void Channel::broadcastMsg(const Client &sender, const Message &message)
+// void Channel::broadcastErrorMsg(const int type, const Client &sender, std::vector<std::string> msgParams)
+// {
+// 	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
+//     IrcErrorInfo info = ErrorMap.find(type)->second;
+//     msgParams.push_back(info.message);
+//     Message outMessage(info.code,  msgParams);
+// 	broadcastMsg(sender, outMessage);
+// 	for (std::map<std::string, int>::iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
+// 	{
+// 		if (memberIt->first != sender.getNickname())
+// 			sender.sendMessageToFd(message, memberIt->second);
+// 	}
+// }
+
+void Channel::broadcastMsg(const Client &sender, const Message &message) const
 {
-	for (std::map<std::string, int>::iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
+	for (std::map<std::string, int>::const_iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
 	{
 		if (memberIt->first != sender.getNickname())
 			sender.sendMessageToFd(message, memberIt->second);
@@ -143,4 +158,18 @@ void Channel::addMember(const Client* client)
 			return;
 	}
 	members_[nickname] = client->getSocket();
+}
+
+void Channel::removeMember(const std::string &nickname)
+{
+	std::map<std::string, int>::iterator foundMemberIt = members_.find(nickname);
+	if (foundMemberIt != members_.end())
+		members_.erase(foundMemberIt);
+}
+
+bool Channel::isMember(const std::string &nickname) const
+{
+	if (members_.find(nickname) != members_.end())
+		return (true);
+	return (false);
 }

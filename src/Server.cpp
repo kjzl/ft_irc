@@ -3,6 +3,7 @@
 #include "../include/Debug.hpp"
 #include "../include/ircUtils.hpp"
 #include "../include/Command.hpp"
+#include <algorithm>
 #include <cerrno>
 #include <csignal>
 #include <cstdio>
@@ -21,6 +22,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/fcntl.h>
+#include <vector>
 
 bool Server::running_ = false;
 
@@ -138,6 +140,36 @@ void	Server::acceptConnection( void )
 	clients_.push_back(newcomer);
 }
 
+Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> messageParams) const
+{
+	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
+	IrcErrorInfo info = ErrorMap.find(type)->second;
+	messageParams.push_back(info.message);
+	Message message(info.code, messageParams);
+	return (message);
+}
+
+// used to removeClient from server (in poll and clients) and broadcast the Quit message.
+// if server needs to diconnect the client, modify messageParams to reflect reason
+void	Server::quitClient(const Client &quitter, const std::vector<std::string> &messageParams)
+{
+	std::vector<Client>::iterator clIt = std::find(clients_.begin(), clients_.end(), quitter);
+	size_t	clientIndex = clIt - clients_.begin();
+	if (pollFds_[clientIndex + 1].fd != quitter.getSocket())
+		throw std::logic_error("clientIndex in quitClient is not corespondent to the quitting client");
+	removeClient(clientIndex + 1);
+	Message msg = buildErrorMessage(QUIT, messageParams);
+	for (std::map<std::string, Channel>::iterator cMapIter = channels_.begin(); cMapIter != channels_.end(); cMapIter++)
+	{
+		std::string	qNickname = quitter.getNickname();
+		Channel quittersChannel = cMapIter->second;
+		if (!quittersChannel.isMember(qNickname))
+			continue;
+		quittersChannel.broadcastMsg(quitter, msg);
+		quittersChannel.removeMember(qNickname);
+	}
+}
+
 // closes and delets an elements from pollIndex_ 
 //the entry in pollFds_ corresponds to the same index -1 in clients_ for that particular client. they should have the same fd.
 void	Server::removeClient(int pollIndexToRemove)
@@ -169,14 +201,6 @@ void Server::executeIncomingCommandMessage(Client& sender, const std::string& ra
 	}
 	cmd->execute(*this, sender);
 	delete cmd;
-}
-
-void	Server::broadcastMsgToChannel(const std::string &channelname, const Message &message) const
-{
-	std::map<std::string, int> channelMembersList = channels_[channelname].getMembers();
-	Client	tmp;
-	for (std::map<std::string, int>::const_iterator memberIt = (channelMembersList.begin()); memberIt != channelMembersList.end(); memberIt++)
-		tmp.sendMessageToFd(message, memberIt->second);
 }
 
 void Server::broadcastErrorMessage(MessageType type, std::vector<std::string>& args) const
@@ -377,9 +401,9 @@ void	Server::serverShutdown(void)
 	std::cout << GREEN << "[Server] Shutdown complete" << RESET << std::endl;
 }
 
-Channel* Server::mapChannel(const std::string& channelName)
+const Channel* Server::mapChannel(const std::string& channelName) const
 {
-	std::map<std::string, Channel>::iterator it = channels_.find(channelName);
+	std::map<std::string, Channel>::const_iterator it = channels_.find(channelName);
 	if (it != channels_.end())
 		return &(it->second);
 	return NULL;

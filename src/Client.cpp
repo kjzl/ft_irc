@@ -42,6 +42,13 @@ bool	Client::operator==(const std::string nickname)
 	return (false);
 }
 
+bool	Client::operator==(const Client &client)
+{
+	if (getSocket() == client.getSocket())
+		return (true);
+	return (false);
+}
+
 // Getters
 
 bool Client::isAuthenticated() const

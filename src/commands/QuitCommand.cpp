@@ -47,7 +47,7 @@ void	QuitCommand::execute(Server& server, Client& sender)
 {
 	inMessage_.setSource(sender.getNickname(), sender.getUsername());
 	// do the exit
-	// send nitice to everyone
+	// send notice to everyone
 	server.broadcastErrorMessage(QUIT, inMessage_.getParams());
 }
 

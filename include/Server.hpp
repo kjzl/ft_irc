@@ -28,15 +28,15 @@ class Server {
 		const std::string	&getPassword( void ) const;
 		// ?
 		bool	nickCollision(CaseMappedString& toCheck);
-		void	broadcastMsgToChannel(const std::string &channelname, const Message &message) const;
 		void	broadcastMsg(const Message &message) const;
 		void	broadcastErrorMessage(MessageType type, std::string args[], int size) const;
 		void	broadcastErrorMessage(MessageType type, std::vector<std::string>& args) const;
+		void	quitClient(const Client &quitter, const std::vector<std::string> &messageParams);
 		// everything is exposed :
 		std::vector<Client>&			getClients(void);
 		std::map<std::string, Channel>&	getChannels(void);
 		// Utils
-		Channel* mapChannel(const std::string& channelName);
+		const Channel* mapChannel(const std::string& channelName) const;
 
 	private:
 		Server( void );
@@ -54,6 +54,7 @@ class Server {
 		static void	signalHandler(int signum);
 		void	makeMessage(Client &client);
 		void	executeIncomingCommandMessage(Client& sender, const std::string& rawMessage);
+		Message	buildErrorMessage(MessageType type, std::vector<std::string> messageParams) const;
 
 		
 		const std::string				name_;				
