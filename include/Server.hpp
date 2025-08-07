@@ -36,7 +36,7 @@ class Server {
 		std::vector<Client>&			getClients(void);
 		std::map<std::string, Channel>&	getChannels(void);
 		// Utils
-		Channel* mapChannel(const std::string& channelName) const;
+		Channel* mapChannel(const std::string& channelName);
 
 	private:
 		Server( void );

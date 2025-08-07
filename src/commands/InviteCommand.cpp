@@ -98,7 +98,6 @@ void	InviteCommand::execute(Server& server, Client& sender)
 	// sending the invitation !
 	Message outMessage(inMessage_);
 	outMessage.setSource(sender.getNickname(), sender.getUsername());
-	Client *receiver = server.findClient(invitedClient);
-	receiver->sendMessage(outMessage);
+	sender.sendMessageTo(outMessage, invitedClient, server);
 }
 
