@@ -58,7 +58,10 @@ enum MessageType {
 	ERR_INVITEONLYCHAN,
 	RPL_TOPIC,
 	RPL_NAMREPLY,
-	RPL_ENDOFNAMES
+	RPL_ENDOFNAMES,
+	//https://modern.ircdocs.horse/#rplumodeis-221
+	RPL_UMODEIS = 221,
+	ERR_USERSDONTMATCH = 502
 };
 
 MessageType parseCommandType(const std::string& type);
