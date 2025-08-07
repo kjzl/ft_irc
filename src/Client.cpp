@@ -138,6 +138,7 @@ void	Client::sendMessage(Message toSend) const
 
 bool	Client::sendMessageTo(Message msg, const std::string recipientNickname, Server &server) const
 {
+	msg.setSource(nickname_,  username_);
 	std::vector<Client> clients = server.getClients();
 	std::vector<Client>::iterator clientIt = std::find(clients.begin(), clients.end(), recipientNickname);
 	if (clientIt != clients.end())

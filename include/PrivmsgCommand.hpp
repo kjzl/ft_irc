@@ -9,7 +9,7 @@ public:
 	void			execute(Server& server, Client& sender);
 	static Command*	fromMessage(const Message& message);
 private:
-	void			privmsgRecipient(std::string recipient, const Message& message, Server& server, Client& sender);
+		void	privmsgRecipient(std::string recipient, Server& server, Client& sender);
 };
 
 #endif
