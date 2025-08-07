@@ -1,4 +1,5 @@
 #include "../include/Client.hpp"
+#include "../include/Channel.hpp"
 #include "../include/MessageType.hpp"
 #include "Server.hpp"
 #include <algorithm>
@@ -200,3 +201,17 @@ int		Client::safeSend(const std::string &string) const
 	return (0);
 }
 
+void Client::sendCmdValidation(const Message inMessage) const
+{
+	Message outMessage(inMessage);
+	outMessage.setSource(nickname_, username_);
+	sendMessage(outMessage);
+}
+
+void Client::sendCmdValidation(const Message inMessage, const Channel &channel) const
+{
+	Message outMessage(inMessage);
+	outMessage.setSource(nickname_, username_);
+	sendCmdValidation(inMessage);
+	channel.broadcastMsg(*this, outMessage);
+}
