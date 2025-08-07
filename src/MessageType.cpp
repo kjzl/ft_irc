@@ -36,7 +36,6 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 		errorMap[ERR_USERSDONTMATCH]	= IrcErrorInfo("502", ":Cant change mode for other users");
 // RPL
 		errorMap[RPL_UMODEIS]			= IrcErrorInfo("221", ""); // "<client> <user modes>"
-		errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");
 		errorMap[RPL_NAMREPLY]			= IrcErrorInfo("353", "");
 		errorMap[RPL_ENDOFNAMES]		= IrcErrorInfo("366", ":End of /NAMES list");
 		errorMap[RPL_INVITING]			= IrcErrorInfo("341", "");
@@ -45,6 +44,9 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 		errorMap[ERR_NOTONCHANNEL]		= IrcErrorInfo("442", ":You're not on that channel");
 		errorMap[ERR_CHANOPRIVSNEEDED]	= IrcErrorInfo("482", ":You're not channel operator");
 		errorMap[ERR_USERONCHANNEL]		= IrcErrorInfo("443", ":is already on channel");
+// TOPIC
+		errorMap[RPL_NOTOPIC]			= IrcErrorInfo("331", ":No topic is set");
+		errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");
 		// ...
 	}
 	return errorMap;

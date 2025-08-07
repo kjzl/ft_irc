@@ -75,7 +75,7 @@ void	KickCommand::execute(Server& server, Client& sender)
 		return (sender.sendErrorMessage(ERR_NOTONCHANNEL, arr, 2));
 	}
 	// ERR_CHANOPRIVSNEEDED (482)
-	if (channel->isInviteOnly()	&& !channel->isOperator(sender.getNickname()))
+	if (!channel->isOperator(sender.getNickname()))
 	{
 		std::string arr[] = {sender.getNickname(), channelName};
 		return (sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, arr, 2));

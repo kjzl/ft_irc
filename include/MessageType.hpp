@@ -66,7 +66,8 @@ enum MessageType {
 	//https://modern.ircdocs.horse/#rplumodeis-221
 	RPL_UMODEIS = 221,
 	ERR_USERSDONTMATCH = 502,
-	ERR_USERNOTINCHANNEL
+	ERR_USERNOTINCHANNEL,
+	RPL_NOTOPIC
 };
 
 MessageType parseCommandType(const std::string& type);

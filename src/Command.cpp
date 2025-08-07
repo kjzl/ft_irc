@@ -9,6 +9,7 @@
 #include "../include/KickCommand.hpp"
 #include "../include/QuitCommand.hpp"
 #include "InviteCommand.hpp"
+#include "TopicCommand.hpp"
 #include "Message.hpp"
 
 // Default Constructor
@@ -57,6 +58,7 @@ static void fillCommandMap(std::map<std::string, CommandFactory> &commandMap)
 	commandMap["KICK"] =	&KickCommand::fromMessage;
 	commandMap["QUIT"] =	&QuitCommand::fromMessage;
 	commandMap["INVITE"] =	&InviteCommand::fromMessage;
+	commandMap["TOPIC"] =	&TopicCommand::fromMessage;
 	//...
 }
 
