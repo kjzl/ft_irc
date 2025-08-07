@@ -17,6 +17,7 @@ class ModeCommand : public Command{
 	private:
 		ModeCommand( void );
 		void	userMode(Server& server, Client& sender);
+		void	channelMode(Server& server, Client& sender);
 };
 
 #endif

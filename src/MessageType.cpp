@@ -35,6 +35,7 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 		errorMap[QUIT]					= IrcErrorInfo("QUIT", ":Quit");
 // MODE
 		errorMap[ERR_USERSDONTMATCH]	= IrcErrorInfo("502", ":Cant change mode for other users");
+		errorMap[ERR_UMODEUNKNOWNFLAG]	= IrcErrorInfo("501", ":Unknown MODE flag");
 // RPL
 		errorMap[RPL_UMODEIS]			= IrcErrorInfo("221", ""); // "<client> <user modes>"
 		errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");

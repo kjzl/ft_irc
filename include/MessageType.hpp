@@ -61,7 +61,8 @@ enum MessageType {
 	RPL_ENDOFNAMES,
 	//https://modern.ircdocs.horse/#rplumodeis-221
 	RPL_UMODEIS = 221,
-	ERR_USERSDONTMATCH = 502
+	ERR_USERSDONTMATCH = 502,
+	ERR_UMODEUNKNOWNFLAG = 501
 };
 
 MessageType parseCommandType(const std::string& type);
