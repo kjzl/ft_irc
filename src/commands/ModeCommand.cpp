@@ -1,5 +1,6 @@
 #include "ModeCommand.hpp"
 #include "Debug.hpp"
+#include <cstdlib>
 #include <vector>
 #include "ircUtils.hpp"
 // Default Constructor
@@ -84,6 +85,81 @@ void	ModeCommand::userMode(Server& server, Client& sender)
 	return (sender.sendErrorMessage(ERR_UMODEUNKNOWNFLAG, NULL, 0));
 }
 
+void ModeCommand::processChannelModes(Client &sender, const std::string& modestring, 
+						 const std::vector<std::string>& parameters,
+						 Channel* channel)
+{
+	bool addMode = true;
+	size_t	paramIndex = 1;
+	std::string	senderNick = sender.getNickname();
+	for (std::string::const_iterator cIt = modestring.begin(); cIt != modestring.end(); cIt++) {
+		switch (*cIt) {
+			case '+':
+				addMode = true;
+				break;
+			case '-':
+				addMode = false;
+				break;
+			case 'i': // Invite-only flag
+				channel->setInviteOnly(addMode);
+				break;
+			case 't': // Topic protection flag
+				channel->setTopicProtected(addMode);
+				break;
+			case 'k': // Channel key (password)
+				if (addMode) {
+					if (paramIndex < parameters.size()) {
+						channel->setPassword(parameters[paramIndex++]);
+					}
+					else
+					{
+						//TODO: make a constructor that takes a message instead of constructing it
+						// return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, message));
+					}
+				}
+				else
+					channel->setPassword("");
+				break;
+				
+			case 'l': // User limit
+				if (addMode) {
+					if (paramIndex < parameters.size()) {
+						char * endptr;
+						channel->setUserLimit(std::strtol(parameters[paramIndex++].c_str(), &endptr, 10));
+					}
+					else
+					{
+						//TODO: make a constructor that takes a message instead of constructing it
+						// return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, message));
+					}
+				} else {
+					channel->setUserLimit(0); // Disable user limit
+				}
+				break;
+				
+			case 'o': // Channel operator status
+				if (paramIndex < parameters.size()) {
+					if (addMode) {
+						channel->addOperator(parameters[paramIndex]);
+					} else {
+						channel->removeOperator(parameters[paramIndex]);
+					}
+					paramIndex++;
+				}
+				else
+				{
+					//TODO: make a constructor that takes a message instead of constructing it
+					// return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, message));
+				}
+				break;
+				
+			default:
+				// Ignore unknown modes
+				break;
+		}
+	}
+}
+
 /*
 If <target> is a channel that does not exist on the network, the
 ERR_NOSUCHCHANNEL (403) numeric is returned.
@@ -149,6 +225,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 			sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, arr, 2);
 		}
 		// set Channel Modes, may ERR_NEEDMOREPARAMS
+		processChannelModes(sender, parameters[1], parameters, channel);
 	}
 }
 

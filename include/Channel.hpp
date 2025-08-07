@@ -59,6 +59,8 @@ class   Channel
 		void removeOperator(const std::string &nickname);
 		bool isOperator(const std::string &nickname) const;
 		
+		void setInviteOnly(bool value);
+		void setTopicProtected(bool value);
 		bool checkKey(const std::string& key) const;
 		bool isInviteOnly() const;
 		bool isTopicProtected() const;

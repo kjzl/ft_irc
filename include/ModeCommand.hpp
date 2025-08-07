@@ -18,6 +18,9 @@ class ModeCommand : public Command{
 		ModeCommand( void );
 		void	userMode(Server& server, Client& sender);
 		void	channelMode(Server& server, Client& sender);
+		void processChannelModes(Client &sender, const std::string& modestring,
+						 const std::vector<std::string>& parameters,
+						 Channel* channel);
 };
 
 #endif

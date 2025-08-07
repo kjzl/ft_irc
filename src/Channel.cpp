@@ -189,3 +189,13 @@ bool	Channel::isOperator(const std::string &nickname) const
 		return (true);
 	return (false);
 }
+
+void	Channel::setInviteOnly(bool value)
+{
+	isInviteOnly_ = value;
+}
+
+void	Channel::setTopicProtected(bool value)
+{
+	isTopicProtected_ = value;
+}
