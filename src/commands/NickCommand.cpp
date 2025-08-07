@@ -48,7 +48,7 @@ void NickCommand::execute(Server& server, Client& sender)
 	}
 	// 433
 	CaseMappedString tmp(inParams[0]);
-	if (server.nickCollision(tmp))
+	if (server.clientNickExists(tmp))
 	{
 		std::string arr[] = {sender.getNickname(), inParams[0]};
 		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, arr, 2));

@@ -27,7 +27,7 @@ class Server {
 		const std::string	&getName( void ) const;
 		const std::string	&getPassword( void ) const;
 		// ?
-		bool	nickCollision(CaseMappedString& toCheck);
+		bool	clientNickExists(CaseMappedString& toCheck);
 		void	broadcastMsg(const Message &message) const;
 		void	broadcastErrorMessage(MessageType type, std::string args[], int size) const;
 		void	broadcastErrorMessage(MessageType type, std::vector<std::string>& args) const;

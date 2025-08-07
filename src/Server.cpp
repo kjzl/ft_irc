@@ -230,7 +230,7 @@ void	Server::broadcastMsg(const Message &message) const
 }
 
 
-bool	Server::nickCollision(CaseMappedString& toCheck)
+bool	Server::clientNickExists(CaseMappedString& toCheck)
 {
 	for (size_t clientIndex = 0; clientIndex < clients_.size(); clientIndex++)
 	{
