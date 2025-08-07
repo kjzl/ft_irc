@@ -45,6 +45,8 @@ If <modestring> is given, the supplied modes will be applied, and a MODE
 message will be sent to the user containing the changed modes. If one or more
 modes sent are not implemented on the server, the server MUST apply the modes
 that are implemented, and then send the ERR_UMODEUNKNOWNFLAG (501) in reply along with the MODE message.
+option to implement:
+ o: Give/take channel operator privilege
 */
 void	ModeCommand::userMode(Server& server, Client& sender)
 {
@@ -61,6 +63,21 @@ void	ModeCommand::userMode(Server& server, Client& sender)
 		std::string arr[] = {sender.getNickname()};
 		return (sender.sendErrorMessage(ERR_USERSDONTMATCH, arr, 1));
 	}
+	if (parameters.size() < 2)
+	{
+		parameters.push_back(senderNick);
+		//RPL_UMODEIS
+		std::map<std::string, Channel> allChannels = server.getChannels();
+		for (std::map<std::string, Channel>::iterator channelIt = allChannels.begin(); channelIt != allChannels.end(); channelIt++)
+		{
+			if (channelIt->second.isOperator(senderNick))
+			{
+				parameters.push_back("+o");
+				break;
+			}
+		}
+		sender.sendErrorMessage(RPL_UMODEIS, parameters);
+	}
 }
 
 /*
@@ -69,10 +86,9 @@ https://modern.ircdocs.horse/#mode-message
 */
 void	ModeCommand::execute(Server& server, Client& sender)
 {
+	(void) server;
 	if (!sender.isAuthenticated())
 		return ;
-	(void) server;
-	(void) sender;
 
 }
 
