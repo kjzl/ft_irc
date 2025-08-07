@@ -58,7 +58,11 @@ enum MessageType {
 	ERR_INVITEONLYCHAN,
 	RPL_TOPIC,
 	RPL_NAMREPLY,
-	RPL_ENDOFNAMES
+	RPL_ENDOFNAMES,
+	RPL_INVITING,
+    ERR_NOTONCHANNEL,
+    ERR_CHANOPRIVSNEEDED,
+    ERR_USERONCHANNEL
 };
 
 MessageType parseCommandType(const std::string& type);

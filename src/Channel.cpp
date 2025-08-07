@@ -165,3 +165,10 @@ bool Channel::isMember(const std::string &nickname) const
 		return (true);
 	return (false);
 }
+
+bool Channel::isOperator(const std::string &nickname) const
+{
+	if (operators_.find(nickname) != operators_.end())
+		return (true);
+	return (false);
+}
