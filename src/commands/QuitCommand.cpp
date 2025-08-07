@@ -45,9 +45,9 @@ example: :dan-!d@localhost QUIT :Quit: Bye for now!
 */
 void	QuitCommand::execute(Server& server, Client& sender)
 {
-	inMessage_.setSource(sender.getNickname(), sender.getUsername());
-	// do the exit
-	// send notice to everyone
-	server.broadcastErrorMessage(QUIT, inMessage_.getParams());
+	if (!sender.isAuthenticated())
+		inMessage_.setSource(sender.getNickname(), sender.getUsername());
+	// do the exit & send notice to everyone
+	server.quitClient(sender, inMessage_.getParams());
 }
 

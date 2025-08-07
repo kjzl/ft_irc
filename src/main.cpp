@@ -4,6 +4,11 @@
 #include <iostream>
 #include <errno.h>
 
+//TODO:
+//make main start with args
+//same user can enter twice and get registered twice, does not get ejected for same nick
+//check canonical form
+
 int main (int argc, char *argv[]) {
 	(void)argc;
 	(void)argv;
