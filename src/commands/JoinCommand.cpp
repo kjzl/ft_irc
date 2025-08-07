@@ -64,7 +64,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 		if (!channel)
 		{
 			server.getChannels()[channelName] = Channel(channelName, sender);
-			channel = server.mapChannel(channelName);
+			channel = const_cast<Channel *>(server.mapChannel(channelName));
 			sendValidationMessages(sender, *channel);
 			continue;
 		}
