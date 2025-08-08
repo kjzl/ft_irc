@@ -77,7 +77,12 @@ std::string	Message::toString()
 	std::string msg;
 	std::string	lastParam = getParams().back();
 	if (hasSource_)
-		msg += ":" + nickname_ + "!" + username_ + "@" + hostname_ + " ";
+	{
+		msg += ":";
+		if (!nickname_.empty())
+			msg += nickname_ + "!" + username_ + "@" ;
+		msg += hostname_ + " ";
+	}
 	msg += type_;
 	if (getParams().empty())
 		return msg;
@@ -135,6 +140,12 @@ const std::string Message::getNickname() const
 std::string Message::getType() const
 {
 	return type_;
+}
+
+// only sets servername as source
+void Message::setSource()
+{
+	hasSource_ = true;
 }
 
 void Message::setSource(const std::string nickname, const std::string username)

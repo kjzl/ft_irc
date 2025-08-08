@@ -27,6 +27,7 @@ public:
 	const std::string	getNickname() const;
 	const std::string	getUsername() const;
 	void	setSource(const std::string nickname, const std::string username);
+	void	setSource();
 	// The specific command this message represents.
 	std::string getType() const;
 	// If it exists, data relevant to this specific command.

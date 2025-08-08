@@ -37,10 +37,16 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 		errorMap[ERR_UMODEUNKNOWNFLAG]	= IrcErrorInfo("501", "Unknown MODE flag");
 		errorMap[ERR_UNKNOWNMODE]			= IrcErrorInfo("472","is unknown mode char to me");  // "<client> <modechar> :is unknown mode char to me"
 		errorMap[ERR_CHANOPRIVSNEEDED]		= IrcErrorInfo("482", "You're not channel operator"); //"<client> <channel> :You're not channel operator"
+// WELCOME
+
+		errorMap[RPL_WELCOME]			= IrcErrorInfo("1","");
+		errorMap[RPL_YOURHOST]			= IrcErrorInfo("2","");
+		errorMap[RPL_CREATED]			= IrcErrorInfo("3",""); // <client> :This server was created <datetime>" eg.: ':server 003 <nick> :This server was created Thu Aug 7 18:41:14 2025'
+		errorMap[RPL_MYINFO]			= IrcErrorInfo("4",""); // <client> <servername> <version> <available user modes> <available channel modes> [<channel modes with a parameter>]"
 
 // errorMap[RPL]
 		errorMap[RPL_CHANNELMODEIS]		= IrcErrorInfo("324", "");
-		errorMap[RPL_CREATIONTIME]		= IrcErrorInfo("329", "");
+		errorMap[RPL_CREATIONTIME]		= IrcErrorInfo("329", ""); //RPL_CREATIONTIME: :server 329 <nick> #channel 1723124876
 
 		errorMap[RPL_UMODEIS]			= IrcErrorInfo("221", ""); // "<client> <user modes>"
 		//

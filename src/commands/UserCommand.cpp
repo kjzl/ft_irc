@@ -10,6 +10,18 @@ Command* UserCommand::fromMessage(const Message& message)
 	return new UserCommand(message);
 }
 
+void	UserCommand::welcome(const Server &server, const Client &sender)
+{
+	(void) server;
+	std::string	nickname = sender.getNickname();
+	std::string arr[] = {nickname};
+	std::vector<std::string> outParams(arr, arr + 1);
+	sender.sendErrorMessage(RPL_WELCOME, outParams);
+	sender.sendErrorMessage(RPL_YOURHOST, outParams);
+	sender.sendErrorMessage(RPL_CREATED , outParams);
+	sender.sendErrorMessage(RPL_MYINFO , outParams);
+}
+
 /*
     https://modern.ircdocs.horse/#user-message
     ERR_NEEDMOREPARAMS (461)
@@ -51,8 +63,9 @@ void UserCommand::execute(Server& server, Client& sender)
 	// sender.sendErrorMessage(RPL_YOURHOST, outParams);
 	// sender.sendErrorMessage(RPL_CREATED , outParams);
 	// sender.sendErrorMessage(RPL_MYINFO , outParams);
-	sender.sendMessage(Message("Welcome to the AspenWood modest IRC Chat :)"));
-	sender.sendMessage(Message("You are now fully authenticated :D"));
+	welcome(server, sender);
+	// sender.sendMessage(Message("Welcome to the AspenWood modest IRC Chat :)"));
+	// sender.sendMessage(Message("You are now fully authenticated :D"));
 	}
 	return;
 }

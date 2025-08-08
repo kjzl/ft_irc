@@ -30,7 +30,8 @@ enum MessageType {
 	RPL_WELCOME = 1,
 	// https://modern.ircdocs.horse/#rplyourhost-002
 	RPL_YOURHOST = 2,
-
+	RPL_CREATED = 3, // "<client> :This server was created <datetime>"
+	RPL_MYINFO = 4, // "<client> <servername> <version> <available user modes> <available channel modes> [<channel modes with a parameter>]"
 	// https://modern.ircdocs.horse/#error-message
 	ERROR,
 	// https://modern.ircdocs.horse/#errunknownerror-400
