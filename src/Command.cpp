@@ -54,7 +54,8 @@ static void fillCommandMap(std::map<std::string, CommandFactory> &commandMap)
 	commandMap["PASS"] = 	&PassCommand::fromMessage;
 	commandMap["NICK"] = 	&NickCommand::fromMessage;
 	commandMap["USER"] = 	&UserCommand::fromMessage;
-	commandMap["PRIVMSG"] = &PrivmsgCommand::fromMessage;
+	commandMap["PRIVMSG"] =	&PrivmsgCommand::fromMessage;
+	commandMap["NOTICE"] =	&PrivmsgCommand::fromMessage;
 	commandMap["JOIN"] =	&JoinCommand::fromMessage;
 	commandMap["KICK"] =	&KickCommand::fromMessage;
 	commandMap["QUIT"] =	&QuitCommand::fromMessage;
