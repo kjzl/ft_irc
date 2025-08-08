@@ -12,31 +12,31 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 	{
  //GENERIC
 		errorMap[ERROR]					= IrcErrorInfo("ERROR", "");
-		errorMap[ERR_UNKNOWNCOMMAND]	= IrcErrorInfo("421", ":Unknown command");
+		errorMap[ERR_UNKNOWNCOMMAND]	= IrcErrorInfo("421", "Unknown command");
 //NICK
-		errorMap[ERR_NONICKNAMEGIVEN] 	= IrcErrorInfo("431", ":No nickname given");
-		errorMap[ERR_ERRONEUSNICKNAME]	= IrcErrorInfo("432", ":Erroneous nickname");
-		errorMap[ERR_NICKNAMEINUSE]		= IrcErrorInfo("433", ":Nickname is already in use");
-        errorMap[ERR_NEEDMOREPARAMS]	= IrcErrorInfo("461", ":Not enough parameters");
-        errorMap[ERR_ALREADYREGISTERED]	= IrcErrorInfo("462", ":You may not reregister");
+		errorMap[ERR_NONICKNAMEGIVEN] 	= IrcErrorInfo("431", "No nickname given");
+		errorMap[ERR_ERRONEUSNICKNAME]	= IrcErrorInfo("432", "Erroneous nickname");
+		errorMap[ERR_NICKNAMEINUSE]		= IrcErrorInfo("433", "Nickname is already in use");
+        errorMap[ERR_NEEDMOREPARAMS]	= IrcErrorInfo("461", "Not enough parameters");
+        errorMap[ERR_ALREADYREGISTERED]	= IrcErrorInfo("462", "You may not reregister");
 //PASS
-        errorMap[ERR_PASSWDMISMATCH]	= IrcErrorInfo("464", ":Password incorrect");
+        errorMap[ERR_PASSWDMISMATCH]	= IrcErrorInfo("464", "Password incorrect");
 //PRIVMSG
-		errorMap[ERR_NOSUCHNICK]		= IrcErrorInfo("401", ":No such nick/channel");
-		errorMap[ERR_NOSUCHCHANNEL]		= IrcErrorInfo("403", ":No such channel");
-		errorMap[ERR_CANNOTSENDTOCHAN]	= IrcErrorInfo("404", ":Cannot send to channel");
-		errorMap[ERR_NORECIPIENT]		= IrcErrorInfo("411", ":No recipient given (PRIVMSG)"); // beware to never use this anywhere where outside of PRIVMSG, else we change it so this is empty here
-		errorMap[ERR_NOTEXTTOSEND]		= IrcErrorInfo("412", ":No text to send");
+		errorMap[ERR_NOSUCHNICK]		= IrcErrorInfo("401", "No such nick/channel");
+		errorMap[ERR_NOSUCHCHANNEL]		= IrcErrorInfo("403", "No such channel");
+		errorMap[ERR_CANNOTSENDTOCHAN]	= IrcErrorInfo("404", "Cannot send to channel");
+		errorMap[ERR_NORECIPIENT]		= IrcErrorInfo("411", "No recipient given (PRIVMSG)"); // beware to never use this anywhere where outside of PRIVMSG, else we change it so this is empty here
+		errorMap[ERR_NOTEXTTOSEND]		= IrcErrorInfo("412", "No text to send");
 //JOIN
-		errorMap[ERR_BADCHANNELKEY]		= IrcErrorInfo("475", ":Cannot join channel (+k)");
-		errorMap[ERR_INVITEONLYCHAN]	= IrcErrorInfo("473", ":Cannot join channel (+i)");
+		errorMap[ERR_BADCHANNELKEY]		= IrcErrorInfo("475", "Cannot join channel (+k)");
+		errorMap[ERR_INVITEONLYCHAN]	= IrcErrorInfo("473", "Cannot join channel (+i)");
 // QUIT
-		errorMap[QUIT]					= IrcErrorInfo("QUIT", ":Quit");
+		errorMap[QUIT]					= IrcErrorInfo("QUIT", "Quit");
 // MODE
-		errorMap[ERR_USERSDONTMATCH]	= IrcErrorInfo("502", ":Cant change mode for other users");
-		errorMap[ERR_UMODEUNKNOWNFLAG]	= IrcErrorInfo("501", ":Unknown MODE flag");
-		errorMap[ERR_UNKNOWNMODE]			= IrcErrorInfo("472",":is unknown mode char to me");  // "<client> <modechar> :is unknown mode char to me"
-		errorMap[ERR_CHANOPRIVSNEEDED]		= IrcErrorInfo("482", ":You're not channel operator"); //"<client> <channel> :You're not channel operator"
+		errorMap[ERR_USERSDONTMATCH]	= IrcErrorInfo("502", "Cant change mode for other users");
+		errorMap[ERR_UMODEUNKNOWNFLAG]	= IrcErrorInfo("501", "Unknown MODE flag");
+		errorMap[ERR_UNKNOWNMODE]			= IrcErrorInfo("472","is unknown mode char to me");  // "<client> <modechar> :is unknown mode char to me"
+		errorMap[ERR_CHANOPRIVSNEEDED]		= IrcErrorInfo("482", "You're not channel operator"); //"<client> <channel> :You're not channel operator"
 
 // errorMap[RPL]
 		errorMap[RPL_CHANNELMODEIS]		= IrcErrorInfo("324", "");
@@ -46,15 +46,15 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 		//
 		errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");
 		errorMap[RPL_NAMREPLY]			= IrcErrorInfo("353", "");
-		errorMap[RPL_ENDOFNAMES]		= IrcErrorInfo("366", ":End of /NAMES list");
+		errorMap[RPL_ENDOFNAMES]		= IrcErrorInfo("366", "End of /NAMES list");
 		errorMap[RPL_INVITING]			= IrcErrorInfo("341", "");
 // INVITE
-		errorMap[ERR_USERNOTINCHANNEL]	= IrcErrorInfo("441", ":They aren't on that channel");
-		errorMap[ERR_NOTONCHANNEL]		= IrcErrorInfo("442", ":You're not on that channel");
-		errorMap[ERR_CHANOPRIVSNEEDED]	= IrcErrorInfo("482", ":You're not channel operator");
-		errorMap[ERR_USERONCHANNEL]		= IrcErrorInfo("443", ":is already on channel");
+		errorMap[ERR_USERNOTINCHANNEL]	= IrcErrorInfo("441", "They aren't on that channel");
+		errorMap[ERR_NOTONCHANNEL]		= IrcErrorInfo("442", "You're not on that channel");
+		errorMap[ERR_CHANOPRIVSNEEDED]	= IrcErrorInfo("482", "You're not channel operator");
+		errorMap[ERR_USERONCHANNEL]		= IrcErrorInfo("443", "is already on channel");
 // TOPIC
-		errorMap[RPL_NOTOPIC]			= IrcErrorInfo("331", ":No topic is set");
+		errorMap[RPL_NOTOPIC]			= IrcErrorInfo("331", "No topic is set");
 		errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");
 		// ...
 	}

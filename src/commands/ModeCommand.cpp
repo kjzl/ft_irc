@@ -214,7 +214,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 			if (!channel->getPassword().empty())
 				parameters.push_back(channelPassword);
 			if (channelLimit)
-				parameters.push_back(toString(channelName));
+				parameters.push_back(toString(channelLimit));
 		}
 		sender.sendErrorMessage(RPL_CHANNELMODEIS, parameters);
 

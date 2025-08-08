@@ -154,7 +154,8 @@ void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args) 
 {
 	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
     IrcErrorInfo info = ErrorMap.find(type)->second;
-    args.push_back(info.message);
+	if (!info.message.empty())
+		args.push_back(info.message);
     Message outMessage(info.code,  args);
 	debug("sending error MSG: " + outMessage.toString());
     sendMessage(outMessage);

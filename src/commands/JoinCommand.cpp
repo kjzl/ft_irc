@@ -99,7 +99,7 @@ void JoinCommand::sendValidationMessages(Client& sender, Channel& channel)
 		sender.sendErrorMessage(RPL_TOPIC, params, 3);
 	}
 	// RPL_NAMREPLY (353) & RPL_ENDOFNAMES (366)
-	std::string memberList(":");
+	std::string memberList;
 	for (std::map<std::string, int>::const_iterator it = channel.getMembers().begin(); it != channel.getMembers().end(); ++it)
 	{
 		if (it->first != sender.getNickname())

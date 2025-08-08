@@ -75,6 +75,7 @@ std::ostream& operator<<(std::ostream& os, Message& message)
 std::string	Message::toString()
 {
 	std::string msg;
+	std::string	lastParam = getParams().back();
 	if (hasSource_)
 		msg += ":" + nickname_ + "!" + username_ + "@" + hostname_ + " ";
 	msg += type_;
@@ -84,7 +85,9 @@ std::string	Message::toString()
 		msg += " ";
 	for (size_t i = 0; i < getParams().size() - 1; i++)
 		msg += getParams()[i] + " ";
-	msg += getParams().back() + "\r\n";
+	if (lastParam.find(" ") != std::string::npos)
+		msg += ":";
+	msg += lastParam + "\r\n";
 	return (msg);
 }
 
