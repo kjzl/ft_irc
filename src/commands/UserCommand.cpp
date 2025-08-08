@@ -1,6 +1,7 @@
 #include "../../include/UserCommand.hpp"
 #include "../../include/Debug.hpp"
 #include "../../include/MessageType.hpp"
+#include <vector>
 
 UserCommand::UserCommand(const Message& msg) : Command(msg)
 {}
@@ -14,12 +15,18 @@ void	UserCommand::welcome(const Server &server, const Client &sender)
 {
 	(void) server;
 	std::string	nickname = sender.getNickname();
-	std::string arr[] = {nickname};
-	std::vector<std::string> outParams(arr, arr + 1);
-	sender.sendErrorMessage(RPL_WELCOME, outParams);
-	sender.sendErrorMessage(RPL_YOURHOST, outParams);
-	sender.sendErrorMessage(RPL_CREATED , outParams);
-	sender.sendErrorMessage(RPL_MYINFO , outParams);
+	std::string	welcome = nickname + " :Welcome to the " + HOSTNAME + " Network, " + nickname;
+	std::string yourhost = nickname + " :Your host is " + HOSTNAME + ", running version" + VERSION;
+	std::string created = nickname + " :This server was created " + "";
+	std::string myInfo = nickname + " " + HOSTNAME + " " + VERSION + " " + AVAILABLEMODES + " " ; 
+	std::vector<std::string> vec(1, welcome);
+	sender.sendErrorMessage(RPL_WELCOME, vec);
+	vec[0] = yourhost;
+	sender.sendErrorMessage(RPL_YOURHOST, vec);
+	vec[0] = created;
+	sender.sendErrorMessage(RPL_CREATED , vec);
+	vec[0] = myInfo;
+	sender.sendErrorMessage(RPL_MYINFO , vec);
 }
 
 /*

@@ -6,10 +6,11 @@
 
 #include "Client.hpp"
 
-#define	BACKLOG 10
-#define	TIMEOUT	4000 // = /1000 to seconds waiting for events
-#define	WELCOME_MESSAGE "Welcome to this server. You are the "
-#define	HOSTNAME "AspenWood"
+#define	BACKLOG			10
+#define	TIMEOUT			4000 // = /1000 to seconds waiting for events
+#define	HOSTNAME		"AspenWood"
+#define	VERSION			"AspenIrc-0.0"
+#define	AVAILABLEMODES	""
 
 class	Channel;
 

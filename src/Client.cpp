@@ -165,13 +165,7 @@ void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args) 
 void Client::sendErrorMessage(MessageType type, std::string args[], int size) const
 {
 	std::vector<std::string> outParams(args, args + size);
-    static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
-    IrcErrorInfo info = ErrorMap.find(type)->second;
-    outParams.push_back(info.message);
-    Message outMessage(info.code, outParams);
-	outMessage.setSource();
-	debug("sending error MSG: " + outMessage.toString());
-    sendMessage(outMessage);
+	sendErrorMessage(type, outParams);
 }
 
 void	Client::sendMessageToFd(Message msg, int fd) const
