@@ -1,6 +1,7 @@
 #include "../include/Client.hpp"
 #include "../include/Channel.hpp"
 #include "../include/MessageType.hpp"
+#include "Debug.hpp"
 #include "Server.hpp"
 #include <algorithm>
 #include <cstdio>
@@ -155,6 +156,7 @@ void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args) 
     IrcErrorInfo info = ErrorMap.find(type)->second;
     args.push_back(info.message);
     Message outMessage(info.code,  args);
+	debug("sending error MSG: " + outMessage.toString());
     sendMessage(outMessage);
 }
 
@@ -165,6 +167,7 @@ void Client::sendErrorMessage(MessageType type, std::string args[], int size) co
     IrcErrorInfo info = ErrorMap.find(type)->second;
     outParams.push_back(info.message);
     Message outMessage(info.code, outParams);
+	debug("sending error MSG: " + outMessage.toString());
     sendMessage(outMessage);
 }
 
