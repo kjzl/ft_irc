@@ -83,7 +83,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 			continue;
 		}
 		// ERR_CHANNELISFULL (471)
-		if (channel->getUserLimit() && channel->getMembers().size() == channel->getUserLimit())
+		if (channel->getUserLimit() && (int)channel->getMembers().size() == channel->getUserLimit())
 		{
 			std::string arr[] = {sender.getNickname(), channelName};
 			sender.sendErrorMessage(ERR_CHANNELISFULL, arr, 2);
