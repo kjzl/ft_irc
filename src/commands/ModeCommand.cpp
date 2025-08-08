@@ -56,7 +56,7 @@ void	ModeCommand::userMode(Server& server, Client& sender)
 	std::vector<std::string> parameters = inMessage_.getParams();
 	std::string	senderNick = sender.getNickname();
 	CaseMappedString caseMappedNick(parameters[0]);
-	if (!server.clientNickExists(caseMappedNick))
+	if (!server.clientNickExists(caseMappedNick)) // TODO: what is this check ?
 	{
 		std::string arr[] = {sender.getNickname(), parameters[0]};
 		return (sender.sendErrorMessage(ERR_NOSUCHNICK, arr, 2));
@@ -108,13 +108,14 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 				break;
 			case 'k': // Channel key (password)
 				if (addMode) {
-					if (paramIndex < parameters.size()) {
-						channel->setPassword(parameters[paramIndex++]);
-					}
-					else
+					if (paramIndex < parameters.size()) // TODO: Humm, does that work ?? 
 					{
-						//TODO: make a constructor that takes a message instead of constructing it
-						// return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, message));
+						channel->setPassword(parameters[++paramIndex]);
+					}
+					else // ERR_NEEDMOREPARAMS (461)
+					{
+						std::string arr[] = {sender.getNickname(), inMessage_.getType()};
+						return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
 					}
 				}
 				else
@@ -125,12 +126,12 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 				if (addMode) {
 					if (paramIndex < parameters.size()) {
 						char * endptr;
-						channel->setUserLimit(std::strtol(parameters[paramIndex++].c_str(), &endptr, 10));
+						channel->setUserLimit(std::strtol(parameters[++paramIndex].c_str(), &endptr, 10));
 					}
-					else
+					else // ERR_NEEDMOREPARAMS (461)
 					{
-						//TODO: make a constructor that takes a message instead of constructing it
-						// return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, message));
+						std::string arr[] = {sender.getNickname(), inMessage_.getType()};
+						return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
 					}
 				} else {
 					channel->setUserLimit(0); // Disable user limit
@@ -146,16 +147,17 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 					}
 					paramIndex++;
 				}
-				else
+				else // ERR_NEEDMOREPARAMS (461)
 				{
-					//TODO: make a constructor that takes a message instead of constructing it
-					// return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, message));
+					std::string arr[] = {sender.getNickname(), inMessage_.getType()};
+					return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
 				}
 				break;
 				
-			default:
-				// Ignore unknown modes
-				break;
+			default: // unkwown modes
+				std::string arr[] = {sender.getNickname(), inMessage_.getType(), inMessage_.getParams()[2]};
+				sender.sendErrorMessage(ERR_UNKNOWNCOMMAND, arr, 3);
+				return;
 		}
 	}
 }
@@ -187,7 +189,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 	std::vector<std::string>	parameters = inMessage_.getParams();
 	std::string					channelName = parameters[0];
 	std::string					nickname = sender.getNickname();
-	Channel *channel = const_cast<Channel *>(server.mapChannel(channelName)); 
+	Channel *channel = const_cast<Channel *>(server.mapChannel(channelName));
 	if (!channel)
 	{
 		sender.sendErrorMessage(ERR_NOSUCHCHANNEL, parameters);
@@ -214,8 +216,8 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 			if (channelLimit)
 				parameters.push_back(toString(channelName));
 		}
-		//TODO:
-		//RPL_CREATIONTIME // not doing that one, it is a should, not a must.
+		//TODO: SHOULD == MUST ...
+		//RPL_CREATIONTIME // not doing that one, it is a should, not a must. 
 	}
 	else
 	{

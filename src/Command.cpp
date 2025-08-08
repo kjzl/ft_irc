@@ -10,6 +10,7 @@
 #include "../include/QuitCommand.hpp"
 #include "InviteCommand.hpp"
 #include "TopicCommand.hpp"
+#include "ModeCommand.hpp"
 #include "Message.hpp"
 
 // Default Constructor
@@ -59,6 +60,7 @@ static void fillCommandMap(std::map<std::string, CommandFactory> &commandMap)
 	commandMap["QUIT"] =	&QuitCommand::fromMessage;
 	commandMap["INVITE"] =	&InviteCommand::fromMessage;
 	commandMap["TOPIC"] =	&TopicCommand::fromMessage;
+	commandMap["MODE"] =	&ModeCommand::fromMessage;
 	//...
 }
 
