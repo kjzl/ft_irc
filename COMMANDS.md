@@ -38,3 +38,6 @@ There is no definition in the protocol for a zero user limit, and servers interp
     Setting a limit of zero is interpreted as removing the limit in IRC (i.e., unlimited), not as setting the allowed users to zero.
     Attempting to set +l 0 may result in an error or simply be treated as if the limit is unset, depending on the server, but is not a valid way to restrict all users from joining.
 
+### capabilities
+
+	if (nickname[0] == '#' //handling only public channels in general

@@ -64,7 +64,7 @@ void NickCommand::execute(Server& server, Client& sender)
 }
 bool	NickCommand::checkNickFormat(std::string nickname)
 {
-	if (nickname[0] == '#' // TODO: handles all CHANTYPES from Server ??
+	if (nickname[0] == '#' //handling only public channels in general
 	|| nickname[0] == ':') 
 		return (true);
 	if (nickname.find(" ") != std::string::npos)
