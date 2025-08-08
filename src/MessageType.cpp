@@ -30,6 +30,7 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 //JOIN
 		errorMap[ERR_BADCHANNELKEY]		= IrcErrorInfo("475", "Cannot join channel (+k)");
 		errorMap[ERR_INVITEONLYCHAN]	= IrcErrorInfo("473", "Cannot join channel (+i)");
+		errorMap[ERR_CHANNELISFULL]		= IrcErrorInfo("471", "Channel is full (+l)");
 // QUIT
 		errorMap[QUIT]					= IrcErrorInfo("QUIT", "Quit");
 // MODE
