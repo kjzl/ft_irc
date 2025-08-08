@@ -71,7 +71,8 @@ enum MessageType {
 	RPL_CREATIONTIME = 329,
 	ERR_CHANOPRIVSNEEDED = 482,
 	ERR_USERNOTINCHANNEL,
-	RPL_NOTOPIC
+	RPL_NOTOPIC,
+	ERR_CHANNELISFULL
 };
 
 MessageType parseCommandType(const std::string& type);

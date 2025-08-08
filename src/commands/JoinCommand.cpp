@@ -26,7 +26,7 @@ Command* JoinCommand::fromMessage(const Message& message)
     RPL_TOPIC (332)				=> done
     RPL_TOPICWHOTIME (333)		=> we don't do that (no history in our modest server)
     RPL_NAMREPLY (353)			=> done
-    RPL_ENDOFNAMES (366)		=> no necessarry IMO ?
+    RPL_ENDOFNAMES (366)		=> no necessarry
 */
 void JoinCommand::execute(Server& server, Client& sender)
 {
@@ -80,6 +80,13 @@ void JoinCommand::execute(Server& server, Client& sender)
 		{
 			std::string arr[] = {sender.getNickname(), channelName};
 			sender.sendErrorMessage(ERR_INVITEONLYCHAN, arr, 2);
+			continue;
+		}
+		// ERR_CHANNELISFULL (471)
+		if (channel->getUserLimit() && channel->getMembers().size() == channel->getUserLimit())
+		{
+			std::string arr[] = {sender.getNickname(), channelName};
+			sender.sendErrorMessage(ERR_CHANNELISFULL, arr, 2);
 			continue;
 		}
 		// Success with adding member !
