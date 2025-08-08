@@ -40,7 +40,7 @@ https://modern.ircdocs.horse/#kick-message
 ERR_NEEDMOREPARAMS (461)	=> done
 ERR_NOSUCHCHANNEL (403)		=> done
 ERR_CHANOPRIVSNEEDED (482)	=> done
-ERR_USERNOTINCHANNEL (441)
+ERR_USERNOTINCHANNEL (441)	=> done
 ERR_NOTONCHANNEL (442)		=> done
 */
 void	KickCommand::execute(Server& server, Client& sender)
