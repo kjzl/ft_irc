@@ -34,14 +34,14 @@ void	Server::signalHandler(int signum)
 }
 
 // Default Constructor
-Server::Server(void): name_(HOSTNAME), port_(6667), password_("password")
+Server::Server(void): name_(HOSTNAME), port_(6667), password_("password"), timeCreated_(time(NULL))
 {
 	running_ = true;
 	debug("Default Constructor called");
 }
 
 // Parameterized Constructor
-Server::Server(int port, std::string password): name_(HOSTNAME), port_(port), password_(password), serverSocket_(-1)
+Server::Server(int port, std::string password): name_(HOSTNAME), port_(port), password_(password), serverSocket_(-1), timeCreated_(time(NULL))
 {
 	struct sigaction sa;
 	sa.sa_handler = signalHandler;
@@ -69,7 +69,8 @@ Server::Server(const Server& other):
 	password_(other.password_),
 	serverSocket_(other.serverSocket_),
 	pollFds_(other.pollFds_),
-	clients_(other.clients_)
+	clients_(other.clients_),
+	timeCreated_(other.timeCreated_)
 	// channels_(other.channels_)
 {}
 
@@ -81,9 +82,20 @@ Server& Server::operator=(const Server& other)
 		serverSocket_ = other.serverSocket_;
 		pollFds_ = other.pollFds_;
 		clients_ = other.clients_;
-		//channels_ = other.channels_;
+		channels_ = other.channels_;
 	}
 	return *this;
+}
+
+const char	*Server::getTimeCreatedHumanReadable() const
+{
+	char * humanTime = ctime(&timeCreated_);
+	size_t i = 0;
+	while (humanTime[i] != '\0' && humanTime[i] != '\n')
+		++i;
+	if (humanTime[i] == '\n')
+		humanTime[i] = '\0';
+	return (humanTime);
 }
 
 const std::string	&Server::getName( void ) const
