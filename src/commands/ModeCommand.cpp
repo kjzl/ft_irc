@@ -90,7 +90,7 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 						 Channel* channel)
 {
 	bool addMode = true;
-	size_t	paramIndex = 1;
+	size_t	paramIndex = 2;
 	std::string	senderNick = sender.getNickname();
 	for (std::string::const_iterator cIt = modestring.begin(); cIt != modestring.end(); cIt++) {
 		switch (*cIt) {
@@ -110,7 +110,7 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 				if (addMode) {
 					if (paramIndex < parameters.size()) // TODO: Humm, how does that work ? 
 					{
-						channel->setPassword(parameters[++paramIndex]);
+						channel->setPassword(parameters[paramIndex++]);
 					}
 					else // ERR_NEEDMOREPARAMS (461)
 					{
@@ -126,7 +126,7 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 				if (addMode) {
 					if (paramIndex < parameters.size()) {
 						char * endptr;
-						channel->setUserLimit(std::strtol(parameters[++paramIndex].c_str(), &endptr, 10));
+						channel->setUserLimit(std::strtol(parameters[paramIndex++].c_str(), &endptr, 10));
 					}
 					else // ERR_NEEDMOREPARAMS (461)
 					{
@@ -141,9 +141,9 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 			case 'o': // Channel operator status
 				if (paramIndex < parameters.size()) {
 					if (addMode) {
-						channel->addOperator(parameters[paramIndex]);
+						channel->addOperator(parameters[paramIndex++]);
 					} else {
-						channel->removeOperator(parameters[paramIndex]);
+						channel->removeOperator(parameters[paramIndex++]);
 					}
 					paramIndex++;
 				}
@@ -155,7 +155,7 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 				break;
 				
 			default: // unkwown modes
-				std::string arr[] = {sender.getNickname(), inMessage_.getType(), inMessage_.getParams()[2]};
+				std::string arr[] = {sender.getNickname(), inMessage_.getType(), inMessage_.getParams()[1]};
 				sender.sendErrorMessage(ERR_UNKNOWNCOMMAND, arr, 3);
 				return;
 		}
@@ -189,7 +189,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 	std::vector<std::string>	parameters = inMessage_.getParams();
 	std::string					channelName = parameters[0];
 	std::string					nickname = sender.getNickname();
-	Channel *channel = const_cast<Channel *>(server.mapChannel(channelName)); // TODO: why a const_cast here?
+	Channel						*channel = (server.mapChannel(channelName));
 	if (!channel)
 	{
 		sender.sendErrorMessage(ERR_NOSUCHCHANNEL, parameters);
@@ -216,7 +216,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 			if (channelLimit)
 				parameters.push_back(toString(channelName));
 		}
-		// TODO: send the message ?
+		sender.sendErrorMessage(RPL_CHANNELMODEIS, parameters);
 
 		//RPL_CREATIONTIME // not doing that one, it is a should, not a must. TODO: SHOULD == MUST ...
 	}

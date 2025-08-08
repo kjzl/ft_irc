@@ -13,6 +13,9 @@ For our Case, they are created with [JOIN](https://modern.ircdocs.horse/#join-me
 Operators can set modes on channels to control their behavior.
 [modes](https://modern.ircdocs.horse/#channel-modes) are set with the [MODE](https://modern.ircdocs.horse/#mode-message) command by an operator.
 
+##### examples:
+/MODE #irssi -o+i mike
+
 ##### User Modes
 
 [src](https://github.com/grawity/irc-docs/blob/master/misc/irc-documentation-jilles/client%20protocol.txt)

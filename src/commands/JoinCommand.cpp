@@ -59,12 +59,12 @@ void JoinCommand::execute(Server& server, Client& sender)
 			sender.sendErrorMessage(ERR_NOSUCHCHANNEL, arr, 2);
 			continue;
 		}
-		Channel *channel = const_cast<Channel *>(server.mapChannel(channelName)); 
+		Channel *channel = (server.mapChannel(channelName)); 
 		// Creating a new channel
 		if (!channel)
 		{
 			server.getChannels()[channelName] = Channel(channelName, sender);
-			channel = const_cast<Channel *>(server.mapChannel(channelName));
+			channel = (server.mapChannel(channelName));
 			sendValidationMessages(sender, *channel);
 			continue;
 		}
