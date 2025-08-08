@@ -18,7 +18,7 @@ void	UserCommand::welcome(const Server &server, const Client &sender)
 	std::string	welcome = std::string("Welcome to the ") + HOSTNAME + " Network, " + nickname;
 	std::string yourhost = std::string("Your host is ") + HOSTNAME + ", running version" + VERSION;
 	std::string created = std::string("This server was created ") + server.getTimeCreatedHumanReadable();
-	std::string myInfo = std::string(HOSTNAME) + " " + VERSION + " " AVAILABLEUSERMODES + " " + AVAILABLECHANNELMODES + " " + AVAILABLECHANNELMODESWITHPARAMETER; 
+	std::string myInfo = std::string() + HOSTNAME + " " + VERSION + " " AVAILABLEUSERMODES + " " + AVAILABLECHANNELMODES + " " + AVAILABLECHANNELMODESWITHPARAMETER; 
 	std::vector<std::string> vec;
 	vec.reserve(2);
 	vec.push_back(nickname);
