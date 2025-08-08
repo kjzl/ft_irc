@@ -108,7 +108,7 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 				break;
 			case 'k': // Channel key (password)
 				if (addMode) {
-					if (paramIndex < parameters.size()) // TODO: Humm, how does that work ? 
+					if (paramIndex < parameters.size())
 					{
 						channel->setPassword(parameters[paramIndex++]);
 					}
@@ -155,8 +155,8 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 				break;
 				
 			default: // unkwown modes
-				std::string arr[] = {sender.getNickname(), inMessage_.getType(), inMessage_.getParams()[1]};
-				sender.sendErrorMessage(ERR_UNKNOWNCOMMAND, arr, 3);
+				std::string arr[] = {sender.getNickname(), inMessage_.getType(), std::string(1, *cIt)};
+				sender.sendErrorMessage(ERR_UNKNOWNMODE, arr, 3);
 				return;
 		}
 	}

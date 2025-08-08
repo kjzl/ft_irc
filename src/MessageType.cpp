@@ -35,7 +35,7 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 // MODE
 		errorMap[ERR_USERSDONTMATCH]	= IrcErrorInfo("502", ":Cant change mode for other users");
 		errorMap[ERR_UMODEUNKNOWNFLAG]	= IrcErrorInfo("501", ":Unknown MODE flag");
-
+		errorMap[ERR_UNKNOWNMODE]			= IrcErrorInfo("472",":is unknown mode char to me");  // "<client> <modechar> :is unknown mode char to me"
 		errorMap[ERR_CHANOPRIVSNEEDED]		= IrcErrorInfo("482", ":You're not channel operator"); //"<client> <channel> :You're not channel operator"
 
 // errorMap[RPL]

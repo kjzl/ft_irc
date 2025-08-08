@@ -16,10 +16,10 @@ Command* JoinCommand::fromMessage(const Message& message)
 
     ERR_NOTREGISTERED (451)		=> done
 	ERR_NEEDMOREPARAMS (461)	=> done
-    ERR_NOSUCHCHANNEL (403) 	=> done - TODO: is this one for the name convention with # ???
+    ERR_NOSUCHCHANNEL (403) 	=> done
     ERR_TOOMANYCHANNELS (405)	=> we ignore that...
     ERR_BADCHANNELKEY (475)		=> done
-    ERR_BANNEDFROMCHAN (474)	=> TODO: do we want to implement that after KICK ?
+    x ERR_BANNEDFROMCHAN (474)	=> we don't ban
     ERR_CHANNELISFULL (471)		=> TODO: we ignore that... our limit is MAX_INT ? ==> nop
     ERR_INVITEONLYCHAN (473)	=> done
     ERR_BADCHANMASK (476)		=> ???
