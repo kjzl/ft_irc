@@ -35,7 +35,7 @@ class Server {
 		void		broadcastMsg(const Message &message) const;
 		void		broadcastErrorMessage(MessageType type, std::string args[], int size) const;
 		void		broadcastErrorMessage(MessageType type, std::vector<std::string>& args) const;
-		void		quitClient(const Client &quitter, const std::vector<std::string> &messageParams);
+		void		quitClient(const Client &quitter, std::vector<std::string> &messageParams);
 		const char	*getTimeCreatedHumanReadable() const;
 		// everything is exposed :
 		std::vector<Client>&			getClients(void);

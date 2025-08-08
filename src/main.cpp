@@ -6,9 +6,7 @@
 
 //TODO:
 //make main start with args
-//same user can enter twice and get registered twice, does not get ejected for same nick
 //check canonical form
-//QUIT sends QUIT: Quit without username
 //PRIVMSG to channel response looks wierd: PRIVMSG #wool to all
 
 

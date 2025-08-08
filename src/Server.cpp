@@ -163,17 +163,18 @@ Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> mes
 
 // used to removeClient from server (in poll and clients) and broadcast the Quit message.
 // if server needs to diconnect the client, modify messageParams to reflect reason
-void	Server::quitClient(const Client &quitter, const std::vector<std::string> &messageParams)
+void	Server::quitClient(const Client &quitter, std::vector<std::string> &messageParams)
 {
 	std::vector<Client>::iterator clIt = std::find(clients_.begin(), clients_.end(), quitter);
 	size_t	clientIndex = clIt - clients_.begin();
 	if (pollFds_[clientIndex + 1].fd != quitter.getSocket())
 		throw std::logic_error("clientIndex in quitClient is not corespondent to the quitting client");
 	removeClient(clientIndex + 1);
+	std::string	qNickname = quitter.getNickname();
+	messageParams.push_back(qNickname);
 	Message msg = buildErrorMessage(QUIT, messageParams);
 	for (std::map<std::string, Channel>::iterator cMapIter = channels_.begin(); cMapIter != channels_.end(); cMapIter++)
 	{
-		std::string	qNickname = quitter.getNickname();
 		Channel quittersChannel = cMapIter->second;
 		if (!quittersChannel.isMember(qNickname))
 			continue;
