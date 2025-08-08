@@ -20,7 +20,7 @@ Command* JoinCommand::fromMessage(const Message& message)
     ERR_TOOMANYCHANNELS (405)	=> we ignore that...
     ERR_BADCHANNELKEY (475)		=> done
     ERR_BANNEDFROMCHAN (474)	=> TODO: do we want to implement that after KICK ?
-    ERR_CHANNELISFULL (471)		=> we ignore that... our limit is MAX_INT
+    ERR_CHANNELISFULL (471)		=> TODO: we ignore that... our limit is MAX_INT ? ==> nop
     ERR_INVITEONLYCHAN (473)	=> done
     ERR_BADCHANMASK (476)		=> ???
     RPL_TOPIC (332)				=> done

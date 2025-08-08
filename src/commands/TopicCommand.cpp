@@ -91,7 +91,7 @@ void	TopicCommand::execute(Server& server, Client& sender)
 	else	// client wants to set the topic
 	{
 		// ERR_CHANOPRIVSNEEDED (482)
-		if (!channel->isOperator(sender.getNickname()))
+		if (channel->isTopicProtected() && !channel->isOperator(sender.getNickname()))
 		{
 			std::string arr[] = {sender.getNickname(), channelName};
 			return (sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, arr, 2));

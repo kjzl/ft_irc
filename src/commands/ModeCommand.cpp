@@ -108,7 +108,7 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 				break;
 			case 'k': // Channel key (password)
 				if (addMode) {
-					if (paramIndex < parameters.size()) // TODO: Humm, does that work ?? 
+					if (paramIndex < parameters.size()) // TODO: Humm, how does that work ? 
 					{
 						channel->setPassword(parameters[++paramIndex]);
 					}
@@ -189,7 +189,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 	std::vector<std::string>	parameters = inMessage_.getParams();
 	std::string					channelName = parameters[0];
 	std::string					nickname = sender.getNickname();
-	Channel *channel = const_cast<Channel *>(server.mapChannel(channelName));
+	Channel *channel = const_cast<Channel *>(server.mapChannel(channelName)); // TODO: why a const_cast here?
 	if (!channel)
 	{
 		sender.sendErrorMessage(ERR_NOSUCHCHANNEL, parameters);
@@ -216,8 +216,9 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 			if (channelLimit)
 				parameters.push_back(toString(channelName));
 		}
-		//TODO: SHOULD == MUST ...
-		//RPL_CREATIONTIME // not doing that one, it is a should, not a must. 
+		// TODO: send the message ?
+
+		//RPL_CREATIONTIME // not doing that one, it is a should, not a must. TODO: SHOULD == MUST ...
 	}
 	else
 	{
