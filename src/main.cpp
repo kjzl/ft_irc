@@ -17,7 +17,7 @@ int main (int argc, char *argv[]) {
 		return (1);
 	}
 	int port;
-	std::stringstream portStream(argv[2]);
+	std::stringstream portStream(argv[1]);
 	if (!(portStream >> port))
 	{
 		std::cerr << "Invalid port number: conversion failed" << std::endl;

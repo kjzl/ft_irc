@@ -49,6 +49,7 @@ Server::Server(int port, std::string password): name_(HOSTNAME), port_(port), pa
 	sa.sa_flags = 0;
 	debug("Parameterized Constructor called");
 	std::cout << GREEN << "==== STARTING SERVER ====" << RESET << std::endl;
+	std::cout << BLUE << "port: " << port << ", password: " << password << std::endl;
 	running_ = true;
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGQUIT, &sa, NULL);
