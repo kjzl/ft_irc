@@ -1,17 +1,18 @@
-#include "../include/Command.hpp"
-#include "../include/Debug.hpp"
-#include "../include/ircUtils.hpp"
-#include "../include/PassCommand.hpp"
-#include "../include/NickCommand.hpp"
-#include "../include/UserCommand.hpp"
-#include "../include/PrivmsgCommand.hpp"
-#include "../include/JoinCommand.hpp"
-#include "../include/KickCommand.hpp"
-#include "../include/QuitCommand.hpp"
+#include "Message.hpp"
+#include "Command.hpp"
+#include "Debug.hpp"
+#include "ircUtils.hpp"
+#include "PassCommand.hpp"
+#include "NickCommand.hpp"
+#include "UserCommand.hpp"
+#include "PrivmsgCommand.hpp"
+#include "JoinCommand.hpp"
+#include "KickCommand.hpp"
+#include "QuitCommand.hpp"
 #include "InviteCommand.hpp"
 #include "TopicCommand.hpp"
 #include "ModeCommand.hpp"
-#include "Message.hpp"
+#include "WhoCommand.hpp"
 
 // Default Constructor
 Command::Command( void ): inMessage_()
@@ -51,17 +52,18 @@ typedef Command* (*CommandFactory)(const Message&);
 
 static void fillCommandMap(std::map<std::string, CommandFactory> &commandMap)
 {
-	commandMap["PASS"] = 	&PassCommand::fromMessage;
-	commandMap["NICK"] = 	&NickCommand::fromMessage;
-	commandMap["USER"] = 	&UserCommand::fromMessage;
-	commandMap["PRIVMSG"] =	&PrivmsgCommand::fromMessage;
-	commandMap["NOTICE"] =	&PrivmsgCommand::fromMessage;
-	commandMap["JOIN"] =	&JoinCommand::fromMessage;
-	commandMap["KICK"] =	&KickCommand::fromMessage;
-	commandMap["QUIT"] =	&QuitCommand::fromMessage;
-	commandMap["INVITE"] =	&InviteCommand::fromMessage;
-	commandMap["TOPIC"] =	&TopicCommand::fromMessage;
-	commandMap["MODE"] =	&ModeCommand::fromMessage;
+	commandMap["PASS"]		= &PassCommand::fromMessage;
+	commandMap["NICK"]		= &NickCommand::fromMessage;
+	commandMap["USER"]		= &UserCommand::fromMessage;
+	commandMap["PRIVMSG"]	= &PrivmsgCommand::fromMessage;
+	commandMap["NOTICE"]	= &PrivmsgCommand::fromMessage;
+	commandMap["JOIN"]		= &JoinCommand::fromMessage;
+	commandMap["KICK"]		= &KickCommand::fromMessage;
+	commandMap["QUIT"]		= &QuitCommand::fromMessage;
+	commandMap["INVITE"]	= &InviteCommand::fromMessage;
+	commandMap["TOPIC"]		= &TopicCommand::fromMessage;
+	commandMap["MODE"]		= &ModeCommand::fromMessage;
+	commandMap["WHO"]		= &WhoCommand::fromMessage;
 	//...
 }
 
@@ -77,14 +79,3 @@ Command* convertMessageToCommand(const Message& message)
 	Command* cmd = it->second(message);
 	return cmd;
 }
-
-// void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage)
-// {
-// 	Message message(rawMessage);
-// 	debug("Parsed message: " + message.getType() + " with params: " + toString(message.getParams().size()));
-// 	Command* cmd = convertMessageToCommand(message);
-// 	if (!cmd)
-// 		return; // TODO: send ERROR_MSG 421
-// 	cmd->execute(server, sender);
-// 	delete cmd;
-// }

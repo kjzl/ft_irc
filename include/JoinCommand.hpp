@@ -9,7 +9,8 @@ public:
 	JoinCommand(const Message& msg);
 	void			execute(Server& server, Client& sender);
 	static Command*	fromMessage(const Message& message);
-private:
+protected:
 	void sendValidationMessages(Client& sender, Channel& channel);
+	void sendValidationMessages_353_366(Client& sender, Channel& channel);
 };
 #endif

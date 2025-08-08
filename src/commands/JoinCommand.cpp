@@ -26,7 +26,7 @@ Command* JoinCommand::fromMessage(const Message& message)
     RPL_TOPIC (332)				=> done
     RPL_TOPICWHOTIME (333)		=> we don't do that (no history in our modest server)
     RPL_NAMREPLY (353)			=> done
-    RPL_ENDOFNAMES (366)		=> no necessarry
+    RPL_ENDOFNAMES (366)		=> done
 */
 void JoinCommand::execute(Server& server, Client& sender)
 {
@@ -105,6 +105,11 @@ void JoinCommand::sendValidationMessages(Client& sender, Channel& channel)
 		std::string params[] = {sender.getNickname(), channel.getName(), channel.getTopic()};
 		sender.sendErrorMessage(RPL_TOPIC, params, 3);
 	}
+	sendValidationMessages_353_366(sender, channel);
+}
+
+void JoinCommand::sendValidationMessages_353_366(Client& sender, Channel& channel)
+{
 	// RPL_NAMREPLY (353) & RPL_ENDOFNAMES (366)
 	std::string memberList;
 	for (std::map<std::string, int>::const_iterator it = channel.getMembers().begin(); it != channel.getMembers().end(); ++it)

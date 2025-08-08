@@ -70,7 +70,7 @@ void UserCommand::execute(Server& server, Client& sender)
 	// sender.sendErrorMessage(RPL_YOURHOST, outParams);
 	// sender.sendErrorMessage(RPL_CREATED , outParams);
 	// sender.sendErrorMessage(RPL_MYINFO , outParams);
-	welcome(server, sender);
+	// welcome(server, sender);
 	// sender.sendMessage(Message("Welcome to the AspenWood modest IRC Chat :)"));
 	// sender.sendMessage(Message("You are now fully authenticated :D"));
 	}
