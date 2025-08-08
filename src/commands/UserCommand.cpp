@@ -13,19 +13,21 @@ Command* UserCommand::fromMessage(const Message& message)
 
 void	UserCommand::welcome(const Server &server, const Client &sender)
 {
-	(void) server;
 	std::string	nickname = sender.getNickname();
-	std::string	welcome = nickname + " :Welcome to the " + HOSTNAME + " Network, " + nickname;
-	std::string yourhost = nickname + " :Your host is " + HOSTNAME + ", running version" + VERSION;
-	std::string created = nickname + " :This server was created " + "";
-	std::string myInfo = nickname + " " + HOSTNAME + " " + VERSION + " " + AVAILABLEMODES + " " ; 
-	std::vector<std::string> vec(1, welcome);
+	std::string	welcome = std::string("Welcome to the ") + HOSTNAME + " Network, " + nickname;
+	std::string yourhost = std::string("Your host is ") + HOSTNAME + ", running version" + VERSION;
+	std::string created = std::string("This server was created ") + server.getTimeCreatedHumanReadable();
+	std::string myInfo = std::string(HOSTNAME) + " " + VERSION + " " AVAILABLEUSERMODES + " " + AVAILABLECHANNELMODES + " " + AVAILABLECHANNELMODESWITHPARAMETER; 
+	std::vector<std::string> vec;
+	vec.reserve(2);
+	vec.push_back(nickname);
+	vec.push_back(welcome);
 	sender.sendErrorMessage(RPL_WELCOME, vec);
-	vec[0] = yourhost;
+	vec[1] = yourhost;
 	sender.sendErrorMessage(RPL_YOURHOST, vec);
-	vec[0] = created;
+	vec[1] = created;
 	sender.sendErrorMessage(RPL_CREATED , vec);
-	vec[0] = myInfo;
+	vec[1] = myInfo;
 	sender.sendErrorMessage(RPL_MYINFO , vec);
 }
 
@@ -63,16 +65,7 @@ void UserCommand::execute(Server& server, Client& sender)
 	sender.setUsername(inParams[0]);
 	sender.setRealname(inParams[3]);
 	sender.incrementRegistrationLevel();
-	// TODO: implement that cleanly or just leave it like it is ?!...
-	// std::string arr[] = {sender.getNickname()};
-	// std::vector<std::string> outParams(arr, arr + 1);
-	// sender.sendErrorMessage(RPL_WELCOME, outParams);
-	// sender.sendErrorMessage(RPL_YOURHOST, outParams);
-	// sender.sendErrorMessage(RPL_CREATED , outParams);
-	// sender.sendErrorMessage(RPL_MYINFO , outParams);
-	// welcome(server, sender);
-	// sender.sendMessage(Message("Welcome to the AspenWood modest IRC Chat :)"));
-	// sender.sendMessage(Message("You are now fully authenticated :D"));
+	welcome(server, sender);
 	}
 	return;
 }

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <ctime>
 
 #include "Client.hpp"
 
@@ -10,7 +11,9 @@
 #define	TIMEOUT			4000 // = /1000 to seconds waiting for events
 #define	HOSTNAME		"AspenWood"
 #define	VERSION			"AspenIrc-0.0"
-#define	AVAILABLEMODES	""
+#define	AVAILABLEUSERMODES		""
+#define	AVAILABLECHANNELMODES	"it"
+#define	AVAILABLECHANNELMODESWITHPARAMETER "k,o,l"
 
 class	Channel;
 
@@ -28,11 +31,12 @@ class Server {
 		const std::string	&getName( void ) const;
 		const std::string	&getPassword( void ) const;
 		// ?
-		bool	clientNickExists(CaseMappedString& toCheck);
-		void	broadcastMsg(const Message &message) const;
-		void	broadcastErrorMessage(MessageType type, std::string args[], int size) const;
-		void	broadcastErrorMessage(MessageType type, std::vector<std::string>& args) const;
-		void	quitClient(const Client &quitter, const std::vector<std::string> &messageParams);
+		bool		clientNickExists(CaseMappedString& toCheck);
+		void		broadcastMsg(const Message &message) const;
+		void		broadcastErrorMessage(MessageType type, std::string args[], int size) const;
+		void		broadcastErrorMessage(MessageType type, std::vector<std::string>& args) const;
+		void		quitClient(const Client &quitter, std::vector<std::string> &messageParams);
+		const char	*getTimeCreatedHumanReadable() const;
 		// everything is exposed :
 		std::vector<Client>&			getClients(void);
 		std::map<std::string, Channel>&	getChannels(void);
@@ -66,6 +70,7 @@ class Server {
 		std::vector<struct pollfd>		pollFds_;
 		std::vector<Client>				clients_;
 		std::map<std::string, Channel>	channels_;
+		const time_t					timeCreated_;
 };
 
 #endif // !SERVER_HPP

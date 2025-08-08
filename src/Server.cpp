@@ -34,14 +34,14 @@ void	Server::signalHandler(int signum)
 }
 
 // Default Constructor
-Server::Server(void): name_(HOSTNAME), port_(6667), password_("password")
+Server::Server(void): name_(HOSTNAME), port_(6667), password_("password"), timeCreated_(time(NULL))
 {
 	running_ = true;
 	debug("Default Constructor called");
 }
 
 // Parameterized Constructor
-Server::Server(int port, std::string password): name_(HOSTNAME), port_(port), password_(password), serverSocket_(-1)
+Server::Server(int port, std::string password): name_(HOSTNAME), port_(port), password_(password), serverSocket_(-1), timeCreated_(time(NULL))
 {
 	struct sigaction sa;
 	sa.sa_handler = signalHandler;
@@ -49,6 +49,7 @@ Server::Server(int port, std::string password): name_(HOSTNAME), port_(port), pa
 	sa.sa_flags = 0;
 	debug("Parameterized Constructor called");
 	std::cout << GREEN << "==== STARTING SERVER ====" << RESET << std::endl;
+	std::cout << BLUE << "port: " << port << ", password: " << password << RESET << std::endl;
 	running_ = true;
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGQUIT, &sa, NULL);
@@ -69,7 +70,8 @@ Server::Server(const Server& other):
 	password_(other.password_),
 	serverSocket_(other.serverSocket_),
 	pollFds_(other.pollFds_),
-	clients_(other.clients_)
+	clients_(other.clients_),
+	timeCreated_(other.timeCreated_)
 	// channels_(other.channels_)
 {}
 
@@ -81,9 +83,20 @@ Server& Server::operator=(const Server& other)
 		serverSocket_ = other.serverSocket_;
 		pollFds_ = other.pollFds_;
 		clients_ = other.clients_;
-		//channels_ = other.channels_;
+		channels_ = other.channels_;
 	}
 	return *this;
+}
+
+const char	*Server::getTimeCreatedHumanReadable() const
+{
+	char * humanTime = ctime(&timeCreated_);
+	size_t i = 0;
+	while (humanTime[i] != '\0' && humanTime[i] != '\n')
+		++i;
+	if (humanTime[i] == '\n')
+		humanTime[i] = '\0';
+	return (humanTime);
 }
 
 const std::string	&Server::getName( void ) const
@@ -151,17 +164,18 @@ Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> mes
 
 // used to removeClient from server (in poll and clients) and broadcast the Quit message.
 // if server needs to diconnect the client, modify messageParams to reflect reason
-void	Server::quitClient(const Client &quitter, const std::vector<std::string> &messageParams)
+void	Server::quitClient(const Client &quitter, std::vector<std::string> &messageParams)
 {
 	std::vector<Client>::iterator clIt = std::find(clients_.begin(), clients_.end(), quitter);
 	size_t	clientIndex = clIt - clients_.begin();
 	if (pollFds_[clientIndex + 1].fd != quitter.getSocket())
 		throw std::logic_error("clientIndex in quitClient is not corespondent to the quitting client");
 	removeClient(clientIndex + 1);
+	std::string	qNickname = quitter.getNickname();
+	messageParams.push_back(qNickname);
 	Message msg = buildErrorMessage(QUIT, messageParams);
 	for (std::map<std::string, Channel>::iterator cMapIter = channels_.begin(); cMapIter != channels_.end(); cMapIter++)
 	{
-		std::string	qNickname = quitter.getNickname();
 		Channel quittersChannel = cMapIter->second;
 		if (!quittersChannel.isMember(qNickname))
 			continue;
