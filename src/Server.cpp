@@ -339,7 +339,7 @@ void	Server::waitForRequests(void)
 		}
 	} catch (std::runtime_error &e) {
 		std::cerr << e.what() << ": " << strerror(errno) << std::endl;
-		serverShutdown();
+		// serverShutdown();
 	}
 	std::cout << YEL << "[Server] Stopped listening for requests" << RESET << std::endl;
 }
