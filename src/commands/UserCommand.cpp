@@ -13,15 +13,15 @@ Command* UserCommand::fromMessage(const Message& message)
 
 void	UserCommand::welcome(const Server &server, const Client &sender)
 {
-	(void) server;
 	std::string	nickname = sender.getNickname();
 	std::string	welcome = std::string("Welcome to the ") + HOSTNAME + " Network, " + nickname;
 	std::string yourhost = std::string("Your host is ") + HOSTNAME + ", running version" + VERSION;
 	std::string created = std::string("This server was created ") + server.getTimeCreatedHumanReadable();
-	std::string myInfo = std::string() + HOSTNAME + " " + VERSION + " " AVAILABLEUSERMODES + " " + AVAILABLECHANNELMODES + " " + AVAILABLECHANNELMODESWITHPARAMETER; 
+	std::string myInfo = std::string(HOSTNAME) + " " + VERSION + " " AVAILABLEUSERMODES + " " + AVAILABLECHANNELMODES + " " + AVAILABLECHANNELMODESWITHPARAMETER; 
 	std::vector<std::string> vec;
 	vec.reserve(2);
 	vec.push_back(nickname);
+	vec.push_back(welcome);
 	sender.sendErrorMessage(RPL_WELCOME, vec);
 	vec[1] = yourhost;
 	sender.sendErrorMessage(RPL_YOURHOST, vec);
