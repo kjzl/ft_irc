@@ -21,10 +21,11 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, Server& server, Cli
 		const Channel *recipientChannel = server.mapChannel(recipient); 
 		if (recipientChannel)
 		{
+			inMessage_.setSource(sender.getNickname(), sender.getUsername());
 			messageSentSuccessfully = true;
 			recipientChannel->broadcastMsg(sender, inMessage_);
 		}
-		// {// this error reply is a should and we don't have to implement it!!!
+		// {// this error reply is something that can't happen, as we don't have the -v MODE
 		// 	// ERR_CANNOTSENDTOCHAN = 404, (not enough rights)
 		// 	std::string arr[] = {sender.getNickname(), recipient};
 		// 	return (sender.sendErrorMessage(ERR_CANNOTSENDTOCHAN, arr, 1));
