@@ -40,4 +40,32 @@ There is no definition in the protocol for a zero user limit, and servers interp
 
 ### capabilities
 
-	if (nickname[0] == '#' //handling only public channels in general
+	'#' //handling only public channels in general
+
+#### commands
+
+PASS: Authenticate with the server
+NICK: Set your nickname
+USER: Set your username and real name
+JOIN: Join a channel
+PRIVMSG: Send a private message to a user
+NOTICE: Send a notice to a user (alias of PRIVMSG)
+
+channel operator commands:
+- KICK - Eject client from the channel
+- INVITE - Invite client to a channel
+- TOPIC - Change or view the channel topic
+- MODE - Change the channel’s mode:
+· i: Set/remove Invite-only channel
+· t: Set/remove the restrictions of the TOPIC command to channel operators
+· k: Set/remove the channel key (password) (requires an argument to set)
+· o: Give/take channel operator privilege (requires an argument of valid nickname)
+· l: Set/remove the user limit to channel (requires an argument of a number to set)
+MODE also shows the users mode status:
+$$ MODE <nickname>$$
+MODE can also be used to show the channel modes:
+$$ MODE #channel$$
+user any of the above letters like this 
+
+additional modes:
+WHO: Show who is in the channel
