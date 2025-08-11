@@ -3,9 +3,7 @@
 
 #include "Command.hpp"
 
-// https://modern.ircdocs.horse/#Nick-message
-
-class NickCommand : Command {
+class NickCommand : public Command {
 public:
 	NickCommand(const Message& msg);
 	void			execute(Server& server, Client& sender);

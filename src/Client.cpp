@@ -1,10 +1,15 @@
 #include "../include/Client.hpp"
-#include "../include/Server.hpp"
-#include "../include/IrcError.hpp"
+#include "../include/Channel.hpp"
+#include "../include/MessageType.hpp"
+#include "Debug.hpp"
+#include "Server.hpp"
+#include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 #include <stdexcept>
 #include <sys/socket.h>
 #include "Message.hpp"
+#include "ircUtils.hpp"
 
 
 Client::Client() : registrationLevel_(0), socket_(-1), nickname_(""), username_("*"), realname_(""), rawMessage_("")
@@ -32,14 +37,28 @@ Client &Client::operator=(const Client &other)
 Client::~Client()
 {}
 
+bool	Client::operator==(const std::string nickname)
+{
+	if (getNickname() == nickname)
+		return (true);
+	return (false);
+}
+
+bool	Client::operator==(const Client &client)
+{
+	if (getSocket() == client.getSocket())
+		return (true);
+	return (false);
+}
+
 // Getters
 
 bool Client::isAuthenticated() const
 {
-    return (registrationLevel_ == 2);
+    return (registrationLevel_ == 3);
 }
 
-const CaseMappedString &Client::getNickname() const
+const std::string &Client::getNickname() const
 {
     return nickname_;
 }
@@ -113,23 +132,67 @@ void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 }
 
 
-void	Client::sendMessage(Message toSend)
+void	Client::sendMessage(Message toSend) const
 {
 	safeSend(toSend.toString());
 }
 
-void Client::sendErrorMessage(IrcError type, const Server& server, std::vector<std::string>& args)
+bool	Client::sendMessageTo(Message msg, const std::string recipientNickname, Server &server) const
 {
-	static std::map<IrcError, IrcErrorInfo> ErrorMap = getErrorMap();
+	msg.setSource(nickname_,  username_);
+	std::vector<Client> clients = server.getClients();
+	std::vector<Client>::iterator clientIt = std::find(clients.begin(), clients.end(), recipientNickname);
+	if (clientIt != clients.end())
+	{
+		clientIt->sendMessage(msg);
+		return (true);
+	}
+	return (false);
+}
+
+void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args) const
+{
+	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
     IrcErrorInfo info = ErrorMap.find(type)->second;
-    args.push_back(info.message);
-    Message outMessage(info.code, server.getName(), args);
+	if (!info.message.empty())
+		args.push_back(info.message);
+    Message outMessage(info.code,  args);
+	outMessage.setSource();
+	debug("sending error MSG: " + outMessage.toString());
     sendMessage(outMessage);
+}
+
+void Client::sendErrorMessage(MessageType type, std::string args[], int size) const
+{
+	std::vector<std::string> outParams(args, args + size);
+	sendErrorMessage(type, outParams);
+}
+
+void	Client::sendMessageToFd(Message msg, int fd) const
+{
+	sendToFd(msg.toString(), fd);
+}
+
+
+void	Client::sendToFd(const std::string &string, int fd) const
+{
+	int sendBytes;
+	int	total_sent = 0;
+	int	left_size = string.size();
+
+	while (left_size)
+	{
+		sendBytes = send(fd, string.substr(total_sent, left_size).c_str(), left_size, 0);
+		if (sendBytes == -1)
+			throw std::runtime_error("[Server] send error with client: " + toString(fd));
+		total_sent += sendBytes;
+		left_size -= sendBytes;
+	}
 }
 
 // sends the entire string with send() even when more than one send() call is needed
 // throws and error if send fails
-int		Client::safeSend(const std::string &string)
+int		Client::safeSend(const std::string &string) const
 {
 	int sendBytes;
 	int	total_sent = 0;
@@ -139,10 +202,24 @@ int		Client::safeSend(const std::string &string)
 	{
 		sendBytes = send(this->getSocket(), string.substr(total_sent, left_size).c_str(), left_size, 0);
 		if (sendBytes == -1)
-			throw std::runtime_error("[Server] send error with client: X"); //TODO:  + toString(getSocket()));
+			throw std::runtime_error("[Server] send error with client: " + toString(this->getSocket()));
 		total_sent += sendBytes;
 		left_size -= sendBytes;
 	}
 	return (0);
 }
 
+void Client::sendCmdValidation(const Message inMessage) const
+{
+	Message outMessage(inMessage);
+	outMessage.setSource(nickname_, username_);
+	sendMessage(outMessage);
+}
+
+void Client::sendCmdValidation(const Message inMessage, const Channel &channel) const
+{
+	sendCmdValidation(inMessage);
+	Message outMessage(inMessage);
+	outMessage.setSource(nickname_, username_);
+	channel.broadcastMsg(*this, outMessage);
+}

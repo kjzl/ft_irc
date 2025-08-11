@@ -1,6 +1,6 @@
 #include "../../include/NickCommand.hpp"
 #include "../../include/Debug.hpp"
-#include "../../include/IrcError.hpp"
+#include "../../include/MessageType.hpp"
 
 NickCommand::NickCommand(const Message& msg) : Command(msg)
 {}
@@ -29,40 +29,42 @@ Command Example:
 void NickCommand::execute(Server& server, Client& sender)
 {
 	std::vector<std::string> inParams = inMessage_.getParams();
+	int	registrationLevel = sender.getRegistrationLevel();
 	
+	// checkRegistrationLevel => do nothing if no PASS given!
+	if (registrationLevel == 0)
+		return;
 	// 431
 	if (inParams.empty())
 	{
 		std::string arr[] = {sender.getNickname()};
-		std::vector<std::string> outParams(arr, arr + 1);
-		return (sender.sendErrorMessage(ERR_NONICKNAMEGIVEN, server, outParams));
+		return (sender.sendErrorMessage(ERR_NONICKNAMEGIVEN, arr, 1));
 	}
-	// checkRegistrationLevel => do nothing if no PASS given!
-	if (sender.getRegistrationLevel() == 0)
-		return;
 	// 432
 	if (checkNickFormat(inParams[0]))
 	{
 		std::string arr[] = {sender.getNickname(), inParams[0]};
-		std::vector<std::string> outParams(arr, arr + 2);
-		return (sender.sendErrorMessage(ERR_ERRONEUSNICKNAME, server, outParams));
+		return (sender.sendErrorMessage(ERR_ERRONEUSNICKNAME, arr, 2));
 	}
 	// 433
 	CaseMappedString tmp(inParams[0]);
-	if (server.nickCollision(tmp))
+	if (server.clientNickExists(tmp))
 	{
 		std::string arr[] = {sender.getNickname(), inParams[0]};
-		std::vector<std::string> outParams(arr, arr + 2);
-		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, server, outParams));
+		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, arr, 2));
 	}
-	// Sucess !
-	sender.setNickname(inParams[0]);
-	sender.incrementRegistrationLevel();
+	if (registrationLevel == 1) // registering
+	{
+		sender.incrementRegistrationLevel();
+		sender.setNickname(inParams[0]);
+	}
+	else if (registrationLevel == 3 || registrationLevel == 2) // auth, just changing nick
+		sender.setNickname(inParams[0]);
 	return;
 }
 bool	NickCommand::checkNickFormat(std::string nickname)
 {
-	if (nickname[0] == '#' // TODO: handles all CHANTYPES from Server ??
+	if (nickname[0] == '#' //handling only public channels in general
 	|| nickname[0] == ':') 
 		return (true);
 	if (nickname.find(" ") != std::string::npos)

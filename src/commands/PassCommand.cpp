@@ -1,6 +1,6 @@
 #include "PassCommand.hpp"
 #include "Debug.hpp"
-#include "IrcError.hpp"
+#include "../../include/MessageType.hpp"
 
 PassCommand::PassCommand(const Message& msg) : Command(msg)
 {}
@@ -24,22 +24,19 @@ void PassCommand::execute(Server& server, Client& sender)
 	if (inParams.size() == 0)
 	{
 		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-		std::vector<std::string> outParams(arr, arr + 2);
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, server, outParams));
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
 	}
 	// 462
 	if (sender.getRegistrationLevel() > 0)
 	{
 		std::string arr[] = {sender.getNickname()};
-		std::vector<std::string> outParams(arr, arr + 1);
-		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, server, outParams));
+		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, arr, 1));
 	}
 	// 464
 	if (inParams[0] != server.getPassword())
 	{
 		std::string arr[] = {sender.getNickname()};
-		std::vector<std::string> outParams(arr, arr + 1);
-		return (sender.sendErrorMessage(ERR_PASSWDMISMATCH, server, outParams));
+		return (sender.sendErrorMessage(ERR_PASSWDMISMATCH, arr, 1));
 	}
 	// Sucess !
 	sender.incrementRegistrationLevel();

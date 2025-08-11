@@ -1,7 +1,9 @@
 #include "../include/Server.hpp"
+#include "../include/Channel.hpp"
 #include "../include/Debug.hpp"
 #include "../include/ircUtils.hpp"
 #include "../include/Command.hpp"
+#include <algorithm>
 #include <cerrno>
 #include <csignal>
 #include <cstdio>
@@ -20,6 +22,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/fcntl.h>
+#include <vector>
 
 bool Server::running_ = false;
 
@@ -31,14 +34,14 @@ void	Server::signalHandler(int signum)
 }
 
 // Default Constructor
-Server::Server(void): name_("AspenWood"), port_(6667), password_("password")
+Server::Server(void): name_(HOSTNAME), port_(6667), password_("password"), timeCreated_(time(NULL))
 {
 	running_ = true;
 	debug("Default Constructor called");
 }
 
 // Parameterized Constructor
-Server::Server(int port, std::string password): name_("AspenWood"), port_(port), password_(password), serverSocket_(-1)
+Server::Server(int port, std::string password): name_(HOSTNAME), port_(port), password_(password), serverSocket_(-1), timeCreated_(time(NULL))
 {
 	struct sigaction sa;
 	sa.sa_handler = signalHandler;
@@ -46,6 +49,7 @@ Server::Server(int port, std::string password): name_("AspenWood"), port_(port),
 	sa.sa_flags = 0;
 	debug("Parameterized Constructor called");
 	std::cout << GREEN << "==== STARTING SERVER ====" << RESET << std::endl;
+	std::cout << BLUE << "port: " << port << ", password: " << password << RESET << std::endl;
 	running_ = true;
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGQUIT, &sa, NULL);
@@ -66,7 +70,8 @@ Server::Server(const Server& other):
 	password_(other.password_),
 	serverSocket_(other.serverSocket_),
 	pollFds_(other.pollFds_),
-	clients_(other.clients_)
+	clients_(other.clients_),
+	timeCreated_(other.timeCreated_)
 	// channels_(other.channels_)
 {}
 
@@ -78,9 +83,20 @@ Server& Server::operator=(const Server& other)
 		serverSocket_ = other.serverSocket_;
 		pollFds_ = other.pollFds_;
 		clients_ = other.clients_;
-		//channels_ = other.channels_;
+		channels_ = other.channels_;
 	}
 	return *this;
+}
+
+const char	*Server::getTimeCreatedHumanReadable() const
+{
+	char * humanTime = ctime(&timeCreated_);
+	size_t i = 0;
+	while (humanTime[i] != '\0' && humanTime[i] != '\n')
+		++i;
+	if (humanTime[i] == '\n')
+		humanTime[i] = '\0';
+	return (humanTime);
 }
 
 const std::string	&Server::getName( void ) const
@@ -92,6 +108,12 @@ const std::string	&Server::getPassword( void ) const
 {
 	return (password_);
 }
+
+std::vector<Client>& Server::getClients( void )
+{
+	return clients_;
+}
+
 
 int	Server::getPort( void ) const
 {
@@ -131,6 +153,37 @@ void	Server::acceptConnection( void )
 	clients_.push_back(newcomer);
 }
 
+Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> messageParams) const
+{
+	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
+	IrcErrorInfo info = ErrorMap.find(type)->second;
+	messageParams.push_back(info.message);
+	Message message(info.code, messageParams);
+	return (message);
+}
+
+// used to removeClient from server (in poll and clients) and broadcast the Quit message.
+// if server needs to diconnect the client, modify messageParams to reflect reason
+void	Server::quitClient(const Client &quitter, std::vector<std::string> &messageParams)
+{
+	std::vector<Client>::iterator clIt = std::find(clients_.begin(), clients_.end(), quitter);
+	size_t	clientIndex = clIt - clients_.begin();
+	if (pollFds_[clientIndex + 1].fd != quitter.getSocket())
+		throw std::logic_error("clientIndex in quitClient is not corespondent to the quitting client");
+	removeClient(clientIndex + 1);
+	std::string	qNickname = quitter.getNickname();
+	messageParams.push_back(qNickname);
+	Message msg = buildErrorMessage(QUIT, messageParams);
+	for (std::map<std::string, Channel>::iterator cMapIter = channels_.begin(); cMapIter != channels_.end(); cMapIter++)
+	{
+		Channel quittersChannel = cMapIter->second;
+		if (!quittersChannel.isMember(qNickname))
+			continue;
+		quittersChannel.broadcastMsg(quitter, msg);
+		quittersChannel.removeMember(qNickname);
+	}
+}
+
 // closes and delets an elements from pollIndex_ 
 //the entry in pollFds_ corresponds to the same index -1 in clients_ for that particular client. they should have the same fd.
 void	Server::removeClient(int pollIndexToRemove)
@@ -149,29 +202,49 @@ void	Server::removeClient(int pollIndexToRemove)
 	pollFds_.pop_back();
 }
 
-// void Server::executeIncomingCommandMessage(Client& sender, const std::string& rawMessage)
-// {
-// 	try {
-// 		Message message(rawMessage);
-// 		debug("Parsed message: " + message.getTypeAsString() + " with params: " + toString(message.getParams().size()));
+void Server::executeIncomingCommandMessage(Client& sender, const std::string& rawMessage)
+{
+	Message message(rawMessage);
+	debug("Parsed message: " + message.getType() + " with params: " + toString(message.getParams().size()));
+	Command* cmd = convertMessageToCommand(message);
+	if (!cmd)
+	{
+		std::string arr[] = {sender.getNickname(), message.getType()};
+		sender.sendErrorMessage(ERR_UNKNOWNCOMMAND, arr, 2);
+		return;
+	}
+	cmd->execute(*this, sender);
+	delete cmd;
+}
 
-// 		Command* command = convertMessageToCommand(message, sender);
-// 		if (command)
-// 		{
-// 			command->execute(*this, sender);
-// 			delete command;
-// 		}
-// 	} catch (const std::exception& e) {
-// 		debug("Exception caught: " + std::string(e.what()));
-// 		std::vector<std::string> params;
-// 		params.push_back(sender.getNickname());
-// 		params.push_back(e.what());
-// 		// Message errorMessage(ERR_UNKNOWNERROR, params); TODO: just send an err_msg !
-// 		sender.sendMessage(errorMessage);
-// 	}
-// }
+void Server::broadcastErrorMessage(MessageType type, std::vector<std::string>& args) const
+{
+	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
+    IrcErrorInfo info = ErrorMap.find(type)->second;
+    args.push_back(info.message);
+    Message outMessage(info.code,  args);
+	broadcastMsg(outMessage);
+}
 
-bool	Server::nickCollision(CaseMappedString& toCheck)
+void	Server::broadcastErrorMessage(MessageType type, std::string args[], int size) const
+{
+	std::vector<std::string> outParams(args, args + size);
+    static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
+    IrcErrorInfo info = ErrorMap.find(type)->second;
+    outParams.push_back(info.message);
+    Message outMessage(info.code, outParams);
+	broadcastMsg(outMessage);
+}
+
+void	Server::broadcastMsg(const Message &message) const
+{
+	Client	tmp;
+	for (std::vector<Client>::const_iterator clientIt = (clients_.begin()); clientIt != clients_.end(); clientIt++)
+		tmp.sendMessageToFd(message, clientIt->getSocket());
+}
+
+
+bool	Server::clientNickExists(CaseMappedString& toCheck)
 {
 	for (size_t clientIndex = 0; clientIndex < clients_.size(); clientIndex++)
 	{
@@ -199,7 +272,7 @@ void	Server::makeMessage(Client &client)
 		raw_message.erase(0, position + 1);
 		client.setRawMessage(raw_message);
 		std::cout << command << std::endl;
-		executeIncomingCommandMessage(*this, client, command);
+		executeIncomingCommandMessage(client, command);
 		debug(raw_message);
 	}
 }
@@ -266,7 +339,7 @@ void	Server::waitForRequests(void)
 		}
 	} catch (std::runtime_error &e) {
 		std::cerr << e.what() << ": " << strerror(errno) << std::endl;
-		serverShutdown();
+		// serverShutdown();
 	}
 	std::cout << YEL << "[Server] Stopped listening for requests" << RESET << std::endl;
 }
@@ -340,5 +413,18 @@ void	Server::serverShutdown(void)
 		std::cout << "[Server] diconnected listening socket" << RESET << std::endl;
 	}
 	std::cout << GREEN << "[Server] Shutdown complete" << RESET << std::endl;
+}
+
+Channel* Server::mapChannel(const std::string& channelName)
+{
+	std::map<std::string, Channel>::iterator it = channels_.find(channelName);
+	if (it != channels_.end())
+		return &(it->second);
+	return NULL;
+}
+
+std::map<std::string, Channel>&	Server::getChannels(void)
+{
+	return (channels_);
 }
 

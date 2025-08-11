@@ -1,6 +1,7 @@
 #include "../../include/UserCommand.hpp"
 #include "../../include/Debug.hpp"
-#include "../../include/IrcError.hpp"
+#include "../../include/MessageType.hpp"
+#include <vector>
 
 UserCommand::UserCommand(const Message& msg) : Command(msg)
 {}
@@ -10,6 +11,26 @@ Command* UserCommand::fromMessage(const Message& message)
 	return new UserCommand(message);
 }
 
+void	UserCommand::welcome(const Server &server, const Client &sender)
+{
+	std::string	nickname = sender.getNickname();
+	std::string	welcome = std::string("Welcome to the ") + HOSTNAME + " Network, " + nickname;
+	std::string yourhost = std::string("Your host is ") + HOSTNAME + ", running version" + VERSION;
+	std::string created = std::string("This server was created ") + server.getTimeCreatedHumanReadable();
+	std::string myInfo = std::string(HOSTNAME) + " " + VERSION + " " AVAILABLEUSERMODES + " " + AVAILABLECHANNELMODES + " " + AVAILABLECHANNELMODESWITHPARAMETER; 
+	std::vector<std::string> vec;
+	vec.reserve(2);
+	vec.push_back(nickname);
+	vec.push_back(welcome);
+	sender.sendErrorMessage(RPL_WELCOME, vec);
+	vec[1] = yourhost;
+	sender.sendErrorMessage(RPL_YOURHOST, vec);
+	vec[1] = created;
+	sender.sendErrorMessage(RPL_CREATED , vec);
+	vec[1] = myInfo;
+	sender.sendErrorMessage(RPL_MYINFO , vec);
+}
+
 /*
     https://modern.ircdocs.horse/#user-message
     ERR_NEEDMOREPARAMS (461)
@@ -17,34 +38,34 @@ Command* UserCommand::fromMessage(const Message& message)
 */
 void UserCommand::execute(Server& server, Client& sender)
 {
+	(void) server;
 	std::vector<std::string> inParams = inMessage_.getParams();
 	
+	if (sender.getRegistrationLevel() < 2) // user needs to give pass or nick first
+	{
+		debug("registration level too low for user command");
+		return ;
+	}
 	// 461
 	if (inParams.size() < 4)
 	{
 		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-		std::vector<std::string> outParams(arr, arr + 2);
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, server, outParams));
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
 	}
 	// 462
-	if (sender.getRegistrationLevel() == 3)
+	if (sender.isAuthenticated())
 	{
 		std::string arr[] = {sender.getNickname()};
-		std::vector<std::string> outParams(arr, arr + 1);
-		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, server, outParams));
+		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, arr, 1));
 	}
 	// Sucess !
+	else if (sender.getRegistrationLevel() == 2)
+	{
+	debug("now setting user, incrementing registration level");
 	sender.setUsername(inParams[0]);
 	sender.setRealname(inParams[3]);
 	sender.incrementRegistrationLevel();
-	// TODO: implement that cleanly or just leave it like it is ?!...
-	// std::string arr[] = {sender.getNickname()};
-	// std::vector<std::string> outParams(arr, arr + 1);
-	// sender.sendErrorMessage(RPL_WELCOME, server, outParams);
-	// sender.sendErrorMessage(RPL_YOURHOST, server, outParams);
-	// sender.sendErrorMessage(RPL_CREATED , server, outParams);
-	// sender.sendErrorMessage(RPL_MYINFO , server, outParams);
-	sender.sendMessage(Message("Welcome to the AspenWood modest IRC Chat :)"));
-	sender.sendMessage(Message("You are now fully authenticated :D"));
+	welcome(server, sender);
+	}
 	return;
 }
