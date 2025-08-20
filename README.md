@@ -101,11 +101,20 @@ See [COMMANDS.md](./COMMANDS.md) for in-depth protocol and implementation detail
 
 ## Documentation
 
-Extensive documentation is available in the [docs/](./docs/) directory, including:
-- Architecture and code structure
-- Protocol details and command reference
-- Developer guides and diagrams
-- References to [INSTALL.md](./INSTALL.md) and [USAGE.md](./USAGE.md)
+Comprehensive documentation is available:
+
+### User Documentation
+- **[INSTALL.md](./INSTALL.md)** - Installation and build instructions
+- **[USAGE.md](./USAGE.md)** - User guide with examples
+- **[COMMANDS.md](./COMMANDS.md)** - IRC protocol implementation details
+
+### Developer Documentation
+- **[docs/DEVELOPER.md](./docs/DEVELOPER.md)** - Complete developer guide with architecture overview
+- **[docs/API.md](./docs/API.md)** - API reference for all classes and methods  
+- **[docs/BUILD.md](./docs/BUILD.md)** - Build system and development environment
+- **[docs/TESTING.md](./docs/TESTING.md)** - Testing strategies and QA guide
+
+**Quick Start for Developers**: See [docs/README.md](./docs/README.md) for documentation index and development workflow.
 
 ---
 
