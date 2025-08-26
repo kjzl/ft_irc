@@ -218,7 +218,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 		}
 		sender.sendErrorMessage(RPL_CHANNELMODEIS, parameters);
 
-		//RPL_CREATIONTIME // not doing that one, it is a should, not a must. TODO: SHOULD == MUST ...
+		//RPL_CREATIONTIME TODO: SHOULD == MUST ...
 	}
 	else
 	{

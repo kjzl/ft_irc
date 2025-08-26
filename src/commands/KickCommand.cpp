@@ -98,6 +98,7 @@ void	KickCommand::execute(Server& server, Client& sender)
 		if (inMessage_.getParams().size() == 2)
 			inMessage_.getParams().push_back(":You have been kicked out (No reason provided)");
 		sender.sendMessageTo(inMessage_, targetClient, server);
+		//TODO: sending reply to channel
 	}
 }
 
