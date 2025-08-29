@@ -8,29 +8,28 @@ class IrcservTester
   def initialize(port: 6667, password: "password")
     @port = port
     @password = password
-    @server_stdout = "" # honeslty, this does nothing rn, might remove it.
+    @server_stdout = ""
     @server_stderr = ""
     @clients = {}
     @server_pid = nil
+    @common_steps = {}
   end
   def start_server
     puts "Starting IRC server on port #{@port} with password '#{@password}'..."
     system("make") or raise "Failed to compile ircserv!"
     @server_thread = Thread.new do
-      Open3.popen3("./ircserv, #{@port}, #{@password}") do |stdin, stdout, stderr, wait_thread|
+      Open3.popen3("./ircserv #{@port} #{@password}") do |stdin, stdout, stderr, wait_thread|
         @server_pid = wait_thread.pid
         # keep reading to not overflow internal buffer for stdin and stderr
         stdout_thread = Thread.new do
-          stdout.each_line {
-            |line| @server_stdout << line; # saving into internal log var
+          stdout.each_line do |line|
+            @server_stdout << line; # saving into internal log var
             puts "[SERVER OUT] #{line.chomp}" # printing out
-          }
         end
         stderr_thread = Thread.new do
-          stderr.each_line {
-            |line| @server_stderr << line;
+          stderr.each_line do |line|
+            @server_stderr << line;
             puts "[SERVER ERR] #{line.chomp}"
-          }
         end
         exit_status = wait_thread.value
         puts "[SERVER EXIT] status: #{exit_status}"
@@ -49,9 +48,8 @@ class IrcservTester
   def connect_client(client_id)
     return false if @clients[client_id]
     puts "Connecting client #{client_id} to ircserv with netcat..."
-    stdin, stdout, stderr, wait_thread = Open3.popen3("nc localhost, #{@port}")
-    client =
-    {
+    stdin, stdout, stderr, wait_thread = Open3.popen3("nc localhost #{@port}")
+    client = {
       id: client_id,
       stdin: stdin,
       stdout: stdout,
@@ -60,16 +58,16 @@ class IrcservTester
       responses: []
     }
     # reading responses inside seperate thread
-      Thread.new do
-        stdout.each_line(chomp: true) do |line|
-          client[:responses] << line
-          puts "[CLIENT #{client_id} IN] #{line}"
-        end
+    Thread.new do
+      stdout.each_line(chomp: true) do |line|
+        client[:responses] << line
+        puts "[CLIENT #{client_id} IN] #{line}"
       end
+    end
 
-      @clients[client_id] = client
-      puts "Client #{client_id} connected witd PID: #{client[:pid]}"
-      return true
+    @clients[client_id] = client
+    puts "Client #{client_id} connected with PID: #{client[:pid]}"
+    return true
   rescue => e
     puts "Failed to connect client #{client_id}: #{e.message}"
     return false
@@ -81,7 +79,7 @@ class IrcservTester
     puts "Disconnecting client #{client_id}"
     begin
       # kill the client process
-      Process.kill("TERM", client[:pid]) rescue nill
+      Process.kill("TERM", client[:pid]) rescue nil
       # close streams (as they were opened with assignment in popen3)
       client[:stdin].close rescue nil
       client[:stdout].close rescue nil
@@ -99,13 +97,13 @@ class IrcservTester
   def send_command(client_id, command)
     client = @clients[client_id]
     return false unless client
-    puts "CLIENT #{client_id} OUT] #{command}"
+    puts "[CLIENT #{client_id} OUT] #{command}"
     client[:stdin].puts(command)
-    sleep(0.1) #time for server to processs
+    sleep(0.1) #time for server to process
     return true
   end
 
-# sees if cleint received a message pattern
+# sees if client received a message pattern
   def client_received?(client_id, pattern, timeout = 3)
     client = @clients[client_id]
     return false unless client
