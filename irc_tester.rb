@@ -3,6 +3,99 @@ require 'open3'
 require 'timeout'
 require 'thread'
 
+  # IRC response codes
+  module IRC
+    # Registration responses
+    RPL_WELCOME = /001/
+    RPL_YOURHOST = /002/
+    RPL_CREATED = /003/
+    RPL_MYINFO = /004/
+
+    RPL_BOUNCE = /005/
+    RPL_USERHOST = /302/
+    RPL_ISON = /303/
+    RPL_AWAY = /301/
+    RPL_UNAWAY = /305/
+    RPL_NOWAWAY = /306/
+    RPL_WHOISUSER = /311/
+    RPL_WHOISSERVER = /312/
+    RPL_WHOISOPERATOR = /313/
+    RPL_WHOISIDLE = /317/
+    RPL_ENDOFWHOIS = /318/
+    RPL_WHOISCHANNELS = /319/
+    RPL_LISTSTART = /321/
+    RPL_LIST = /322/
+    RPL_LISTEND = /323/
+    RPL_CHANNELMODEIS = /324/
+    RPL_NOTOPIC = /331/
+    RPL_TOPIC = /332/
+    RPL_INVITING = /341/
+    RPL_SUMMONING = /342/
+    RPL_VERSION = /351/
+    RPL_WHOREPLY = /352/
+    RPL_ENDOFWHO = /315/
+    RPL_NAMREPLY = /353/
+    RPL_ENDOFNAMES = /366/
+    RPL_MOTD = /372/
+    RPL_ENDOFMOTD = /376/
+    RPL_TIME = /391/
+    RPL_HELPSTART = /704/
+    RPL_HELPTXT = /705/
+    RPL_ENDOFHELP = /706/
+    RPL_LOGGEDIN = /900/
+    RPL_LOGGEDOUT = /901/
+    RPL_SASLSUCCESS = /903/
+
+    # Errors
+    ERR_UNKNOWNERROR = /400/
+    ERR_NOSUCHNICK = /401/
+    ERR_NOSUCHSERVER = /402/
+    ERR_NOSUCHCHANNEL = /403/
+    ERR_CANNOTSENDTOCHAN = /404/
+    ERR_TOOMANYCHANNELS = /405/
+    ERR_WASNOSUCHNICK = /406/
+    ERR_NOORIGIN = /409/
+    ERR_NORECIPIENT = /411/
+    ERR_NOTEXTTOSEND = /412/
+    ERR_INPUTTOOLONG = /417/
+    ERR_UNKNOWNCOMMAND = /421/
+    ERR_NOMOTD = /422/
+    ERR_NONICKNAMEGIVEN = /431/
+    ERR_ERRONEUSNICKNAME = /432/
+    ERR_NICKNAMEINUSE = /433/
+    ERR_NICKCOLLISION = /436/
+    ERR_USERNOTINCHANNEL = /441/
+    ERR_NOTONCHANNEL = /442/
+    ERR_USERONCHANNEL = /443/
+    ERR_NOTREGISTERED = /451/
+    ERR_NEEDMOREPARAMS = /461/
+    ERR_ALREADYREGISTERED = /462/
+    ERR_PASSWDMISMATCH = /464/
+    ERR_YOUREBANNEDCREEP = /465/
+    ERR_CHANNELISFULL = /471/
+    ERR_UNKNOWNMODE = /472/
+    ERR_INVITEONLYCHAN = /473/
+    ERR_BANNEDFROMCHAN = /474/
+    ERR_BADCHANNELKEY = /475/
+    ERR_BADCHANMASK = /476/
+    ERR_NOPRIVILEGES = /481/
+    ERR_CHANOPRIVSNEEDED = /482/
+    ERR_CANTKILLSERVER = /483/
+    ERR_NOOPERHOST = /491/
+    ERR_UMODEUNKNOWNFLAG = /501/
+    ERR_USERSDONTMATCH = /502/
+    ERR_HELPNOTFOUND = /524/
+    ERR_INVALIDKEY = /525/
+    ERR_NOPRIVS = /723/
+    ERR_NICKLOCKED = /902/
+    ERR_SASLFAIL = /904/
+    ERR_SASLTOOLONG = /905/
+    ERR_SASLABORTED = /906/
+    ERR_SASLALREADY = /907/
+    ERR_STARTTLS = /691/
+    ERR_INVALIDMODEPARAM = /696/
+  end
+
 class IrcservTester
   attr_reader :server_stdout, :server_stderr
   def initialize(port: 6667, password: "password")
@@ -14,6 +107,7 @@ class IrcservTester
     @server_pid = nil
     @common_steps = {}
   end
+
   def start_server
     puts "Starting IRC server on port #{@port} with password '#{@password}'..."
     system("make") or raise "Failed to compile ircserv!"
@@ -42,6 +136,8 @@ class IrcservTester
   rescue => e
     puts "Failed to start server: #{e.message}"
     return false
+  end
+    end
   end
 
   # connect new client
@@ -226,99 +322,6 @@ class IrcservTester
     puts "Cleanup complete."
   end
 
-  # IRC response codes
-  module IRC
-    # Registration responses
-    RPL_WELCOME = /001/
-    RPL_YOURHOST = /002/
-    RPL_CREATED = /003/
-    RPL_MYINFO = /004/
-
-    RPL_BOUNCE = /005/
-    RPL_USERHOST = /302/
-    RPL_ISON = /303/
-    RPL_AWAY = /301/
-    RPL_UNAWAY = /305/
-    RPL_NOWAWAY = /306/
-    RPL_WHOISUSER = /311/
-    RPL_WHOISSERVER = /312/
-    RPL_WHOISOPERATOR = /313/
-    RPL_WHOISIDLE = /317/
-    RPL_ENDOFWHOIS = /318/
-    RPL_WHOISCHANNELS = /319/
-    RPL_LISTSTART = /321/
-    RPL_LIST = /322/
-    RPL_LISTEND = /323/
-    RPL_CHANNELMODEIS = /324/
-    RPL_NOTOPIC = /331/
-    RPL_TOPIC = /332/
-    RPL_INVITING = /341/
-    RPL_SUMMONING = /342/
-    RPL_VERSION = /351/
-    RPL_WHOREPLY = /352/
-    RPL_ENDOFWHO = /315/
-    RPL_NAMREPLY = /353/
-    RPL_ENDOFNAMES = /366/
-    RPL_MOTD = /372/
-    RPL_ENDOFMOTD = /376/
-    RPL_TIME = /391/
-    RPL_HELPSTART = /704/
-    RPL_HELPTXT = /705/
-    RPL_ENDOFHELP = /706/
-    RPL_LOGGEDIN = /900/
-    RPL_LOGGEDOUT = /901/
-    RPL_SASLSUCCESS = /903/
-
-    // Errors
-    ERR_UNKNOWNERROR = /400/
-    ERR_NOSUCHNICK = /401/
-    ERR_NOSUCHSERVER = /402/
-    ERR_NOSUCHCHANNEL = /403/
-    ERR_CANNOTSENDTOCHAN = /404/
-    ERR_TOOMANYCHANNELS = /405/
-    ERR_WASNOSUCHNICK = /406/
-    ERR_NOORIGIN = /409/
-    ERR_NORECIPIENT = /411/
-    ERR_NOTEXTTOSEND = /412/
-    ERR_INPUTTOOLONG = /417/
-    ERR_UNKNOWNCOMMAND = /421/
-    ERR_NOMOTD = /422/
-    ERR_NONICKNAMEGIVEN = /431/
-    ERR_ERRONEUSNICKNAME = /432/
-    ERR_NICKNAMEINUSE = /433/
-    ERR_NICKCOLLISION = /436/
-    ERR_USERNOTINCHANNEL = /441/
-    ERR_NOTONCHANNEL = /442/
-    ERR_USERONCHANNEL = /443/
-    ERR_NOTREGISTERED = /451/
-    ERR_NEEDMOREPARAMS = /461/
-    ERR_ALREADYREGISTERED = /462/
-    ERR_PASSWDMISMATCH = /464/
-    ERR_YOUREBANNEDCREEP = /465/
-    ERR_CHANNELISFULL = /471/
-    ERR_UNKNOWNMODE = /472/
-    ERR_INVITEONLYCHAN = /473/
-    ERR_BANNEDFROMCHAN = /474/
-    ERR_BADCHANNELKEY = /475/
-    ERR_BADCHANMASK = /476/
-    ERR_NOPRIVILEGES = /481/
-    ERR_CHANOPRIVSNEEDED = /482/
-    ERR_CANTKILLSERVER = /483/
-    ERR_NOOPERHOST = /491/
-    ERR_UMODEUNKNOWNFLAG = /501/
-    ERR_USERSDONTMATCH = /502/
-    ERR_HELPNOTFOUND = /524/
-    ERR_INVALIDKEY = /525/
-    ERR_NOPRIVS = /723/
-    ERR_NICKLOCKED = /902/
-    ERR_SASLFAIL = /904/
-    ERR_SASLTOOLONG = /905/
-    ERR_SASLABORTED = /906/
-    ERR_SASLALREADY = /907/
-    ERR_STARTTLS = /691/
-    ERR_INVALIDMODEPARAM = /696/
-  end
-
   def setup_common_procedures
     # Register a client
     define_procedure(:register_client, [
@@ -336,9 +339,10 @@ class IrcservTester
       { client: :client, command: "JOIN $channel", expect: /.+!.+@.+ JOIN / }
     ])
   end
+end
 
 # create tester instance
-tester = IrcvervTester.new()
+tester = IrcservTester.new()
 # define all test cases here
 test_cases = [
   # ==========REGISTRATION TESTS==========
