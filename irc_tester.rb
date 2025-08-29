@@ -106,25 +106,40 @@ class IrcservTester
     @clients = {}
     @server_pid = nil
     @common_steps = {}
+    @server_running = false
   end
 
   def start_server
+    return true if @server_running
     puts "Starting IRC server on port #{@port} with password '#{@password}'..."
     system("make") or raise "Failed to compile ircserv!"
     @server_thread = Thread.new do
       Open3.popen3("./ircserv #{@port} #{@password}") do |stdin, stdout, stderr, wait_thread|
         @server_pid = wait_thread.pid
+        @server_running = true
         # keep reading to not overflow internal buffer for stdin and stderr
         stdout_thread = Thread.new do
-          stdout.each_line do |line|
-            @server_stdout << line; # saving into internal log var
-            puts "[SERVER OUT] #{line.chomp}" # printing out
+          begin
+            stdout.each_line do |line|
+              @server_stdout << line; # saving into internal log var
+              puts "[SERVER OUT] #{line.chomp}" # printing out
+            end
+          rescue IOError => e
+            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running
+          end
         end
+
         stderr_thread = Thread.new do
-          stderr.each_line do |line|
-            @server_stderr << line;
-            puts "[SERVER ERR] #{line.chomp}"
+          begin
+            stderr.each_line do |line|
+              @server_stderr << line;
+              puts "[SERVER ERR] #{line.chomp}"
+            end
+          rescue IOError => e
+            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running
+          end
         end
+
         exit_status = wait_thread.value
         puts "[SERVER EXIT] status: #{exit_status}"
       end
@@ -135,9 +150,8 @@ class IrcservTester
     return true
   rescue => e
     puts "Failed to start server: #{e.message}"
+    @server_running = false
     return false
-  end
-    end
   end
 
   # connect new client
@@ -200,13 +214,18 @@ class IrcservTester
   end
 
 # sees if client received a message pattern
-  def client_received?(client_id, pattern, timeout = 3)
+  def client_received?(client_id, pattern, timeout = 1)
     client = @clients[client_id]
     return false unless client
     Timeout.timeout(timeout) do
       loop do
-        if client[:responses].any? { |response| response.match?(pattern) }
-          return true
+        client[:responses].each do |response|
+          if response.match?(pattern)
+            puts "Client #{client_id} received expected pattern: #{pattern}"
+            return true
+          end
+        # if client[:responses].any? { |response| response.match?(pattern) }
+        #   return true
         end
         sleep(0.1)
       end
@@ -223,25 +242,42 @@ class IrcservTester
     puts "Defined procedure '#{name}' with #{steps.length} steps"
   end
 
+  def substitute_variables(text, variables)
+    return text unless text && variables
+    result = text.dup
+    variables.each do |key, value|
+      result.gsub("$#{key}", value.to_s)
+    end
+  end
+
   def execute_step(step, client_id)
-    command = step[:command]
+    variables = step[:variables] || {}
+    command = substitute_variables(step[:command], variables)
     expected = step[:expect]
     timeout = step[:timeout]
+
     send_command(client_id, command)
     return true unless expected
     if expected.is_a?(Array)
-      expected.all? {|pattern| client_received?(client_id, pattern, timeout)}
+      expected.all? do |pattern|
+        pattern = substitute_variables(pattern, variables) if pattern.is_a?(String)
+        client_received?(client_id, pattern, timeout)
+      end
     else
+      if expected.is_a?(String)
+        expected = substitute_variables(expected, variables)
+      end
       client_received?(client_id, expected, timeout)
     end
   end
 
-  def run_procedure(name, client_id_map = {})
+  def run_procedure(name, client_id_map = {}, variables = {})
     return false unless @common_steps[name]
     puts "Running procedure '#{name}'..."
     steps = @common_steps[name]
     steps.each do |step|
       client_id = client_id_map[step[:client]] || step[:client] # use clients from map or else the ones from procedure
+      step_with_custom_vars = step.merge(variables: (step[variables] || {}).merge(variables))
       success = execute_step(step, client_id)
       unless success
         puts "❌ Procedure '#{name}' failed at step: #{step[:command]}"
@@ -264,7 +300,8 @@ class IrcservTester
       if step[:procedure]
         # was given procedure, handle procedure
         client_map = step[:client_map] || {} # care, proceeds with empty if not given
-        success = run_procedure(step[:procedure], client_map)
+        variables = step[:variables] || {}
+        success = run_procedure(step[:procedure], client_map, variables)
         unless success
           puts "  ❌ Test case '#{test_case[:name]}' failed at procedure: #{step[:procedure]}"
           test_case[:clients].each { |client_id| disconnect_client(client_id) } # disconnect clients on failure
@@ -272,9 +309,10 @@ class IrcservTester
         end
       else
         # regular step
+        client_id = step[:client]
         success = execute_step(step, client_id)
         unless success
-          puts "  ❌ Test case '#{test_case[:name]}' failed at step: #{command}"
+          puts "  ❌ Test case '#{test_case[:name]}' failed at step: #{step[:command]}"
           test_case[:clients].each { |client_id| disconnect_client(client_id) }
           return false
         end
@@ -311,7 +349,7 @@ class IrcservTester
     @clients.keys.each do |client_id|
       disconnect_client(client_id)
     end
-    if @server_pid
+    if @server_pid && @server_running
       begin
         Process.kill("TERM", @server_pid) rescue nil
         puts "Server terminated"
@@ -382,8 +420,10 @@ test_cases = [
       { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
       
       # Join channel
-      { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "test" } },
-      { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "test" } },
+      # { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "test" } },
+      # { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "test" } },
+      { client: :alice, command: "JOIN #test", expect: /.+!.+@.+ JOIN / },
+      { client: :bob, command: "JOIN #test", expect: /.+!.+@.+ JOIN / },
       
       # Additional steps specific to this test
       { client: :bob, command: "", expect: /353.*alice.*bob/ }  # Check NAMES list includes both
