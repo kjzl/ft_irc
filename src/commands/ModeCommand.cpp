@@ -2,7 +2,7 @@
 #include "Debug.hpp"
 #include <cstdlib>
 #include <vector>
-#include "ircUtils.hpp"
+#include "IrcUtils.hpp"
 // Default Constructor
 ModeCommand::ModeCommand( void ): Command()
 {
@@ -79,7 +79,7 @@ void	ModeCommand::userMode(Server& server, Client& sender)
 	return (sender.sendErrorMessage(ERR_UMODEUNKNOWNFLAG, NULL, 0));
 }
 
-void ModeCommand::processChannelModes(Client &sender, const std::string& modestring, 
+void ModeCommand::processChannelModes(Client &sender, const std::string& modestring,
 						 const std::vector<std::string>& parameters,
 						 Channel* channel)
 {
@@ -112,7 +112,7 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 				else
 					channel->setPassword("");
 				break;
-				
+
 			case 'l': // User limit
 				if (addMode) {
 					if (paramIndex < parameters.size()) {
@@ -125,7 +125,7 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 					channel->setUserLimit(0); // Disable user limit
 				}
 				break;
-				
+
 			case 'o': // Channel operator status
 				if (paramIndex < parameters.size()) {
 					if (addMode) {
@@ -138,7 +138,7 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 				else // ERR_NEEDMOREPARAMS (461)
 					return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
 				break;
-				
+
 			default: // unkwown modes
 				sender.sendErrorMessage(ERR_UNKNOWNMODE, sender.getNickname(), inMessage_.getType(), std::string(1, *cIt));
 				return;

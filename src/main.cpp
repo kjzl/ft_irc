@@ -9,8 +9,12 @@
 //make main start with args
 //check canonical form
 
+int bot_main(int argc, char *argv[]);
 
-int main (int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
+	#ifdef BOT_MAIN
+	return (bot_main(argc, argv));
+	#endif
 	if (argc != 3)
 	{
 		std::cout << "Usage: ./ircserv <port> <password>" << std::endl;
@@ -34,6 +38,6 @@ int main (int argc, char *argv[]) {
 	} catch (std::exception &e) {
 		std::cerr << e.what() << ": " << strerror(errno) << std::endl;
 	}
-	
+
 	return 0;
 }

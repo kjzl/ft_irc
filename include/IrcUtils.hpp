@@ -9,3 +9,5 @@ std::string	toString(T in)
 	std::string inString = oss.str();
 	return (inString);
 }
+
+void	safeSend(int socket, const std::string &string);

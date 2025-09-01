@@ -1,7 +1,7 @@
 #include "../include/Server.hpp"
 #include "../include/Channel.hpp"
 #include "../include/Debug.hpp"
-#include "../include/ircUtils.hpp"
+#include "../include/IrcUtils.hpp"
 #include "../include/Command.hpp"
 #include <algorithm>
 #include <cerrno>
@@ -184,7 +184,7 @@ void	Server::quitClient(const Client &quitter, std::vector<std::string> &message
 	}
 }
 
-// closes and delets an elements from pollIndex_ 
+// closes and delets an elements from pollIndex_
 //the entry in pollFds_ corresponds to the same index -1 in clients_ for that particular client. they should have the same fd.
 void	Server::removeClient(int pollIndexToRemove)
 {
@@ -273,7 +273,7 @@ void	Server::makeMessage(Client &client)
 	}
 }
 
-// this function should check if its a POLLHUP or POLLIN 
+// this function should check if its a POLLHUP or POLLIN
 // then interpret the message
 // and execute it
 void	Server::processPollIn(struct pollfd request, int pollIndex)
@@ -322,7 +322,7 @@ void	Server::waitForRequests(void)
 			}
 			int	rdyPollsChecked = 0;
 			for (size_t pollIndex = 0; running_ && pollIndex < pollFds_.size() && rdyPollsChecked < rdyPollsCount; pollIndex++)
-			{ 
+			{
 				if (((pollFds_[pollIndex].revents & (POLLIN | POLLHUP)) != 1))
 					continue; // this socket is not the ready one
 				++rdyPollsChecked;
