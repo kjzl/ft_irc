@@ -56,7 +56,6 @@ class   Client
 		// sends a message to recipient, returns false if recipientNickname not found and could not send, else true
 		bool	sendMessageTo(Message msg, const std::string recipientNickname, Server &server) const;
 		void	sendErrorMessage(MessageType type, std::vector<std::string>& args) const;
-		// void 	sendErrorMessage(MessageType type, std::string args[], int size) const;
 		void	sendErrorMessage(MessageType type, std::string arg1) const;
 		void	sendErrorMessage(MessageType type, std::string arg1, std::string arg2) const;
 		void	sendErrorMessage(MessageType type, std::string arg1, std::string arg2, std::string arg3) const;

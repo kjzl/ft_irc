@@ -45,9 +45,6 @@ enum MessageType {
 	ERR_CHANNELISFULL
 };
 
-// MessageType parseCommandType(const std::string& type);
-// std::ostream& operator<<(std::ostream& os, const MessageType& type);
-
 struct IrcErrorInfo
 {
 	std::string code;
