@@ -204,6 +204,8 @@ void	Server::removeClient(int pollIndexToRemove)
 
 void Server::executeIncomingCommandMessage(Client& sender, const std::string& rawMessage)
 {
+	if (rawMessage.empty())
+		return;
 	Message message(rawMessage);
 	debug("Parsed message: " + message.getType() + " with params: " + toString(message.getParams().size()));
 	Command* cmd = convertMessageToCommand(message);
