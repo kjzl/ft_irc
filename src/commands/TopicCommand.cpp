@@ -70,7 +70,7 @@ void	TopicCommand::execute(Server& server, Client& sender)
 		// RPL_NOTOPIC (331)
 		if (!channel->getTopic().size())
 			return (sender.sendErrorMessage(RPL_NOTOPIC, sender.getNickname(), channelName));
-		// RPL_TOPIC (332)
+		// RPL_TOPIC (332) + TODO: REPLYTOPICWHOTIME
 		return (sender.sendErrorMessage(RPL_TOPIC, sender.getNickname(), channelName, channel->getTopic()));
 	}
 	else	// client wants to set the topic
@@ -79,6 +79,7 @@ void	TopicCommand::execute(Server& server, Client& sender)
 		if (channel->isTopicProtected() && !channel->isOperator(sender.getNickname()))
 			return (sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, sender.getNickname(), channelName));
 		channel->setTopic(inParams[1]);
+		// TODO: send confirmation to channel
 	}
 }
 
