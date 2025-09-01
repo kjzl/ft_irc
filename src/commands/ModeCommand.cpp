@@ -210,6 +210,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 			sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, sender.getNickname(), channelName);
 		// set Channel Modes, may ERR_NEEDMOREPARAMS
 		processChannelModes(sender, parameters[1], parameters, channel);
+		sender.sendCmdValidation(inMessage_, *channel); // TODO: make it robust to wrong input ?
 	}
 }
 

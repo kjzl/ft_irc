@@ -75,7 +75,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 			continue;
 		}
 		// ERR_CHANNELISFULL (471)
-		if (channel->getUserLimit() && (int)channel->getMembers().size() == channel->getUserLimit())
+		if (channel->getUserLimit() && (int)channel->getMembers().size() <= channel->getUserLimit())
 		{
 			sender.sendErrorMessage(ERR_CHANNELISFULL, sender.getNickname(), channelName);
 			continue;
