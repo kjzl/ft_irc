@@ -2,7 +2,7 @@
 #include "Debug.hpp"
 #include <cstdlib>
 #include <vector>
-#include "ircUtils.hpp"
+#include "IrcUtils.hpp"
 // Default Constructor
 ModeCommand::ModeCommand( void ): Command()
 {

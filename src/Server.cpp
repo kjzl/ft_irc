@@ -1,7 +1,7 @@
 #include "../include/Server.hpp"
 #include "../include/Channel.hpp"
 #include "../include/Debug.hpp"
-#include "../include/ircUtils.hpp"
+#include "../include/IrcUtils.hpp"
 #include "../include/Command.hpp"
 #include <algorithm>
 #include <cerrno>

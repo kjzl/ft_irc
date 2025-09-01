@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include <sys/socket.h>
 #include "Message.hpp"
-#include "ircUtils.hpp"
+#include "IrcUtils.hpp"
 
 
 Client::Client() : registrationLevel_(0), socket_(-1), nickname_(""), username_("*"), realname_(""), rawMessage_("")
@@ -134,7 +134,7 @@ void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 
 void	Client::sendMessage(Message toSend) const
 {
-	safeSend(toSend.toString());
+	safeSend(this->getSocket(), toSend.toString());
 }
 
 bool	Client::sendMessageTo(Message msg, const std::string recipientNickname, Server &server) const
@@ -224,24 +224,7 @@ void	Client::sendToFd(const std::string &string, int fd) const
 	}
 }
 
-// sends the entire string with send() even when more than one send() call is needed
-// throws and error if send fails
-int		Client::safeSend(const std::string &string) const
-{
-	int sendBytes;
-	int	total_sent = 0;
-	int	left_size = string.size();
 
-	while (left_size)
-	{
-		sendBytes = send(this->getSocket(), string.substr(total_sent, left_size).c_str(), left_size, 0);
-		if (sendBytes == -1)
-			throw std::runtime_error("[Server] send error with client: " + toString(this->getSocket()));
-		total_sent += sendBytes;
-		left_size -= sendBytes;
-	}
-	return (0);
-}
 
 void Client::sendCmdValidation(const Message inMessage) const
 {

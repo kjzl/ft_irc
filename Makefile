@@ -44,7 +44,8 @@ DIRS = $(addprefix $(OBJ_DIR)/, .)
 INCLUDES := -I$(HDRS_DIR)
 
 SRCS := $(addprefix $(SRCS_DIR)/,\
-		main.cpp \
+		IrcUtils.cpp \
+        main.cpp \
 		Server.cpp \
 		Client.cpp \
 		Message.cpp \
@@ -75,7 +76,7 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		Command.hpp \
 		Channel.hpp \
 		MessageType.hpp \
-		ircUtils.hpp \
+		IrcUtils.hpp \
 		Message.hpp \
 		Server.hpp \
 		NickCommand.hpp \
@@ -107,7 +108,7 @@ $(NAME): $(OBJS) $(HDRS) Makefile
 	printf "$(RED)$(BOLD)Build failed!$(RESET)\n"
 
 # Compile object files
-$(OBJ_DIR)/%.o: $(SRCS_DIR)%.c | $(DIRS)
+$(OBJ_DIR)/%.o: $(SRCS_DIR)%.cpp | $(DIRS)
 	#$(call update_progress)
 	@printf "$(YELLOW)Compiling $(RESET)"
 	$(CXX) $(CXXFLAGS) -c $< -o $@

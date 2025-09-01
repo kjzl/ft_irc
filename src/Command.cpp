@@ -1,7 +1,7 @@
 #include "Message.hpp"
 #include "Command.hpp"
 #include "Debug.hpp"
-#include "ircUtils.hpp"
+#include "IrcUtils.hpp"
 #include "PassCommand.hpp"
 #include "NickCommand.hpp"
 #include "UserCommand.hpp"

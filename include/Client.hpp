@@ -49,7 +49,7 @@ class   Client
 		bool	isAuthenticated()	const;
 		void	appendRawMessage(const char partialMessage[BUFSIZ], size_t length);
 		void	clearMessage();
-		int		safeSend(const std::string &string) const;
+		
 		void	sendMessage(Message toSend) const;
 		void 	sendCmdValidation(const Message inMessage) const;
 		void	sendCmdValidation(const Message inMessage, const Channel &channel) const;
