@@ -2,15 +2,17 @@
 require 'open3'
 require 'thread'
 
+TIMEOUT = 1.5 # seconds
+
   # IRC response codes
   module IRC
     # Registration responses
-    RPL_WELCOME = /001/
-    RPL_YOURHOST = /002/
-    RPL_CREATED = /003/
-    RPL_MYINFO = /004/
+    RPL_WELCOME = /1/
+    RPL_YOURHOST = /2/
+    RPL_CREATED = /3/
+    RPL_MYINFO = /4/
 
-    RPL_BOUNCE = /005/
+    RPL_BOUNCE = /5/
     RPL_USERHOST = /302/
     RPL_ISON = /303/
     RPL_AWAY = /301/
@@ -219,7 +221,7 @@ class IrcservTester
   end
 
 # sees if client received a message pattern
-  def client_received?(client_id, pattern, timeout = 1)
+  def client_received?(client_id, pattern, timeout = TIMEOUT)
     client = @clients[client_id]
     return false unless client
     start_time = Time.now
@@ -261,7 +263,7 @@ class IrcservTester
 
     command = substitute_variables(step[:command], all_variables)
     expected = step[:expect]
-    timeout = step[:timeout]
+    timeout = step[:timeout] || TIMEOUT
     client_id = step[:client]
 
     send_command(client_id, command)

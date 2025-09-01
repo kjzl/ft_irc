@@ -1,5 +1,17 @@
 # how the tester works
 
+Usage:
+
+Run with debug output:
+```bash
+DEBUG=1 ruby irc_tester_fixed.rb
+```
+
+Run normally:
+```bash
+ruby irc_tester_fixed.rb
+```
+
 The idea is to recompile with DTESTMEM=n
 with n being the iteration count of the loop that runs the program so and so many times, letting a single specific alloc fail.
 
