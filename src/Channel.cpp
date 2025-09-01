@@ -3,7 +3,16 @@
 #include "Message.hpp"
 
 Channel::Channel()
-	: topic_(""), password_(""), userLimit_(0)
+	: name_(""),
+	  members_(),
+	  whiteList_(),
+	  operators_(),
+	  topic_(""),
+	  creationTime_(time(NULL)),
+	  password_(""),
+	  userLimit_(0),
+	  isInviteOnly_(false),
+	  isTopicProtected_(false)
 {}
 
 // Channel::Channel(std::vector<const std::string> members, std::set<std::string> whiteList, std::set<std::string> operators, std::string topic, std::string password, int userLimit)
@@ -21,6 +30,7 @@ Channel::Channel(const std::string& name, const Client& sender)
 	  whiteList_(),
 	  operators_(),
 	  topic_(""),
+	  creationTime_(time(NULL)),
 	  password_(""),
 	  userLimit_(0),
 	  isInviteOnly_(false),
@@ -43,6 +53,7 @@ Channel &Channel::operator=(const Channel &other)
 		this->members_ = other.members_;
 		this->whiteList_ = other.whiteList_;
 		this->operators_ = other.operators_;
+		this->creationTime_ = other.creationTime_;
 		this->topic_ = other.topic_;
 		this->password_ = other.password_;
 		this->userLimit_ = other.userLimit_;
@@ -89,6 +100,11 @@ const std::string &Channel::getPassword() const
 int Channel::getUserLimit() const
 {
 	return userLimit_;
+}
+
+const time_t &Channel::getCreationTime() const
+{
+	return creationTime_;
 }
 
 // Setters

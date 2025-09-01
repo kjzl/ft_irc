@@ -200,9 +200,8 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 			if (channelLimit)
 				parameters.push_back(toString(channelLimit));
 		}
-		sender.sendErrorMessage(RPL_CHANNELMODEIS, parameters);
-
-		//RPL_CREATIONTIME TODO: SHOULD == MUST ...
+		sender.sendErrorMessage(RPL_CHANNELMODEIS, parameters); // TODO: does that work ?
+		sender.sendErrorMessage(RPL_CREATIONTIME, sender.getNickname(), channel->getName(), toString(channel->getCreationTime()));
 	}
 	else
 	{

@@ -4,6 +4,7 @@
 #include <string>
 #include <set>
 #include <map>
+#include <ctime>
 
 class Message;
 class Client;
@@ -17,6 +18,8 @@ class   Channel
 		std::set<std::string>		whiteList_; //(quicker search) if is not empty, is invite only channel
 		std::set<std::string>		operators_;
 		std::string					topic_;
+		time_t						creationTime_;
+
 
 		std::string					password_;
 		int							userLimit_;
@@ -39,6 +42,7 @@ class   Channel
 		const	std::string 				&getTopic() const;
 		const	std::string 				&getPassword() const;
 		int 								getUserLimit() const;
+		const	time_t						&getCreationTime() const;
 
 		// Setters => necessary or only Utils and full constructor?? 
 		void setTopic(const std::string &topic);
