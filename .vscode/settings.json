@@ -52,6 +52,7 @@
 		"sstream": "cpp",
 		"csignal": "cpp",
 		"cstring": "cpp",
-		"set": "cpp"
+		"set": "cpp",
+		"ctime": "cpp"
 	}
 }

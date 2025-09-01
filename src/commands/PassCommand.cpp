@@ -22,22 +22,13 @@ void PassCommand::execute(Server& server, Client& sender)
 	
 	// 461
 	if (inParams.size() == 0)
-	{
-		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
 	// 462
 	if (sender.getRegistrationLevel() > 0)
-	{
-		std::string arr[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, arr, 1));
-	}
+		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, sender.getNickname()));
 	// 464
 	if (inParams[0] != server.getPassword())
-	{
-		std::string arr[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_PASSWDMISMATCH, arr, 1));
-	}
+		return (sender.sendErrorMessage(ERR_PASSWDMISMATCH, sender.getNickname()));
 	// Sucess !
 	sender.incrementRegistrationLevel();
 	return;

@@ -33,16 +33,11 @@ void JoinCommand::execute(Server& server, Client& sender)
 	std::vector<std::string> inParams = inMessage_.getParams();
 	// 451
 	if (!sender.isAuthenticated())
-	{
-		std::string params[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_NOTREGISTERED, params, 1));
-	}
+		return (sender.sendErrorMessage(ERR_NOTREGISTERED, sender.getNickname()));
 	// 461
 	if (inParams.size() < 1)
-	{
-		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
+	
 	// Split the channels
 	std::stringstream stream_channel(inParams[0]);
 	std::stringstream stream_key;
@@ -55,8 +50,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 		// 403
 		if (channelName[0] != '#')
 		{
-			std::string arr[] = {sender.getNickname(), channelName};
-			sender.sendErrorMessage(ERR_NOSUCHCHANNEL, arr, 2);
+			sender.sendErrorMessage(ERR_NOSUCHCHANNEL, sender.getNickname(), channelName);
 			continue;
 		}
 		Channel *channel = (server.mapChannel(channelName)); 
@@ -71,22 +65,19 @@ void JoinCommand::execute(Server& server, Client& sender)
 		// ERR_BADCHANNELKEY (475)
 		if(!channel->checkKey(key))
 		{
-			std::string arr[] = {sender.getNickname(), channelName};
-			sender.sendErrorMessage(ERR_BADCHANNELKEY, arr, 2);
+			sender.sendErrorMessage(ERR_BADCHANNELKEY, sender.getNickname(), channelName);
 			continue;
 		}
 		// ERR_INVITEONLYCHAN (473)
 		if (channel->isInviteOnly() && !channel->isWhiteListed(sender.getNickname()))
 		{
-			std::string arr[] = {sender.getNickname(), channelName};
-			sender.sendErrorMessage(ERR_INVITEONLYCHAN, arr, 2);
+			sender.sendErrorMessage(ERR_INVITEONLYCHAN, sender.getNickname(), channelName);
 			continue;
 		}
 		// ERR_CHANNELISFULL (471)
 		if (channel->getUserLimit() && (int)channel->getMembers().size() == channel->getUserLimit())
 		{
-			std::string arr[] = {sender.getNickname(), channelName};
-			sender.sendErrorMessage(ERR_CHANNELISFULL, arr, 2);
+			sender.sendErrorMessage(ERR_CHANNELISFULL, sender.getNickname(), channelName);
 			continue;
 		}
 		// Success with adding member !
@@ -101,10 +92,7 @@ void JoinCommand::sendValidationMessages(Client& sender, Channel& channel)
 	debug("channel name : " + channel.getName());
 	// RPL_TOPIC (332)
 	if (channel.getTopic().length())
-	{
-		std::string params[] = {sender.getNickname(), channel.getName(), channel.getTopic()};
-		sender.sendErrorMessage(RPL_TOPIC, params, 3);
-	}
+		sender.sendErrorMessage(RPL_TOPIC, sender.getNickname(), channel.getName(), channel.getTopic());
 	sendValidationMessages_353_366(sender, channel);
 }
 
@@ -123,10 +111,7 @@ void JoinCommand::sendValidationMessages_353_366(Client& sender, Channel& channe
 	}
 	if (memberList.size() > 1)
 	{
-		std::string params[] = {sender.getNickname(), "=", channel.getName(), memberList};
-		sender.sendErrorMessage(RPL_NAMREPLY, params, 4);
-
-		std::string params2[] = {sender.getNickname(), channel.getName()};
-		sender.sendErrorMessage(RPL_ENDOFNAMES, params2, 2);
+		sender.sendErrorMessage(RPL_NAMREPLY, sender.getNickname(), "=", channel.getName(), memberList);
+		sender.sendErrorMessage(RPL_ENDOFNAMES, sender.getNickname(), channel.getName());
 	}
 }

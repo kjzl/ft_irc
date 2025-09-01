@@ -36,24 +36,16 @@ void NickCommand::execute(Server& server, Client& sender)
 		return;
 	// 431
 	if (inParams.empty())
-	{
-		std::string arr[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_NONICKNAMEGIVEN, arr, 1));
-	}
+		return (sender.sendErrorMessage(ERR_NONICKNAMEGIVEN, sender.getNickname()));
 	// 432
 	if (checkNickFormat(inParams[0]))
-	{
-		std::string arr[] = {sender.getNickname(), inParams[0]};
-		return (sender.sendErrorMessage(ERR_ERRONEUSNICKNAME, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_ERRONEUSNICKNAME, sender.getNickname(), inParams[0]));
 	// 433
 	CaseMappedString tmp(inParams[0]);
 	if (server.clientNickExists(tmp))
-	{
-		std::string arr[] = {sender.getNickname(), inParams[0]};
-		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, arr, 2));
-	}
-	if (registrationLevel == 1) // registering
+		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, sender.getNickname(), inParams[0]));
+	// registering
+	if (registrationLevel == 1)
 	{
 		sender.incrementRegistrationLevel();
 		sender.setNickname(inParams[0]);

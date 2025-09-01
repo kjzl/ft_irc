@@ -25,23 +25,15 @@ void WhoCommand::execute(Server& server, Client& sender)
 	std::vector<std::string> inParams = inMessage_.getParams();
 	// 451
 	if (!sender.isAuthenticated())
-	{
-		std::string params[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_NOTREGISTERED, params, 1));
-	}
+		return (sender.sendErrorMessage(ERR_NOTREGISTERED, sender.getNickname()));
 	// 461
 	if (inParams.size() < 1)
-	{
-		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
+	
 	std::string	channelName = inParams[0];
 	Channel *channel = (server.mapChannel(channelName)); 
 	// 403
 	if (channelName[0] != '#' || !channel)
-	{
-		std::string arr[] = {sender.getNickname(), channelName};
-		return(sender.sendErrorMessage(ERR_NOSUCHCHANNEL, arr, 2));
-	}
+		return(sender.sendErrorMessage(ERR_NOSUCHCHANNEL, sender.getNickname(), channelName));
 	sendValidationMessages_353_366(sender, *channel);
 }

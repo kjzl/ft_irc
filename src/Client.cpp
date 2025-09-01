@@ -162,9 +162,43 @@ void Client::sendErrorMessage(MessageType type, std::vector<std::string>& args) 
     sendMessage(outMessage);
 }
 
-void Client::sendErrorMessage(MessageType type, std::string args[], int size) const
+// void Client::sendErrorMessage(MessageType type, std::string args[], int size) const
+// {
+// 	std::vector<std::string> outParams(args, args + size);
+// 	sendErrorMessage(type, outParams);
+// }
+
+void Client::sendErrorMessage(MessageType type, std::string arg1) const
 {
-	std::vector<std::string> outParams(args, args + size);
+	std::vector<std::string> outParams;
+	outParams.push_back(arg1);
+	sendErrorMessage(type, outParams);
+}
+
+void Client::sendErrorMessage(MessageType type, std::string arg1, std::string arg2) const
+{
+	std::vector<std::string> outParams;
+	outParams.push_back(arg1);
+	outParams.push_back(arg2);
+	sendErrorMessage(type, outParams);
+}
+
+void Client::sendErrorMessage(MessageType type, std::string arg1, std::string arg2, std::string arg3) const
+{
+	std::vector<std::string> outParams;
+	outParams.push_back(arg1);
+	outParams.push_back(arg2);
+	outParams.push_back(arg3);
+	sendErrorMessage(type, outParams);
+}
+
+void Client::sendErrorMessage(MessageType type, std::string arg1, std::string arg2, std::string arg3, std::string arg4) const
+{
+	std::vector<std::string> outParams;
+	outParams.push_back(arg1);
+	outParams.push_back(arg2);
+	outParams.push_back(arg3);
+	outParams.push_back(arg4);
 	sendErrorMessage(type, outParams);
 }
 

@@ -13,6 +13,7 @@
 #include "TopicCommand.hpp"
 #include "ModeCommand.hpp"
 #include "WhoCommand.hpp"
+#include "UnknownCommand.hpp"
 
 // Default Constructor
 Command::Command( void ): inMessage_()
@@ -64,6 +65,7 @@ static void fillCommandMap(std::map<std::string, CommandFactory> &commandMap)
 	commandMap["TOPIC"]		= &TopicCommand::fromMessage;
 	commandMap["MODE"]		= &ModeCommand::fromMessage;
 	commandMap["WHO"]		= &WhoCommand::fromMessage;
+	commandMap["UNKNOWN"]	= &UnknownCommand::fromMessage;
 	//...
 }
 
@@ -75,7 +77,7 @@ Command* convertMessageToCommand(const Message& message)
 	std::string type = message.getType();
 	std::map<std::string, CommandFactory>::iterator it = commandMap.find(type);
 	if (it == commandMap.end())		
-		return NULL;
+		return (commandMap["UNKNOWN"](message));
 	Command* cmd = it->second(message);
 	return cmd;
 }
