@@ -4,57 +4,27 @@
 # include <string>
 # include <map>
 
+//see numeric specifications here : https://modern.ircdocs.horse/#numerics
 enum MessageType {
-	UNKNOWN,
-
-	/*
-	CLIENT MESSAGES
-	*/
-
-	// https://modern.ircdocs.horse/#nick-message
-	NICK,
-	// https://modern.ircdocs.horse/#user-message
-	USER,
-	// https://modern.ircdocs.horse/#ping-message
-	PING,
-	// https://modern.ircdocs.horse/#pong-message
-	PONG,
-	// https://modern.ircdocs.horse/#quit-message
-	QUIT,
-
-	/*
-	NUMERICS
-	*/
-
-	// https://modern.ircdocs.horse/#rplwelcome-001
-	RPL_WELCOME = 1,
-	// https://modern.ircdocs.horse/#rplyourhost-002
-	RPL_YOURHOST = 2,
-	RPL_CREATED = 3, // "<client> :This server was created <datetime>"
-	RPL_MYINFO = 4, // "<client> <servername> <version> <available user modes> <available channel modes> [<channel modes with a parameter>]"
-	// https://modern.ircdocs.horse/#error-message
 	ERROR,
-	// https://modern.ircdocs.horse/#errunknownerror-400
-	ERR_UNKNOWNERROR = 400,
-	// https://modern.ircdocs.horse/#errnotregistered-451
-	ERR_NOTREGISTERED = 451,
-	// https://modern.ircdocs.horse/#errneedmoreparams-461
-	ERR_NEEDMOREPARAMS = 461,
-	// https://modern.ircdocs.horse/#erralreadyregistered-462
-	ERR_ALREADYREGISTERED = 462,
-
+	QUIT,
+	RPL_WELCOME,
+	RPL_YOURHOST,
+	RPL_CREATED,
+	RPL_MYINFO,
+	ERR_NOTREGISTERED,
+	ERR_NEEDMOREPARAMS,
+	ERR_ALREADYREGISTERED,
 	ERR_UNKNOWNCOMMAND,
 	ERR_NONICKNAMEGIVEN,
 	ERR_ERRONEUSNICKNAME,
 	ERR_NICKNAMEINUSE,
     ERR_PASSWDMISMATCH,
-
-	// https://modern.ircdocs.horse/#errnosuchnick-401
-	ERR_NOSUCHNICK = 401,
-	ERR_NOSUCHCHANNEL = 403,
-	ERR_CANNOTSENDTOCHAN = 404,
-	ERR_NORECIPIENT = 411,
-	ERR_NOTEXTTOSEND = 412,
+	ERR_NOSUCHNICK,
+	ERR_NOSUCHCHANNEL,
+	ERR_CANNOTSENDTOCHAN,
+	ERR_NORECIPIENT,
+	ERR_NOTEXTTOSEND,
 	ERR_BADCHANNELKEY,
 	ERR_INVITEONLYCHAN,
 	RPL_TOPIC,
@@ -63,21 +33,20 @@ enum MessageType {
 	RPL_INVITING,
     ERR_NOTONCHANNEL,
     ERR_USERONCHANNEL,
-	//https://modern.ircdocs.horse/#rplumodeis-221
-	RPL_UMODEIS = 221,
-	ERR_USERSDONTMATCH = 502,
-	ERR_UMODEUNKNOWNFLAG = 501,
-	ERR_UNKNOWNMODE = 472, //"<client> <modechar> :is unknown mode char to me"
-	RPL_CHANNELMODEIS = 324,
-	RPL_CREATIONTIME = 329,
-	ERR_CHANOPRIVSNEEDED = 482,
+	RPL_UMODEIS,
+	ERR_USERSDONTMATCH,
+	ERR_UMODEUNKNOWNFLAG,
+	ERR_UNKNOWNMODE,
+	RPL_CHANNELMODEIS,
+	RPL_CREATIONTIME,
+	ERR_CHANOPRIVSNEEDED,
 	ERR_USERNOTINCHANNEL,
 	RPL_NOTOPIC,
 	ERR_CHANNELISFULL
 };
 
-MessageType parseCommandType(const std::string& type);
-std::ostream& operator<<(std::ostream& os, const MessageType& type);
+// MessageType parseCommandType(const std::string& type);
+// std::ostream& operator<<(std::ostream& os, const MessageType& type);
 
 struct IrcErrorInfo
 {

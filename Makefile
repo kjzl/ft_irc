@@ -41,7 +41,7 @@ HDRS_DIR	:= include
 
 DIRS = $(addprefix $(OBJ_DIR)/, .)
 
-INCLUDES := -I$(HDRS_DIR)
+INCLUDES := -I$(HDRS_DIR) -I$(HDRS_DIR)/commands
 
 SRCS := $(addprefix $(SRCS_DIR)/,\
 		main.cpp \
@@ -66,14 +66,13 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		commands/UnknownCommand.cpp \
 		)
 
-OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
+OBJS := $(SRCS:($SRCS_DIR)%.cpp=$(OBJ_DIR)/%.o)
 
 HDRS := $(addprefix $(HDRS_DIR)/,\
 		CaseMappedString.hpp \
 		Channel.hpp \
 		Client.hpp \
 		Command.hpp \
-		Channel.hpp \
 		MessageType.hpp \
 		ircUtils.hpp \
 		Message.hpp \
