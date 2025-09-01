@@ -107,9 +107,8 @@ void Message::parseIncomingMessage(const std::string& msg)
 	bool 						lastParam = false;
 
 	iss >> token;
-	if (token.empty())
-		throw WrongMessageFormatException("Message must not be empty."); //TODO: move this to an error_msg
 	// client messages cant have a source and we do not support tags
+	//TODO: this will stop running the server if one typed a Message beginning with @. that is not intended. Instead make a reply that works
 	if (token[0] == ':' || token[0] == '@')
 		throw WrongMessageFormatException("Message must not include a source or tag.");
 	type_ = token;
