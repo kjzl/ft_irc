@@ -59,6 +59,7 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 // TOPIC
 		errorMap[RPL_NOTOPIC]			= IrcErrorInfo("331", "No topic is set");
 		errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");
+		errorMap[RPL_TOPICWHOTIME]		= IrcErrorInfo("333", "");
 		// ...
 	}
 	return errorMap;

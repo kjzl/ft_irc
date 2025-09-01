@@ -8,6 +8,8 @@ Channel::Channel()
 	  whiteList_(),
 	  operators_(),
 	  topic_(""),
+	  topicWho_(),
+	  topicTime_(),
 	  creationTime_(time(NULL)),
 	  password_(""),
 	  userLimit_(0),
@@ -30,6 +32,8 @@ Channel::Channel(const std::string& name, const Client& sender)
 	  whiteList_(),
 	  operators_(),
 	  topic_(""),
+	  topicWho_(),
+	  topicTime_(),
 	  creationTime_(time(NULL)),
 	  password_(""),
 	  userLimit_(0),
@@ -55,6 +59,8 @@ Channel &Channel::operator=(const Channel &other)
 		this->operators_ = other.operators_;
 		this->creationTime_ = other.creationTime_;
 		this->topic_ = other.topic_;
+		this->topicWho_ = other.topicWho_,
+	  	this->topicTime_ = other.topicTime_,
 		this->password_ = other.password_;
 		this->userLimit_ = other.userLimit_;
 		this->isInviteOnly_ = other.isInviteOnly_;
@@ -107,10 +113,29 @@ const time_t &Channel::getCreationTime() const
 	return creationTime_;
 }
 
+const std::string &Channel::getTopicWho() const
+{
+	return topicWho_;
+}
+
+const time_t &Channel::getTopicTime() const
+{
+	return topicTime_;
+}
 // Setters
 void Channel::setTopic(const std::string &topic)
 {
 	topic_ = topic;
+}
+
+void Channel::setTopicWho(const std::string &topicWho)
+{
+	topicWho_ = topicWho;
+}
+
+void Channel::setTopicTime()
+{
+	topicTime_ = time(NULL);
 }
 
 void Channel::setPassword(const std::string &password)

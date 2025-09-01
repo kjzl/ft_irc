@@ -1,5 +1,7 @@
 #include "TopicCommand.hpp"
 #include "Debug.hpp"
+#include "ircUtils.hpp"
+
 // Default Constructor
 TopicCommand::TopicCommand( void ): Command()
 {
@@ -42,7 +44,7 @@ https://modern.ircdocs.horse/#topic-message
     ERR_CHANOPRIVSNEEDED (482)	=> done
     RPL_NOTOPIC (331)			=> done
     RPL_TOPIC (332)				=> done
-    RPL_TOPICWHOTIME (333)		=> NO : we dont hav history in our server !!
+    RPL_TOPICWHOTIME (333)		=> done
 
 */
 void	TopicCommand::execute(Server& server, Client& sender)
@@ -70,8 +72,12 @@ void	TopicCommand::execute(Server& server, Client& sender)
 		// RPL_NOTOPIC (331)
 		if (!channel->getTopic().size())
 			return (sender.sendErrorMessage(RPL_NOTOPIC, sender.getNickname(), channelName));
-		// RPL_TOPIC (332) + TODO: REPLYTOPICWHOTIME
-		return (sender.sendErrorMessage(RPL_TOPIC, sender.getNickname(), channelName, channel->getTopic()));
+		// RPL_TOPIC (332) + RPL_TOPICWHOTIME (333)
+		{
+			sender.sendErrorMessage(RPL_TOPIC, sender.getNickname(), channelName, channel->getTopic());
+			sender.sendErrorMessage(RPL_TOPICWHOTIME, sender.getNickname(), channelName, channel->getTopicWho(), toString(channel->getTopicTime()));
+			return;
+		}
 	}
 	else	// client wants to set the topic
 	{
@@ -80,6 +86,8 @@ void	TopicCommand::execute(Server& server, Client& sender)
 			return (sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, sender.getNickname(), channelName));
 		channel->setTopic(inParams[1]);
 		sender.sendCmdValidation(inMessage_, *channel);
+		channel->setTopicWho(sender.getNickname());
+		channel->setTopicTime();
 	}
 }
 
