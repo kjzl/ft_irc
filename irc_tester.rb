@@ -550,7 +550,7 @@ test_cases = [
     steps: [
       { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
       # Send and verify message
-      { client: :alice, command: "PRIVMSG #bla :Hi there!", expect: nil },
+      { client: :alice, command: "PRIVMSG #test :Hi there!", expect: nil },
       { client: :alice, command: "", expect: /401/ }
     ]
   },
