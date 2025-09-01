@@ -192,7 +192,7 @@ void Client::sendErrorMessage(MessageType type, std::string arg1, std::string ar
 	sendErrorMessage(type, outParams);
 }
 
-void Client::sendErrorMessage(MessageType type, std::string arg1, std::string arg2, std::string arg3, , std::string arg4) const
+void Client::sendErrorMessage(MessageType type, std::string arg1, std::string arg2, std::string arg3, std::string arg4) const
 {
 	std::vector<std::string> outParams;
 	outParams.push_back(arg1);
