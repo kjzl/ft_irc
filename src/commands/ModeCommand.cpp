@@ -181,6 +181,8 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 	if (parameters.size() == 1)
 	{
 	//RPL_CHANNELMODEIS
+		parameters.push_back(parameters[0]);
+		parameters[0] = sender.getNickname();
 		std::string	modetypes = "+";
 		if (channel->isInviteOnly())
 			modetypes += "i";
@@ -200,7 +202,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 			if (channelLimit)
 				parameters.push_back(toString(channelLimit));
 		}
-		sender.sendErrorMessage(RPL_CHANNELMODEIS, parameters); // TODO: does that work ?
+		sender.sendErrorMessage(RPL_CHANNELMODEIS, parameters);
 		sender.sendErrorMessage(RPL_CREATIONTIME, sender.getNickname(), channel->getName(), toString(channel->getCreationTime()));
 	}
 	else
