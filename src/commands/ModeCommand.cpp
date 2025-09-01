@@ -56,7 +56,7 @@ void	ModeCommand::userMode(Server& server, Client& sender)
 	std::vector<std::string> parameters = inMessage_.getParams();
 	std::string	senderNick = sender.getNickname();
 	CaseMappedString caseMappedNick(parameters[0]);
-	if (!server.clientNickExists(caseMappedNick)) // TODO: what is this check ?
+	if (!server.clientNickExists(caseMappedNick))
 		return (sender.sendErrorMessage(ERR_NOSUCHNICK, sender.getNickname(), parameters[0]));
 	if (senderNick != parameters[0])
 		return (sender.sendErrorMessage(ERR_USERSDONTMATCH, sender.getNickname()));
