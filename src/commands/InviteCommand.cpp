@@ -52,55 +52,34 @@ void	InviteCommand::execute(Server& server, Client& sender)
 
 	// 451
 	if (!sender.isAuthenticated())
-	{
-		std::string params[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_NOTREGISTERED, params, 1));
-	}
+		return (sender.sendErrorMessage(ERR_NOTREGISTERED, sender.getNickname()));
 	// 461
 	if (inParams.size() < 2)
-	{
-		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
+	
 	std::string	channelName = inParams[1];
 	std::string	invitedClient = inParams[0];
 	Channel *channel = server.mapChannel(channelName);
 	// 403
 	if (!channel)
-	{
-		std::string arr[] = {sender.getNickname(), channelName};
-		return (sender.sendErrorMessage(ERR_NOSUCHCHANNEL, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NOSUCHCHANNEL, sender.getNickname(), channelName));
 	// 442
 	if (!channel->isMember(sender.getNickname()))
-	{
-		std::string arr[] = {sender.getNickname(), channelName};
-		return (sender.sendErrorMessage(ERR_NOTONCHANNEL, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NOTONCHANNEL, sender.getNickname(), channelName));
 	// ERR_CHANOPRIVSNEEDED (482)
 	if (channel->isInviteOnly()	&& !channel->isOperator(sender.getNickname()))
-	{
-		std::string arr[] = {sender.getNickname(), channelName};
-		return (sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, sender.getNickname(), channelName));
 	// ERR_USERONCHANNEL (443)
 	if (channel->isMember(invitedClient))
-	{
-		std::string arr[] = {sender.getNickname(), invitedClient, channelName};
-		return (sender.sendErrorMessage(ERR_USERONCHANNEL, arr, 3));
-	}
+		return (sender.sendErrorMessage(ERR_USERONCHANNEL, sender.getNickname(), invitedClient, channelName));
 	// ERR_NOSUCHNICK (401)
 	CaseMappedString tmp(invitedClient);
 	if (!server.clientNickExists(tmp))
-	{
-		std::string arr[] = {sender.getNickname(), invitedClient};
-		return (sender.sendErrorMessage(ERR_NOSUCHNICK, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NOSUCHNICK, sender.getNickname(), invitedClient));
 	// ===> Success :)
 	channel->addToWhiteList(invitedClient);
 	// RPL_INVITING (341)
-	std::string arr[] = {sender.getNickname(), invitedClient, channelName};
-	sender.sendErrorMessage(RPL_INVITING, arr, 3);
+	sender.sendErrorMessage(RPL_INVITING, sender.getNickname(), invitedClient, channelName);
 	// sending the invitation !
 	sender.sendMessageTo(inMessage_, invitedClient, server);
 }

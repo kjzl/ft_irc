@@ -57,15 +57,9 @@ void	ModeCommand::userMode(Server& server, Client& sender)
 	std::string	senderNick = sender.getNickname();
 	CaseMappedString caseMappedNick(parameters[0]);
 	if (!server.clientNickExists(caseMappedNick)) // TODO: what is this check ?
-	{
-		std::string arr[] = {sender.getNickname(), parameters[0]};
-		return (sender.sendErrorMessage(ERR_NOSUCHNICK, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NOSUCHNICK, sender.getNickname(), parameters[0]));
 	if (senderNick != parameters[0])
-	{
-		std::string arr[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_USERSDONTMATCH, arr, 1));
-	}
+		return (sender.sendErrorMessage(ERR_USERSDONTMATCH, sender.getNickname()));
 	if (parameters.size() < 2)
 	{
 		parameters.push_back(senderNick);
@@ -113,10 +107,7 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 						channel->setPassword(parameters[paramIndex++]);
 					}
 					else // ERR_NEEDMOREPARAMS (461)
-					{
-						std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-						return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
-					}
+						return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
 				}
 				else
 					channel->setPassword("");
@@ -129,10 +120,7 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 						channel->setUserLimit(std::strtol(parameters[paramIndex++].c_str(), &endptr, 10));
 					}
 					else // ERR_NEEDMOREPARAMS (461)
-					{
-						std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-						return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
-					}
+						return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
 				} else {
 					channel->setUserLimit(0); // Disable user limit
 				}
@@ -148,15 +136,11 @@ void ModeCommand::processChannelModes(Client &sender, const std::string& modestr
 					paramIndex++;
 				}
 				else // ERR_NEEDMOREPARAMS (461)
-				{
-					std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-					return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
-				}
+					return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
 				break;
 				
 			default: // unkwown modes
-				std::string arr[] = {sender.getNickname(), inMessage_.getType(), std::string(1, *cIt)};
-				sender.sendErrorMessage(ERR_UNKNOWNMODE, arr, 3);
+				sender.sendErrorMessage(ERR_UNKNOWNMODE, sender.getNickname(), inMessage_.getType(), std::string(1, *cIt));
 				return;
 		}
 	}
@@ -223,10 +207,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 	else
 	{
 		if (!channel->isOperator(nickname))
-		{
-			std::string arr[] = {sender.getNickname(), channelName};
-			sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, arr, 2);
-		}
+			sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, sender.getNickname(), channelName);
 		// set Channel Modes, may ERR_NEEDMOREPARAMS
 		processChannelModes(sender, parameters[1], parameters, channel);
 	}
@@ -245,10 +226,7 @@ void	ModeCommand::execute(Server& server, Client& sender)
 	std::vector<std::string> parameters = inMessage_.getParams();
 	std::string	senderNick = sender.getNickname();
 	if (parameters.size() < 1)
-	{
-		std::string arr[] = {senderNick, inMessage_.getType()};
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, senderNick, inMessage_.getType()));
 	if (parameters[0][0] == '#')
 		return (channelMode(server, sender));
 	return (userMode(server, sender));

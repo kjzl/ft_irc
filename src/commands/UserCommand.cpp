@@ -48,16 +48,10 @@ void UserCommand::execute(Server& server, Client& sender)
 	}
 	// 461
 	if (inParams.size() < 4)
-	{
-		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
 	// 462
 	if (sender.isAuthenticated())
-	{
-		std::string arr[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, arr, 1));
-	}
+		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, sender.getNickname()));
 	// Sucess !
 	else if (sender.getRegistrationLevel() == 2)
 	{
