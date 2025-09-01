@@ -1,6 +1,7 @@
 #include "../include/Channel.hpp"
 #include "Client.hpp"
 #include "Message.hpp"
+#include "Debug.hpp"
 
 Channel::Channel()
 	: topic_(""), password_(""), userLimit_(0)
@@ -161,6 +162,7 @@ void Channel::addMember(const Client* client)
 
 void Channel::removeMember(const std::string &nickname)
 {
+	debug("removing Member: " + nickname + "from Channel");
 	std::map<std::string, int>::iterator foundMemberIt = members_.find(nickname);
 	if (foundMemberIt != members_.end())
 		members_.erase(foundMemberIt);

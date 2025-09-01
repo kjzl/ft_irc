@@ -48,6 +48,6 @@ void	QuitCommand::execute(Server& server, Client& sender)
 	if (!sender.isAuthenticated())
 		inMessage_.setSource(sender.getNickname(), sender.getUsername());
 	// do the exit & send notice to everyone
-	server.quitClient(sender, inMessage_.getParams());
+	server.quitClient(sender, inMessage_.getParams()[0]);
 }
 

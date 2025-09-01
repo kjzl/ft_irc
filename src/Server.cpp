@@ -164,13 +164,17 @@ Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> mes
 
 // used to removeClient from server (in poll and clients) and broadcast the Quit message.
 // if server needs to diconnect the client, modify messageParams to reflect reason
-void	Server::quitClient(const Client &quitter, std::vector<std::string> &messageParams)
+void	Server::quitClient(const Client &quitter, const std::string &reason)
 {
+	debug("quitting Client: " + quitter.getNickname());
 	std::vector<Client>::iterator clIt = std::find(clients_.begin(), clients_.end(), quitter);
 	size_t	clientIndex = clIt - clients_.begin();
 	if (pollFds_[clientIndex + 1].fd != quitter.getSocket())
 		throw std::logic_error("clientIndex in quitClient is not corespondent to the quitting client");
 	removeClient(clientIndex + 1);
+	std::vector<std::string>	messageParams;
+	messageParams.reserve(2);
+	messageParams.push_back(reason);
 	std::string	qNickname = quitter.getNickname();
 	messageParams.push_back(qNickname);
 	Message msg = buildErrorMessage(QUIT, messageParams);
@@ -179,8 +183,8 @@ void	Server::quitClient(const Client &quitter, std::vector<std::string> &message
 		Channel quittersChannel = cMapIter->second;
 		if (!quittersChannel.isMember(qNickname))
 			continue;
-		quittersChannel.broadcastMsg(quitter, msg);
 		quittersChannel.removeMember(qNickname);
+		quittersChannel.broadcastMsg(quitter, msg);
 	}
 }
 
@@ -280,6 +284,7 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 {
 	char	message[BUFSIZ];
 	int		bytesRead;
+	Client	client = clients_[pollIndex - 1];
 
 	// if (request.revents & POLLHUP)
 	// 	removeClient(pollIndex);
@@ -287,7 +292,9 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 	// {
 		bytesRead = recv(request.fd, message, BUFSIZ, MSG_DONTWAIT);
 		if (bytesRead == 0)
-			removeClient(pollIndex);
+		{
+			quitClient(client);
+		}
 		else if (bytesRead == -1)
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -298,7 +305,7 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 		{
 			std::cout << CYN << "[received a message from client: " << request.fd <<" ]" << RESET << std::endl;
 			clients_[pollIndex - 1].appendRawMessage(message, bytesRead);
-			makeMessage(clients_[pollIndex - 1]);
+			makeMessage(client);
 		}
 	// }
 }
