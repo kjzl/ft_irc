@@ -79,7 +79,7 @@ void	TopicCommand::execute(Server& server, Client& sender)
 		if (channel->isTopicProtected() && !channel->isOperator(sender.getNickname()))
 			return (sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, sender.getNickname(), channelName));
 		channel->setTopic(inParams[1]);
-		// TODO: send confirmation to channel
+		sender.sendCmdValidation(inMessage_, *channel);
 	}
 }
 
