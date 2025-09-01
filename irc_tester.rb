@@ -471,8 +471,8 @@ test_cases = [
       { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
       
       # Join channel
-      { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "test" } },
-      { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "test" } },
+      { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#test" } },
+      { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#test" } },
       
       # Send and verify message
       { client: :alice, command: "PRIVMSG #test :Hi!", expect: nil },
@@ -484,7 +484,7 @@ test_cases = [
 # Run tests
 begin
   # Set DEBUG=1 for verbose output
-  ENV['DEBUG'] = '1' 
+  # ENV['DEBUG'] = '1' 
   if tester.start_server
     tester.setup_common_procedures
     tester.run_test_suite(test_cases)
