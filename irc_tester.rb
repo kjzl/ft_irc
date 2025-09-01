@@ -214,10 +214,17 @@ class IrcservTester
   def send_command(client_id, command)
     client = @clients[client_id]
     return false unless client
-    puts "[CLIENT #{client_id} OUT] #{command}"
-    client[:stdin].puts(command)
-    sleep(0.1) #time for server to process
-    return true
+    # check connection is alive
+    begin
+      puts "[CLIENT #{client_id} OUT] #{command}"
+      client[:stdin].puts(command)
+      sleep(0.1) #time for server to process
+      return true
+    rescue Errno::EPIPE, IOError => e
+      puts "Connection to #{client_id} broken: #{e.message}"
+      @clients.delete(client_id)
+      return false
+    end
   end
 
 # sees if client received a message pattern
@@ -226,6 +233,10 @@ class IrcservTester
     return false unless client
     start_time = Time.now
     while (Time.now - start_time) < timeout
+      unless @clients[client_id]
+        puts "Client #{client_id} was disconnected"
+        return false
+      end
       client[:response_mutex].synchronize do
         client[:responses].each do |response|
           if response.match?(pattern)
@@ -237,6 +248,9 @@ class IrcservTester
       sleep(0.1)
     end
     puts "Timeout waiting for pattern: #{pattern} from client #{client_id}"
+    unless @clients[client_id]
+      puts "Client was disconnected during wait"
+    end
     client[:response_mutex].synchronize do
       puts "Last responses: #{client[:responses].last(5)}" if client[:responses].any?
     end
@@ -392,8 +406,8 @@ class IrcservTester
     #join a test channel
     define_procedure(:join_channel, [
       { client: :client, command: "JOIN $channel", expect: [
-      "$nickname!.+@.+ JOIN $channel",
-      ":.+ 353 $nickname . $channel",
+        /.+!.+@.+ JOIN /,
+      IRC::RPL_NAMREPLY,
       IRC::RPL_ENDOFNAMES
       ], timeout: 1.5 }
     ])
@@ -438,18 +452,20 @@ test_cases = [
     name: "Two Client Registration",
     clients: [:alice, :bob],
     steps: [
-      { 
-        procedure: :register_client, 
-        client_map: { client: :alice }, 
+      {
+        procedure: :register_client,
+        client_map: { client: :alice },
         variables: { nickname: "alice", password: "password" } 
       },
-      { 
-        procedure: :register_client, 
+      {
+        procedure: :register_client,
         client_map: { client: :bob },
         variables: { nickname: "bob", password: "password" } 
       }
     ]
   },
+  #--------------------------------------------------
+  # JOIN TESTS
   {
     name: "Join Channel Test",
     clients: [:alice, :bob],
@@ -459,43 +475,146 @@ test_cases = [
       { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
       
       # Join channel
-      # { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "test", nickname: "alice" } },
-      # { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "test", nickname: "bob" } },
+      # { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "test"} },
+      # { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "test"} },
       { client: :alice, command: "JOIN #test", expect: [
       /alice!.+@.+ JOIN #test/,
       /:.+ 353 alice . #test/,
-      IRC::RPL_ENDOFNAMES
+      /:.+ 366 alice #test :End of \/NAMES list/
       ], timeout: 1.5 },
       { client: :bob, command: "JOIN #test", expect: [
       /bob!.+@.+ JOIN #test/,
       /:.+ 353 bob . #test :.alice/,
-      IRC::RPL_ENDOFNAMES
+      /:.+ 366 bob #test :End of \/NAMES list/
       ], timeout: 1.5 }
     ]
   },
+  # Join malformed channelname
+  #--------------------------------------------------
+  # PRIVMSG TESTS
+  # privmsg to client
   {
-    name: "PRIVMSG Test",
+    name: "PRIVMSG to Client Test",
     clients: [:alice, :bob],
     steps: [
       # Register both clients
       { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
       { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
-      
       # Join channel
-      { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#test", nickname: "alice" } },
-      { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#test", nickname: "bob" } },
-      
+      { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#test"} },
+      { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#test"} },
       # Send and verify message
-      { client: :alice, command: "PRIVMSG #test :Hi!", expect: nil },
-      { client: :bob, command: "", expect: /PRIVMSG #test :Hi!/ }
+      { client: :alice, command: "PRIVMSG bob :Hi there!", expect: nil },
+      { client: :bob, command: "", expect: /:alice!alice@.+ PRIVMSG bob :Hi there!/, timeout: 3 }
+    ]
+  },
+  # privmsg to Channel
+  {
+    name: "PRIVMSG to Channel Test",
+    clients: [:alice, :bob],
+    steps: [
+      # Register both clients
+      { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+      { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
+      # Join channel
+      { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#test"} },
+      { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#test"} },
+      # Send and verify message
+      { client: :alice, command: "PRIVMSG #test :Hi there!", expect: nil },
+      { client: :bob, command: "", expect: /:alice!alice@.+ PRIVMSG #test :Hi there!/, timeout: 3 }
+    ]
+  },
+  {
+    name: "PRIVMSG to nonexistant Client Test",
+    clients: [:alice],
+    steps: [
+      { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+      # Send and verify message
+      { client: :alice, command: "PRIVMSG bob :Hi there!", expect: nil },
+      { client: :alice, command: "", expect: /401 alice bob / }
+    ]
+  },
+  {
+    name: "PRIVMSG to nonexistant Channel Test",
+    clients: [:alice],
+    steps: [
+      { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+      # Send and verify message
+      { client: :alice, command: "PRIVMSG #bla :Hi there!", expect: nil },
+      { client: :alice, command: "", expect: /401/ }
+    ]
+  },
+  {
+    name: "PRIVMSG to existant channel, while nobody is in Channel Test",
+    clients: [:alice],
+    steps: [
+      { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+      # Send and verify message
+      { client: :alice, command: "PRIVMSG #bla :Hi there!", expect: nil },
+      { client: :alice, command: "", expect: /401/ }
+    ]
+  },
+  {
+    name: "PRIVMSG to Channel while not in Channel Test",
+    clients: [:alice, :bob],
+    steps: [
+      # Register both clients
+      { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+      { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
+      # Join channel
+      { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#test"} },
+      # Send and verify message
+      { client: :alice, command: "PRIVMSG #test :Hi there!", expect: nil },
+      { client: :alice, command: "", expect: /401 alice #test / }
+    ]
+  },
+  #--------------------------------------------------
+  # TOPIC TESTS
+  {
+    name: "TOPIC setting",
+    clients: [:alice, :bob],
+    steps: [
+      # Register both clients
+      { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+      { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
+      # Join channel
+      { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#test"} },
+      { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#test"} },
+      # Send and verify message
+      { client: :alice, command: "TOPIC #test :Discuss the meaning of life", expect: [
+      /:alice!alice@.+ TOPIC #test :Discuss the meaning of life/,
+      /.+ 332 #test :Discuss the meaning of life/,
+      ] },
+      { client: :bob, command: "", expect: /:alice!alice@.+ TOPIC #test :Discuss the meaning of life/, timeout: 3 },
+    ]
+  },
+  {
+    name: "TOPIC displayed in join reply",
+    clients: [:alice, :bob],
+    steps: [
+      # Register both clients
+      { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+      { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
+      # Join channel
+      { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#test"} },
+      { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#test"} },
+      # Send and verify message
+      { client: :alice, command: "TOPIC #test :Discuss the meaning of life", expect: [
+      /:alice!alice@.+ TOPIC #test :Discuss the meaning of life/,
+      /.+ 332 #test :Discuss the meaning of life/,
+      ] },
+      { client: :bob, command: "", expect: /:alice!alice@.+ TOPIC #test :Discuss the meaning of life/, timeout: 3 },
+      { procedure: :join_channel, client_map: { client: :steve }, variables: { channel: "#test"} },
+      { client: :steve, command: "", expect: /:alice!alice@.+ TOPIC #test :Discuss the meaning of life/, timeout: 3 }
     ]
   }
+  # setting topic when not operator
 ]
 
 # Run tests
 begin
   # Set DEBUG=1 for verbose output
-  # ENV['DEBUG'] = '1' 
+  # ENV['DEBUG'] = '1'
   if tester.start_server
     tester.setup_common_procedures
     tester.run_test_suite(test_cases)
