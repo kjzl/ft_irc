@@ -1,6 +1,6 @@
-#include "../../include/PrivmsgCommand.hpp"
-#include "../../include/Debug.hpp"
-#include "../../include/MessageType.hpp"
+#include "PrivmsgCommand.hpp"
+#include "Debug.hpp"
+#include "MessageType.hpp"
 #include "Channel.hpp"
 #include <cstdlib>
 #include <sstream>

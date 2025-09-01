@@ -78,18 +78,18 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		ircUtils.hpp \
 		Message.hpp \
 		Server.hpp \
-		NickCommand.hpp \
-		PassCommand.hpp \
-		UserCommand.hpp \
-		PrivmsgCommand.hpp \
-		JoinCommand.hpp \
-		KickCommand.hpp \
-		QuitCommand.hpp \
-		InviteCommand.hpp \
-		TopicCommand.hpp \
-		ModeCommand.hpp \
-		WhoCommand.hpp \
-		UnknownCommand.hpp \
+		commands/NickCommand.hpp \
+		commands/PassCommand.hpp \
+		commands/UserCommand.hpp \
+		commands/PrivmsgCommand.hpp \
+		commands/JoinCommand.hpp \
+		commands/KickCommand.hpp \
+		commands/QuitCommand.hpp \
+		commands/InviteCommand.hpp \
+		commands/TopicCommand.hpp \
+		commands/ModeCommand.hpp \
+		commands/WhoCommand.hpp \
+		commands/UnknownCommand.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug

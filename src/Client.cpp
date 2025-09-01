@@ -1,6 +1,6 @@
-#include "../include/Client.hpp"
-#include "../include/Channel.hpp"
-#include "../include/MessageType.hpp"
+#include "Client.hpp"
+#include "Channel.hpp"
+#include "MessageType.hpp"
 #include "Debug.hpp"
 #include "Server.hpp"
 #include <algorithm>

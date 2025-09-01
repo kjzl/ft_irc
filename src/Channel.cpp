@@ -1,4 +1,4 @@
-#include "../include/Channel.hpp"
+#include "Channel.hpp"
 #include "Client.hpp"
 #include "Message.hpp"
 

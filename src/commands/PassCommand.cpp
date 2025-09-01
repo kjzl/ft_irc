@@ -1,6 +1,6 @@
 #include "PassCommand.hpp"
 #include "Debug.hpp"
-#include "../../include/MessageType.hpp"
+#include "MessageType.hpp"
 
 PassCommand::PassCommand(const Message& msg) : Command(msg)
 {}

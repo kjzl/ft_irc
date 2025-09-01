@@ -1,5 +1,5 @@
-#include "../include/Message.hpp"
-#include "../include/ircUtils.hpp"
+#include "Message.hpp"
+#include "ircUtils.hpp"
 #include "Server.hpp"
 #include <cctype>
 #include <sstream>

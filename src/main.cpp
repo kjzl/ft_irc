@@ -1,4 +1,4 @@
-#include "../include/Server.hpp"
+#include "Server.hpp"
 #include <cstring>
 #include <exception>
 #include <iostream>

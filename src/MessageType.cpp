@@ -1,8 +1,4 @@
 #include "MessageType.hpp"
-// #include <map>
-// #include <cctype>
-// #include <stdexcept>
-// #include <iostream>
 
 const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 {
