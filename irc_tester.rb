@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 require 'open3'
-require 'timeout'
 require 'thread'
 
   # IRC response codes
@@ -105,7 +104,7 @@ class IrcservTester
     @server_stderr = ""
     @clients = {}
     @server_pid = nil
-    @common_steps = {}
+    @procedures = {}
     @server_running = false
   end
 
@@ -122,10 +121,10 @@ class IrcservTester
           begin
             stdout.each_line do |line|
               @server_stdout << line; # saving into internal log var
-              puts "[SERVER OUT] #{line.chomp}" # printing out
+              puts "[SERVER OUT] #{line.chomp}" if ENV['DEBUG'] # printing out
             end
           rescue IOError => e
-            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running
+            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
           end
         end
 
@@ -133,15 +132,15 @@ class IrcservTester
           begin
             stderr.each_line do |line|
               @server_stderr << line;
-              puts "[SERVER ERR] #{line.chomp}"
+              puts "[SERVER ERR] #{line.chomp}" if ENV['DEBUG']
             end
           rescue IOError => e
-            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running
+            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
           end
         end
 
         exit_status = wait_thread.value
-        puts "[SERVER EXIT] status: #{exit_status}"
+        puts "[SERVER EXIT] status: #{exit_status}" if ENV['DEBUG']
       end
     end
     # wait time for server to start up
@@ -165,13 +164,20 @@ class IrcservTester
       stdout: stdout,
       stderr: stderr,
       pid: wait_thread.pid,
-      responses: []
+      responses: [],
+      response_mutex: Mutex.new
     }
     # reading responses inside seperate thread
     Thread.new do
-      stdout.each_line(chomp: true) do |line|
-        client[:responses] << line
-        puts "[CLIENT #{client_id} IN] #{line}"
+      begin
+        stdout.each_line(chomp: true) do |line|
+          client[:response_mutex].synchronize do 
+            client[:responses] << line
+          end
+          puts "[CLIENT #{client_id} IN] #{line}" if ENV['DEBUG']
+        end
+      rescue IOError => e
+        puts "[CLIENT #{client_id} IN THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
       end
     end
 
@@ -202,7 +208,6 @@ class IrcservTester
     end
   end
 
-
   # send command from specific client
   def send_command(client_id, command)
     client = @clients[client_id]
@@ -217,79 +222,91 @@ class IrcservTester
   def client_received?(client_id, pattern, timeout = 1)
     client = @clients[client_id]
     return false unless client
-    Timeout.timeout(timeout) do
-      loop do
+    start_time = Time.now
+    while (Time.now - start_time) < timeout
+      client[:response_mutex].synchronize do
         client[:responses].each do |response|
           if response.match?(pattern)
             puts "Client #{client_id} received expected pattern: #{pattern}"
             return true
           end
-        # if client[:responses].any? { |response| response.match?(pattern) }
-        #   return true
         end
-        sleep(0.1)
       end
+      sleep(0.1)
     end
-  rescue Timeout::Error
     puts "Timeout waiting for pattern: #{pattern} from client #{client_id}"
-    puts "Last responses: #{client[:responses].last(3)}"
+    client[:response_mutex].synchronize do
+      puts "Last responses: #{client[:responses].last(5)}" if client[:responses].any?
+    end
     return false
-  end
-
-  # puts steps into common steps under a name
-  def define_procedure(name, steps)
-    @common_steps[name] = steps
-    puts "Defined procedure '#{name}' with #{steps.length} steps"
   end
 
   def substitute_variables(text, variables)
     return text unless text && variables
     result = text.dup
     variables.each do |key, value|
-      result.gsub("$#{key}", value.to_s)
+      result = result.gsub("$#{key}", value.to_s)
     end
+    return result
   end
 
-  def execute_step(step, client_id)
-    variables = step[:variables] || {}
-    command = substitute_variables(step[:command], variables)
+  # puts steps into common steps under a name
+  def define_procedure(name, steps)
+    @procedures[name] = steps
+    puts "Defined procedure '#{name}' with #{steps.length} steps" if ENV['DEBUG']
+  end
+
+  def execute_step(step, variables = {})
+    all_variables = (step[:variables] || {}).merge(variables)
+
+    command = substitute_variables(step[:command], all_variables)
     expected = step[:expect]
     timeout = step[:timeout]
+    client_id = step[:client]
 
     send_command(client_id, command)
     return true unless expected
     if expected.is_a?(Array)
-      expected.all? do |pattern|
-        pattern = substitute_variables(pattern, variables) if pattern.is_a?(String)
+      return expected.all? do |pattern|
+        if pattern.is_a?(String)
+          pattern = substitute_variables(pattern, all_variables)
+          pattern = Regexp.new(Regexp.excape(pattern)) unless pattern.is_a?(Regexp)
+        end
         client_received?(client_id, pattern, timeout)
       end
     else
       if expected.is_a?(String)
-        expected = substitute_variables(expected, variables)
+        expected = substitute_variables(expected, all_variables)
+        expected = Regexp.new(Regexp.excape(expected)) unless expected.is_a?(Regexp)
       end
       client_received?(client_id, expected, timeout)
     end
   end
 
   def run_procedure(name, client_id_map = {}, variables = {})
-    return false unless @common_steps[name]
+    return false unless @procedures[name]
     puts "Running procedure '#{name}'..."
-    steps = @common_steps[name]
+    steps = @procedures[name]
     steps.each do |step|
-      client_id = client_id_map[step[:client]] || step[:client] # use clients from map or else the ones from procedure
-      step_with_custom_vars = step.merge(variables: (step[variables] || {}).merge(variables))
-      success = execute_step(step, client_id)
+      # map client from procedure to step
+      mapped_step = step.dup
+      if client_id_map[step[:client]]
+        mapped_step[:client] = client_id_map[step[:client]]
+      end
+      success = execute_step(mapped_step, variables)
       unless success
         puts "❌ Procedure '#{name}' failed at step: #{step[:command]}"
         return false
       end
     end
-    # puts "✓ Procedure '#{name}' completed successfully"
+    puts "✓ Procedure '#{name}' completed successfully"
     return true
   end
 
   def run_test_case(test_case)
-    puts "\nRunning test case: #{test_case[:name]}"
+    puts "\n" + "="*50
+    puts "Running test case: #{test_case[:name]}"
+    puts "="*50
     # setup all clients needed for this
     test_case[:clients].each do |client_id|
       connect_client(client_id) unless @clients[client_id]
@@ -298,7 +315,6 @@ class IrcservTester
     #exec test case steps
     test_case[:steps].each do |step|
       if step[:procedure]
-        # was given procedure, handle procedure
         client_map = step[:client_map] || {} # care, proceeds with empty if not given
         variables = step[:variables] || {}
         success = run_procedure(step[:procedure], client_map, variables)
@@ -310,7 +326,7 @@ class IrcservTester
       else
         # regular step
         client_id = step[:client]
-        success = execute_step(step, client_id)
+        success = execute_step(step)
         unless success
           puts "  ❌ Test case '#{test_case[:name]}' failed at step: #{step[:command]}"
           test_case[:clients].each { |client_id| disconnect_client(client_id) }
@@ -329,10 +345,9 @@ class IrcservTester
       result = run_test_case(test_case)
       results << { test_case: test_case[:name], passed: result }
     end
-
-    puts "\n------------------------------"
-    puts "Test Summary:"
-    puts "------------------------------"
+    puts "\n" + "="*20
+    puts "TEST SUMMARY:"
+    puts "="*20
     total = results.count
     passed = results.count { |result| result[:passed] }
     puts "#{passed}/#{total} test cases passed."
@@ -370,7 +385,7 @@ class IrcservTester
         IRC::RPL_YOURHOST,
         IRC::RPL_CREATED,
         IRC::RPL_MYINFO
-      ]}
+      ], timeout: 1.5}
     ])
     #join a test channel
     define_procedure(:join_channel, [
@@ -408,7 +423,23 @@ test_cases = [
     name: "Basic Registration",
     clients: [:alice],
     steps: [
-      { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } }
+      { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice", password: "password" } }
+    ]
+  },
+  {
+    name: "Two Client Registration",
+    clients: [:alice, :bob],
+    steps: [
+      { 
+        procedure: :register_client, 
+        client_map: { client: :alice }, 
+        variables: { nickname: "alice", password: "password" } 
+      },
+      { 
+        procedure: :register_client, 
+        client_map: { client: :bob },
+        variables: { nickname: "bob", password: "password" } 
+      }
     ]
   },
   {
@@ -450,6 +481,8 @@ test_cases = [
 
 # Run tests
 begin
+  # Set DEBUG=1 for verbose output
+  ENV['DEBUG'] = '1' 
   if tester.start_server
     tester.setup_common_procedures
     tester.run_test_suite(test_cases)
