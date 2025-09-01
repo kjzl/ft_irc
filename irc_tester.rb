@@ -272,14 +272,14 @@ class IrcservTester
       return expected.all? do |pattern|
         if pattern.is_a?(String)
           pattern = substitute_variables(pattern, all_variables)
-          pattern = Regexp.new(Regexp.excape(pattern)) unless pattern.is_a?(Regexp)
+          pattern = Regexp.new(Regexp.escape(pattern)) unless pattern.is_a?(Regexp)
         end
         client_received?(client_id, pattern, timeout)
       end
     else
       if expected.is_a?(String)
         expected = substitute_variables(expected, all_variables)
-        expected = Regexp.new(Regexp.excape(expected)) unless expected.is_a?(Regexp)
+        expected = Regexp.new(Regexp.escape(expected)) unless expected.is_a?(Regexp)
       end
       client_received?(client_id, expected, timeout)
     end
@@ -391,7 +391,11 @@ class IrcservTester
     ])
     #join a test channel
     define_procedure(:join_channel, [
-      { client: :client, command: "JOIN $channel", expect: /.+!.+@.+ JOIN / }
+      { client: :client, command: "JOIN $channel", expect: [
+      "$nickname!.+@.+ JOIN $channel",
+      ":.+ 353 $nickname . $channel",
+      IRC::RPL_ENDOFNAMES
+      ], timeout: 1.5 }
     ])
   end
 end
@@ -425,7 +429,9 @@ test_cases = [
     name: "Basic Registration",
     clients: [:alice],
     steps: [
-      { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice", password: "password" } }
+      { procedure: :register_client,
+        client_map: { client: :alice },
+        variables: { nickname: "alice", password: "password" } }
     ]
   },
   {
@@ -453,13 +459,18 @@ test_cases = [
       { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
       
       # Join channel
-      # { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "test" } },
-      # { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "test" } },
-      { client: :alice, command: "JOIN #test", expect: /.+!.+@.+ JOIN / },
-      { client: :bob, command: "JOIN #test", expect: /.+!.+@.+ JOIN / },
-      
-      # Additional steps specific to this test
-      { client: :bob, command: "", expect: /353.*alice.*bob/ }  # Check NAMES list includes both
+      # { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "test", nickname: "alice" } },
+      # { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "test", nickname: "bob" } },
+      { client: :alice, command: "JOIN #test", expect: [
+      /alice!.+@.+ JOIN #test/,
+      /:.+ 353 alice . #test/,
+      IRC::RPL_ENDOFNAMES
+      ], timeout: 1.5 },
+      { client: :bob, command: "JOIN #test", expect: [
+      /bob!.+@.+ JOIN #test/,
+      /:.+ 353 bob . #test :.alice/,
+      IRC::RPL_ENDOFNAMES
+      ], timeout: 1.5 }
     ]
   },
   {
@@ -471,8 +482,8 @@ test_cases = [
       { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
       
       # Join channel
-      { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#test" } },
-      { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#test" } },
+      { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#test", nickname: "alice" } },
+      { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#test", nickname: "bob" } },
       
       # Send and verify message
       { client: :alice, command: "PRIVMSG #test :Hi!", expect: nil },
