@@ -20,6 +20,7 @@ class   Client
 		std::string			username_;
 		std::string			realname_;
 		std::string			rawMessage_;
+		std::string			IP_;
 
 
 	public:
@@ -35,6 +36,7 @@ class   Client
 		const std::string		&getUsername() const;
 		const std::string		&getRealname() const;
 		const std::string		&getRawMessage() const;
+		const std::string		&getIP() const;
 
 		void	incrementRegistrationLevel(void);
 		int		getRegistrationLevel(void) const;
@@ -45,6 +47,7 @@ class   Client
 		void	setRealname(const std::string &realname);
 		void	setRawMessage(const std::string &rawMessage);
 		void	setSocket(int socket);
+		void	setIP(const std::string &IP);
 
 		bool	isAuthenticated()	const;
 		void	appendRawMessage(const char partialMessage[BUFSIZ], size_t length);

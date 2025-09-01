@@ -142,7 +142,9 @@ void	Server::acceptConnection( void )
 {
 	int clientFd;
 
-	clientFd = accept(getServerSocket(), NULL, NULL);
+	sockaddr_in client_addr;
+	socklen_t client_len;
+	clientFd = accept(getServerSocket(), (sockaddr *)&client_addr, &client_len);
 	if (clientFd == -1)
 		throw std::runtime_error("[Server] accept error");
 	addPollFd(clientFd, POLLIN, 0);
@@ -151,6 +153,7 @@ void	Server::acceptConnection( void )
 	Client newcomer;
 	newcomer.setSocket(clientFd);
 	clients_.push_back(newcomer);
+	clients_.back().setIP(inet_ntoa(client_addr.sin_addr));
 }
 
 Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> messageParams) const

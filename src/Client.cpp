@@ -12,7 +12,7 @@
 #include "ircUtils.hpp"
 
 
-Client::Client() : registrationLevel_(0), socket_(-1), nickname_(""), username_("*"), realname_(""), rawMessage_("")
+Client::Client() : registrationLevel_(0), socket_(-1), nickname_(""), username_("*"), realname_(""), rawMessage_(""), IP_()
 {}
 
 Client::Client(const Client &other)
@@ -30,6 +30,7 @@ Client &Client::operator=(const Client &other)
         this->realname_ = other.realname_;
 		this->rawMessage_ = other.rawMessage_;
         this->socket_ = other.socket_;
+		this->IP_ = other.IP_;
     }
     return *this;
 }
@@ -83,6 +84,11 @@ const std::string &Client::getRawMessage() const
     return rawMessage_;
 }
 
+const std::string &Client::getIP() const
+{
+    return IP_;
+}
+
 void Client::clearMessage()
 {
 	rawMessage_.clear();
@@ -126,6 +132,11 @@ void Client::setRawMessage(const std::string &rawMessage)
     rawMessage_ = rawMessage;
 }
 
+void Client::setIP(const std::string &IP)
+{
+    IP_ = IP;
+}
+
 void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 {
 	rawMessage_ += std::string(partialMessage, length);
@@ -139,7 +150,7 @@ void	Client::sendMessage(Message toSend) const
 
 bool	Client::sendMessageTo(Message msg, const std::string recipientNickname, Server &server) const
 {
-	msg.setSource(nickname_,  username_);
+	msg.setSource(*this);
 	std::vector<Client> clients = server.getClients();
 	std::vector<Client>::iterator clientIt = std::find(clients.begin(), clients.end(), recipientNickname);
 	if (clientIt != clients.end())
@@ -246,7 +257,7 @@ int		Client::safeSend(const std::string &string) const
 void Client::sendCmdValidation(const Message inMessage) const
 {
 	Message outMessage(inMessage);
-	outMessage.setSource(nickname_, username_);
+	outMessage.setSource(*this);
 	sendMessage(outMessage);
 }
 
@@ -254,6 +265,6 @@ void Client::sendCmdValidation(const Message inMessage, const Channel &channel) 
 {
 	sendCmdValidation(inMessage);
 	Message outMessage(inMessage);
-	outMessage.setSource(nickname_, username_);
+	outMessage.setSource(*this);
 	channel.broadcastMsg(*this, outMessage);
 }
