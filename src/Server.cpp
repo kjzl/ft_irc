@@ -207,12 +207,6 @@ void Server::executeIncomingCommandMessage(Client& sender, const std::string& ra
 	Message message(rawMessage);
 	debug("Parsed message: " + message.getType() + " with params: " + toString(message.getParams().size()));
 	Command* cmd = convertMessageToCommand(message);
-	if (!cmd)
-	{
-		std::string arr[] = {sender.getNickname(), message.getType()};
-		sender.sendErrorMessage(ERR_UNKNOWNCOMMAND, arr, 2);
-		return;
-	}
 	cmd->execute(*this, sender);
 	delete cmd;
 }
