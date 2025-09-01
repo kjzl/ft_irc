@@ -32,12 +32,9 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, Server& server, Cli
 		// }
 	}
 	else
-		 messageSentSuccessfully = (sender.sendMessageTo(inMessage_, recipient, server));
+		messageSentSuccessfully = (sender.sendMessageTo(inMessage_, recipient, server));
 	if (!messageSentSuccessfully)
-	{
-		std::string arr[] = {sender.getNickname(), recipient};
-		return (sender.sendErrorMessage(ERR_NOSUCHNICK, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NOSUCHNICK, sender.getNickname(), recipient));
 }
 
 /*
@@ -57,15 +54,9 @@ void PrivmsgCommand::execute(Server& server, Client& sender)
 	if (!sender.isAuthenticated())
 		return;
 	if (inParams[0].empty())
-	{
-		std::string arr[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_NORECIPIENT, arr, 1));
-	}
+		return (sender.sendErrorMessage(ERR_NORECIPIENT, sender.getNickname()));
 	if (inParams.size() < 2)
-	{
-		std::string arr[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_NOTEXTTOSEND, arr, 1));
-	}
+		return (sender.sendErrorMessage(ERR_NOTEXTTOSEND, sender.getNickname()));
 
 	std::stringstream stream(inParams[0]);
 	std::string recipient;

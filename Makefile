@@ -63,6 +63,7 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		commands/TopicCommand.cpp \
 		commands/ModeCommand.cpp \
 		commands/WhoCommand.cpp \
+		commands/UnknownCommand.cpp \
 		)
 
 OBJS := $(SRCS:($SRCS_DIR)%.c=$(OBJ_DIR)/%.o)
@@ -88,6 +89,7 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		TopicCommand.hpp \
 		ModeCommand.hpp \
 		WhoCommand.hpp \
+		UnknownCommand.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug

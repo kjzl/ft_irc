@@ -49,45 +49,31 @@ void	KickCommand::execute(Server& server, Client& sender)
 
 	// 451
 	if (!sender.isAuthenticated())
-	{
-		std::string params[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_NOTREGISTERED, params, 1));
-	}
+		return (sender.sendErrorMessage(ERR_NOTREGISTERED, sender.getNickname()));
 	// 461
-	if (inParams.size() < 2)
-	{
-		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
-	}
+	if (inParams.size() < 1)
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
+	
 	std::string	channelName = inParams[0];
 	std::string	targetClient;
 	Channel *channel = server.mapChannel(channelName);
 	// 403
 	if (!channel)
-	{
-		std::string arr[] = {sender.getNickname(), channelName};
-		return (sender.sendErrorMessage(ERR_NOSUCHCHANNEL, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NOSUCHCHANNEL, sender.getNickname(), channelName));
 	// 442
 	if (!channel->isMember(sender.getNickname()))
-	{
-		std::string arr[] = {sender.getNickname(), channelName};
-		return (sender.sendErrorMessage(ERR_NOTONCHANNEL, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NOTONCHANNEL, sender.getNickname(), channelName));
 	// ERR_CHANOPRIVSNEEDED (482)
 	if (!channel->isOperator(sender.getNickname()))
-	{
-		std::string arr[] = {sender.getNickname(), channelName};
-		return (sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, sender.getNickname(), channelName));
 	std::stringstream targetClientStream(inParams[1]);
 	while (std::getline(targetClientStream, targetClient, ','))
 	{
 		// ERR_USERNOTINCHANNEL (441)
-		if (! channel->isMember(targetClient))
+		if (!channel->isMember(targetClient))
 		{
-			std::string arr[] = {sender.getNickname(), targetClient, channelName};
-			return (sender.sendErrorMessage(ERR_USERNOTINCHANNEL, arr, 3));
+			sender.sendErrorMessage(ERR_USERNOTINCHANNEL, sender.getNickname(), targetClient, channelName);
+			continue;
 		}
 		// ===> Success :)
 		channel->removeMember(targetClient);
@@ -98,6 +84,7 @@ void	KickCommand::execute(Server& server, Client& sender)
 		if (inMessage_.getParams().size() == 2)
 			inMessage_.getParams().push_back(":You have been kicked out (No reason provided)");
 		sender.sendMessageTo(inMessage_, targetClient, server);
+		//TODO: sending reply to channel
 	}
 }
 

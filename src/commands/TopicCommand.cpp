@@ -51,51 +51,33 @@ void	TopicCommand::execute(Server& server, Client& sender)
 
 	// 451
 	if (!sender.isAuthenticated())
-	{
-		std::string params[] = {sender.getNickname()};
-		return (sender.sendErrorMessage(ERR_NOTREGISTERED, params, 1));
-	}
+		return (sender.sendErrorMessage(ERR_NOTREGISTERED, sender.getNickname()));
 	// 461
 	if (inParams.size() < 1)
-	{
-		std::string arr[] = {sender.getNickname(), inMessage_.getType()};
-		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
+
 	std::string	channelName = inParams[0];
 	std::string	targetClient;
 	Channel *channel = server.mapChannel(channelName);
 	// 403
 	if (!channel)
-	{
-		std::string arr[] = {sender.getNickname(), channelName};
-		return (sender.sendErrorMessage(ERR_NOSUCHCHANNEL, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NOSUCHCHANNEL, sender.getNickname(), channelName));
 	// 442
 	if (!channel->isMember(sender.getNickname()))
-	{
-		std::string arr[] = {sender.getNickname(), channelName};
-		return (sender.sendErrorMessage(ERR_NOTONCHANNEL, arr, 2));
-	}
+		return (sender.sendErrorMessage(ERR_NOTONCHANNEL, sender.getNickname(), channelName));
 	if (inParams.size() == 1)	// client wants to get the channel topic
 	{
 		// RPL_NOTOPIC (331)
 		if (!channel->getTopic().size())
-		{
-			std::string arr[] = {sender.getNickname(), channelName};
-			return (sender.sendErrorMessage(RPL_NOTOPIC, arr, 2));
-		}
+			return (sender.sendErrorMessage(RPL_NOTOPIC, sender.getNickname(), channelName));
 		// RPL_TOPIC (332)
-		std::string arr[] = {sender.getNickname(), channelName, channel->getTopic()};
-		return (sender.sendErrorMessage(RPL_TOPIC, arr, 3));
+		return (sender.sendErrorMessage(RPL_TOPIC, sender.getNickname(), channelName, channel->getTopic()));
 	}
 	else	// client wants to set the topic
 	{
 		// ERR_CHANOPRIVSNEEDED (482)
 		if (channel->isTopicProtected() && !channel->isOperator(sender.getNickname()))
-		{
-			std::string arr[] = {sender.getNickname(), channelName};
-			return (sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, arr, 2));
-		}
+			return (sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, sender.getNickname(), channelName));
 		channel->setTopic(inParams[1]);
 	}
 }
