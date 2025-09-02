@@ -109,9 +109,6 @@ void JoinCommand::sendValidationMessages_353_366(Client& sender, Channel& channe
 			memberList += it->first + " ";
 		}
 	}
-	if (memberList.size() > 1)
-	{
-		sender.sendErrorMessage(RPL_NAMREPLY, sender.getNickname(), "=", channel.getName(), memberList);
-		sender.sendErrorMessage(RPL_ENDOFNAMES, sender.getNickname(), channel.getName());
-	}
+	sender.sendErrorMessage(RPL_NAMREPLY, sender.getNickname(), "=", channel.getName(), memberList);
+	sender.sendErrorMessage(RPL_ENDOFNAMES, sender.getNickname(), channel.getName());
 }
