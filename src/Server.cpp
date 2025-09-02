@@ -283,6 +283,7 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 {
 	char	message[BUFSIZ];
 	int		bytesRead;
+	Client	client = clients_[pollIndex - 1];
 
 	// if (request.revents & POLLHUP)
 	// 	removeClient(pollIndex);
@@ -300,8 +301,8 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 		else
 		{
 			std::cout << CYN << "[received a message from client: " << request.fd <<" ]" << RESET << std::endl;
-			clients_[pollIndex - 1].appendRawMessage(message, bytesRead);
-			makeMessage(clients_[pollIndex - 1]);
+			client.appendRawMessage(message, bytesRead);
+			makeMessage(client);
 		}
 	// }
 }
@@ -332,7 +333,14 @@ void	Server::waitForRequests(void)
 				if (pollIndex == 0)
 					acceptConnection();
 				else
+				{
+					try {
 					processPollIn(pollFds_[pollIndex], pollIndex);
+					} catch (std::runtime_error &e) {
+						// TODO: send gerenic error reply to client
+						std::cerr << "[Server] " << e.what() << ": " << strerror(errno) << std::endl;
+					}
+				}
 				std::cout << std::endl;
 			}
 		}
