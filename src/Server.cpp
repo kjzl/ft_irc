@@ -172,12 +172,12 @@ void	Server::quitClient(const Client &quitter, const std::string &reason)
 	if (pollFds_[clientIndex + 1].fd != quitter.getSocket())
 		throw std::logic_error("clientIndex in quitClient is not corespondent to the quitting client");
 	removeClient(clientIndex + 1);
-	std::vector<std::string>	messageParams;
-	messageParams.reserve(2);
-	messageParams.push_back(reason);
 	std::string	qNickname = quitter.getNickname();
-	messageParams.push_back(qNickname);
-	Message msg = buildErrorMessage(QUIT, messageParams);
+	Message msg;
+	if (reason != "")
+		Message msg("QUIT", "Quit", reason, quitter);
+	else
+		Message msg("QUIT", "Quit", quitter);
 	for (std::map<std::string, Channel>::iterator cMapIter = channels_.begin(); cMapIter != channels_.end(); cMapIter++)
 	{
 		Channel quittersChannel = cMapIter->second;
@@ -293,7 +293,7 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 		bytesRead = recv(request.fd, message, BUFSIZ, MSG_DONTWAIT);
 		if (bytesRead == 0)
 		{
-			quitClient(client);
+			quitClient(client, "");
 		}
 		else if (bytesRead == -1)
 		{
@@ -336,7 +336,12 @@ void	Server::waitForRequests(void)
 				if (pollIndex == 0)
 					acceptConnection();
 				else
-					processPollIn(pollFds_[pollIndex], pollIndex);
+					try {
+						processPollIn(pollFds_[pollIndex], pollIndex);
+					} catch (std::runtime_error &e) {
+						//TODO: send generic error reply to client
+						std::cerr << "[Server] " << e.what() << ": " << strerror(errno) << std::endl;
+					}
 				std::cout << std::endl;
 			}
 		}
