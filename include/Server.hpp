@@ -36,31 +36,34 @@ class Server {
 		void		broadcastMsg(const Message &message) const;
 		void		broadcastErrorMessage(MessageType type, std::string args[], int size) const;
 		void		broadcastErrorMessage(MessageType type, std::vector<std::string>& args) const;
-		void		quitClient(const Client &quitter, std::vector<std::string> &messageParams);
+
+		void		quitClient(const Client &quitter);
+		void		quitClient(const Client &quitter,  const std::string &messageParams);
 		const char	*getTimeCreatedHumanReadable() const;
 		// everything is exposed :
 		std::vector<Client>&			getClients(void);
 		std::map<std::string, Channel>&	getChannels(void);
 		// Utils
-		Channel* mapChannel(const std::string& channelName);
+		Channel*	mapChannel(const std::string& channelName);
 
 	private:
 		Server( void );
 		// Getters and setters
-		int		getPort( void ) const;
-		int		getServerSocket( void ) const;
-		void	setServerSocket( int serverSocketFd );
-		void	addPollFd(const int fd, const short events, const short revents);
+		int			getPort( void ) const;
+		int			getServerSocket( void ) const;
+		void		setServerSocket( int serverSocketFd );
+		void		addPollFd(const int fd, const short events, const short revents);
 
-		void	createListeningSocket(void);
-		void	serverInit(void);
-		void	acceptConnection();
-		void	processPollIn(struct pollfd request, int pollIndex);
-		void	removeClient(int pollIndexToRemove);
+		void		createListeningSocket(void);
+		void		serverInit(void);
+		void		acceptConnection();
+		void		processPollIn(struct pollfd request, int pollIndex);
+		void		removeClient(int pollIndexToRemove);
 		static void	signalHandler(int signum);
-		void	makeMessage(Client &client);
-		void	executeIncomingCommandMessage(Client& sender, const std::string& rawMessage);
-		Message	buildErrorMessage(MessageType type, std::vector<std::string> messageParams) const;
+		void		makeMessage(Client &client);
+		void		executeIncomingCommandMessage(Client& sender, const std::string& rawMessage);
+		Message		buildErrorMessage(MessageType type, std::vector<std::string> messageParams) const;
+		void		quitClient(const Client &quitter,  const Message &msg);
 
 		
 		const std::string				name_;				
