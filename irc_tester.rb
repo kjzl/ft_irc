@@ -1,8 +1,120 @@
 #!/usr/bin/env ruby
 require 'open3'
 require 'thread'
+require 'optparse'
 
 TIMEOUT = 1.5 # seconds
+
+# Color constants for clean output
+class Colors
+  RED = "\033[31m"
+  GREEN = "\033[32m"
+  YELLOW = "\033[33m"
+  BLUE = "\033[34m"
+  MAGENTA = "\033[35m"
+  CYAN = "\033[36m"
+  WHITE = "\033[37m"
+  BOLD = "\033[1m"
+  DIM = "\033[2m"
+  RESET = "\033[0m"
+end
+
+# Logger class with 4 levels: quiet, normal, verbose, debug
+class Logger
+  LEVELS = {
+    quiet: 0,
+    normal: 1,
+    verbose: 2,
+    debug: 3
+  }.freeze
+
+  def initialize(level = :normal)
+    @level = LEVELS[level] || LEVELS[:normal]
+    @start_time = Time.now
+  end
+
+  def set_level(level)
+    @level = LEVELS[level] || LEVELS[:normal]
+  end
+
+  def quiet?
+    @level >= LEVELS[:quiet]
+  end
+
+  def normal?
+    @level >= LEVELS[:normal]
+  end
+
+  def verbose?
+    @level >= LEVELS[:verbose]
+  end
+
+  def debug?
+    @level >= LEVELS[:debug]
+  end
+
+  # Test result output (always shown except in quiet mode for intermediate steps)
+  def test_result(message, success = nil)
+    return unless quiet?
+    
+    if success.nil?
+      puts message
+    else
+      emoji = success ? "✅" : "❌"
+      puts "#{emoji} #{message}"
+    end
+  end
+
+  # Progress indicators and timing (normal level and above)
+  def progress(message, with_timing: false)
+    return unless normal?
+    
+    if with_timing
+      elapsed = Time.now - @start_time
+      puts "#{Colors::BLUE}[#{elapsed.round(2)}s]#{Colors::RESET} #{message}"
+    else
+      puts message
+    end
+  end
+
+  # IRC commands and responses (verbose level and above)
+  def verbose(message, color: nil)
+    return unless verbose?
+    
+    if color
+      puts "#{color}#{message}#{Colors::RESET}"
+    else
+      puts message
+    end
+  end
+
+  # Server output and detailed debugging (debug level only)
+  def debug(message, color: nil)
+    return unless debug?
+    
+    if color
+      puts "#{color}#{message}#{Colors::RESET}"
+    else
+      puts "#{Colors::DIM}#{message}#{Colors::RESET}"
+    end
+  end
+
+  # Summary output (always shown)
+  def summary(message)
+    puts "#{Colors::BOLD}#{message}#{Colors::RESET}"
+  end
+
+  # Error messages (always shown)
+  def error(message)
+    puts "#{Colors::RED}#{Colors::BOLD}ERROR:#{Colors::RESET} #{Colors::RED}#{message}#{Colors::RESET}"
+  end
+
+  # Warning messages (normal level and above)
+  def warning(message)
+    return unless normal?
+    puts "#{Colors::YELLOW}#{Colors::BOLD}WARNING:#{Colors::RESET} #{Colors::YELLOW}#{message}#{Colors::RESET}"
+  end
+end
 
   # IRC response codes
   module IRC
@@ -99,7 +211,7 @@ TIMEOUT = 1.5 # seconds
 
 class IrcservTester
   attr_reader :server_stdout, :server_stderr
-  def initialize(port: 6667, password: "password")
+  def initialize(port: 6667, password: "password", logger: nil)
     @port = port
     @password = password
     @server_stdout = ""
@@ -108,11 +220,12 @@ class IrcservTester
     @server_pid = nil
     @procedures = {}
     @server_running = false
+    @logger = logger || Logger.new(:normal)
   end
 
   def start_server
     return true if @server_running
-    puts "Starting IRC server on port #{@port} with password '#{@password}'..."
+    @logger.progress("Starting IRC server on port #{@port} with password '#{@password}'...", with_timing: true)
     system("make") or raise "Failed to compile ircserv!"
     @server_thread = Thread.new do
       Open3.popen3("./ircserv #{@port} #{@password}") do |stdin, stdout, stderr, wait_thread|
@@ -123,10 +236,10 @@ class IrcservTester
           begin
             stdout.each_line do |line|
               @server_stdout << line; # saving into internal log var
-              puts "[SERVER OUT] #{line.chomp}" if ENV['DEBUG'] # printing out
+              @logger.debug("[SERVER OUT] #{line.chomp}", color: Colors::GREEN)
             end
           rescue IOError => e
-            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
+            @logger.debug("[SERVER OUT THREAD] Closed: #{e.message}") if @server_running
           end
         end
 
@@ -134,23 +247,23 @@ class IrcservTester
           begin
             stderr.each_line do |line|
               @server_stderr << line;
-              puts "[SERVER ERR] #{line.chomp}" if ENV['DEBUG']
+              @logger.debug("[SERVER ERR] #{line.chomp}", color: Colors::RED)
             end
           rescue IOError => e
-            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
+            @logger.debug("[SERVER ERR THREAD] Closed: #{e.message}") if @server_running
           end
         end
 
         exit_status = wait_thread.value
-        puts "[SERVER EXIT] status: #{exit_status}" if ENV['DEBUG']
+        @logger.debug("[SERVER EXIT] status: #{exit_status}")
       end
     end
     # wait time for server to start up
     sleep(1)
-    puts "Server started with PID: #{@server_pid}"
+    @logger.progress("Server started with PID: #{@server_pid}")
     return true
   rescue => e
-    puts "Failed to start server: #{e.message}"
+    @logger.error("Failed to start server: #{e.message}")
     @server_running = false
     return false
   end
@@ -158,7 +271,7 @@ class IrcservTester
   # connect new client
   def connect_client(client_id)
     return false if @clients[client_id]
-    puts "Connecting client #{client_id} to ircserv with netcat..."
+    @logger.progress("Connecting client #{client_id} to ircserv with netcat...")
     stdin, stdout, stderr, wait_thread = Open3.popen3("nc localhost #{@port}")
     client = {
       id: client_id,
@@ -176,25 +289,25 @@ class IrcservTester
           client[:response_mutex].synchronize do 
             client[:responses] << line
           end
-          puts "[CLIENT #{client_id} IN] #{line}" if ENV['DEBUG']
+          @logger.verbose("[CLIENT #{client_id} IN] #{line}", color: Colors::CYAN)
         end
       rescue IOError => e
-        puts "[CLIENT #{client_id} IN THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
+        @logger.debug("[CLIENT #{client_id} IN THREAD] Closed: #{e.message}") if @server_running
       end
     end
 
     @clients[client_id] = client
-    puts "Client #{client_id} connected with PID: #{client[:pid]}"
+    @logger.progress("Client #{client_id} connected with PID: #{client[:pid]}")
     return true
   rescue => e
-    puts "Failed to connect client #{client_id}: #{e.message}"
+    @logger.error("Failed to connect client #{client_id}: #{e.message}")
     return false
   end
 
   def disconnect_client(client_id)
     client = @clients[client_id]
     return false unless client
-    puts "Disconnecting client #{client_id}"
+    @logger.progress("Disconnecting client #{client_id}")
     begin
       # kill the client process
       Process.kill("TERM", client[:pid]) rescue nil
@@ -205,7 +318,7 @@ class IrcservTester
       @clients.delete(client_id)
       return true
     rescue => e
-      puts "Failed to disconnect client #{client_id}: #{e.message}"
+      @logger.error("Failed to disconnect client #{client_id}: #{e.message}")
       return false
     end
   end
@@ -216,12 +329,12 @@ class IrcservTester
     return false unless client
     # check connection is alive
     begin
-      puts "[CLIENT #{client_id} OUT] #{command}"
+      @logger.verbose("[CLIENT #{client_id} OUT] #{command}", color: Colors::YELLOW)
       client[:stdin].puts(command)
       sleep(0.1) #time for server to process
       return true
     rescue Errno::EPIPE, IOError => e
-      puts "Connection to #{client_id} broken: #{e.message}"
+      @logger.error("Connection to #{client_id} broken: #{e.message}")
       @clients.delete(client_id)
       return false
     end
@@ -234,25 +347,25 @@ class IrcservTester
     start_time = Time.now
     while (Time.now - start_time) < timeout
       unless @clients[client_id]
-        puts "Client #{client_id} was disconnected"
+        @logger.debug("Client #{client_id} was disconnected")
         return false
       end
       client[:response_mutex].synchronize do
         client[:responses].each do |response|
           if response.match?(pattern)
-            puts "Client #{client_id} received expected pattern: #{pattern}"
+            @logger.verbose("Client #{client_id} received expected pattern: #{pattern}", color: Colors::GREEN)
             return true
           end
         end
       end
       sleep(0.1)
     end
-    puts "Timeout waiting for pattern: #{pattern} from client #{client_id}"
+    @logger.verbose("Timeout waiting for pattern: #{pattern} from client #{client_id}", color: Colors::RED)
     unless @clients[client_id]
-      puts "Client was disconnected during wait"
+      @logger.debug("Client was disconnected during wait")
     end
     client[:response_mutex].synchronize do
-      puts "Last responses: #{client[:responses].last(5)}" if client[:responses].any?
+      @logger.debug("Last responses: #{client[:responses].last(5)}") if client[:responses].any?
     end
     return false
   end
@@ -269,7 +382,7 @@ class IrcservTester
   # puts steps into common steps under a name
   def define_procedure(name, steps)
     @procedures[name] = steps
-    puts "Defined procedure '#{name}' with #{steps.length} steps" if ENV['DEBUG']
+    @logger.debug("Defined procedure '#{name}' with #{steps.length} steps")
   end
 
   def execute_step(step, variables = {})
@@ -301,7 +414,7 @@ class IrcservTester
 
   def run_procedure(name, client_id_map = {}, variables = {})
     return false unless @procedures[name]
-    puts "Running procedure '#{name}'..."
+    @logger.progress("Running procedure '#{name}'...")
     steps = @procedures[name]
     steps.each do |step|
       # map client from procedure to step
@@ -311,18 +424,18 @@ class IrcservTester
       end
       success = execute_step(mapped_step, variables)
       unless success
-        puts "❌ Procedure '#{name}' failed at step: #{step[:command]}"
+        @logger.test_result("Procedure '#{name}' failed at step: #{step[:command]}", false)
         return false
       end
     end
-    puts "✓ Procedure '#{name}' completed successfully"
+    @logger.verbose("Procedure '#{name}' completed successfully", color: Colors::GREEN)
     return true
   end
 
   def run_test_case(test_case)
-    puts "\n" + "="*50
-    puts "Running test case: #{test_case[:name]}"
-    puts "="*50
+    @logger.progress("\n" + "="*50)
+    @logger.progress("Running test case: #{test_case[:name]}", with_timing: true)
+    @logger.progress("="*50)
     # setup all clients needed for this
     test_case[:clients].each do |client_id|
       connect_client(client_id) unless @clients[client_id]
@@ -335,7 +448,7 @@ class IrcservTester
         variables = step[:variables] || {}
         success = run_procedure(step[:procedure], client_map, variables)
         unless success
-          puts "  ❌ Test case '#{test_case[:name]}' failed at procedure: #{step[:procedure]}"
+          @logger.test_result("Test case '#{test_case[:name]}' failed at procedure: #{step[:procedure]}", false)
           test_case[:clients].each { |client_id| disconnect_client(client_id) } # disconnect clients on failure
           return false
         end
@@ -344,51 +457,56 @@ class IrcservTester
         client_id = step[:client]
         success = execute_step(step)
         unless success
-          puts "  ❌ Test case '#{test_case[:name]}' failed at step: #{step[:command]}"
+          @logger.test_result("Test case '#{test_case[:name]}' failed at step: #{step[:command]}", false)
           test_case[:clients].each { |client_id| disconnect_client(client_id) }
           return false
         end
       end
     end
-    puts "✅ Test case '#{test_case[:name]}' passed!"
+    @logger.test_result("Test case '#{test_case[:name]}' passed!", true)
     test_case[:clients].each { |client_id| disconnect_client(client_id) }
     return true
   end
 
   def run_test_suite(test_cases)
     results = []
+    start_time = Time.now
+    
     test_cases.each do |test_case|
       result = run_test_case(test_case)
       results << { test_case: test_case[:name], passed: result }
     end
-    puts "\n" + "="*20
-    puts "TEST SUMMARY:"
-    puts "="*20
+    
+    elapsed_time = Time.now - start_time
+    @logger.summary("\n" + "="*20)
+    @logger.summary("TEST SUMMARY:")
+    @logger.summary("="*20)
     total = results.count
     passed = results.count { |result| result[:passed] }
-    puts "#{passed}/#{total} test cases passed."
+    @logger.summary("#{passed}/#{total} test cases passed in #{elapsed_time.round(2)}s.")
+    
     failed = results.reject { |result| result[:passed] }
     if failed.any?
-      puts "\nFailed test cases:"
-      failed.each { |result| puts " - #{result[:test_case]}" }
+      @logger.summary("\nFailed test cases:")
+      failed.each { |result| @logger.summary(" - #{result[:test_case]}") }
     end
-    return results # techically not needed but might be useful
+    return results # technically not needed but might be useful
   end
 
   def cleanup
-    puts "Cleaning up.."
+    @logger.progress("Cleaning up..")
     @clients.keys.each do |client_id|
       disconnect_client(client_id)
     end
     if @server_pid && @server_running
       begin
         Process.kill("TERM", @server_pid) rescue nil
-        puts "Server terminated"
+        @logger.progress("Server terminated")
       rescue => e
-        puts "Failed to terminate server: #{e.message}"
+        @logger.error("Failed to terminate server: #{e.message}")
       end
     end
-    puts "Cleanup complete."
+    @logger.progress("Cleanup complete.")
   end
 
   def setup_common_procedures
@@ -414,8 +532,33 @@ class IrcservTester
   end
 end
 
+# Parse command line arguments
+def parse_arguments
+  options = { log_level: :normal }
+  
+  OptionParser.new do |opts|
+    opts.banner = "Usage: #{$0} [options]"
+    
+    opts.on("-l", "--log-level LEVEL", [:quiet, :normal, :verbose, :debug],
+            "Set logging level (quiet, normal, verbose, debug). Default: normal") do |level|
+      options[:log_level] = level
+    end
+    
+    opts.on("-h", "--help", "Show this message") do
+      puts opts
+      exit
+    end
+  end.parse!
+  
+  options
+end
+
+# Main execution
+options = parse_arguments
+logger = Logger.new(options[:log_level])
+
 # create tester instance
-tester = IrcservTester.new()
+tester = IrcservTester.new(logger: logger)
 # define all test cases here
 test_cases = [
   # ==========REGISTRATION TESTS==========
@@ -614,8 +757,6 @@ test_cases = [
 
 # Run tests
 begin
-  # Set DEBUG=1 for verbose output
-  # ENV['DEBUG'] = '1'
   if tester.start_server
     tester.setup_common_procedures
     tester.run_test_suite(test_cases)
