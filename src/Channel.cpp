@@ -3,7 +3,18 @@
 #include "Message.hpp"
 
 Channel::Channel()
-	: topic_(""), password_(""), userLimit_(0)
+	: name_(""),
+	  members_(),
+	  whiteList_(),
+	  operators_(),
+	  topic_(""),
+	  topicWho_(),
+	  topicTime_(),
+	  creationTime_(time(NULL)),
+	  password_(""),
+	  userLimit_(0),
+	  isInviteOnly_(false),
+	  isTopicProtected_(false)
 {}
 
 // Channel::Channel(std::vector<const std::string> members, std::set<std::string> whiteList, std::set<std::string> operators, std::string topic, std::string password, int userLimit)
@@ -21,6 +32,9 @@ Channel::Channel(const std::string& name, const Client& sender)
 	  whiteList_(),
 	  operators_(),
 	  topic_(""),
+	  topicWho_(),
+	  topicTime_(),
+	  creationTime_(time(NULL)),
 	  password_(""),
 	  userLimit_(0),
 	  isInviteOnly_(false),
@@ -43,7 +57,10 @@ Channel &Channel::operator=(const Channel &other)
 		this->members_ = other.members_;
 		this->whiteList_ = other.whiteList_;
 		this->operators_ = other.operators_;
+		this->creationTime_ = other.creationTime_;
 		this->topic_ = other.topic_;
+		this->topicWho_ = other.topicWho_,
+	  	this->topicTime_ = other.topicTime_,
 		this->password_ = other.password_;
 		this->userLimit_ = other.userLimit_;
 		this->isInviteOnly_ = other.isInviteOnly_;
@@ -91,10 +108,34 @@ int Channel::getUserLimit() const
 	return userLimit_;
 }
 
+const time_t &Channel::getCreationTime() const
+{
+	return creationTime_;
+}
+
+const std::string &Channel::getTopicWho() const
+{
+	return topicWho_;
+}
+
+const time_t &Channel::getTopicTime() const
+{
+	return topicTime_;
+}
 // Setters
 void Channel::setTopic(const std::string &topic)
 {
 	topic_ = topic;
+}
+
+void Channel::setTopicWho(const std::string &topicWho)
+{
+	topicWho_ = topicWho;
+}
+
+void Channel::setTopicTime()
+{
+	topicTime_ = time(NULL);
 }
 
 void Channel::setPassword(const std::string &password)

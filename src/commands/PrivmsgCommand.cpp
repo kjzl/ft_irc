@@ -21,7 +21,7 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, Server& server, Cli
 		const Channel *recipientChannel = server.mapChannel(recipient); 
 		if (recipientChannel)
 		{
-			inMessage_.setSource(sender.getNickname(), sender.getUsername());
+			inMessage_.setSource(sender);
 			messageSentSuccessfully = true;
 			recipientChannel->broadcastMsg(sender, inMessage_);
 		}

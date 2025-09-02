@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <ctime>
+#include <arpa/inet.h>
 
 #include "Client.hpp"
 

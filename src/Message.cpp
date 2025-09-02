@@ -143,11 +143,19 @@ void Message::setSource()
 	hasSource_ = true;
 }
 
-void Message::setSource(const std::string nickname, const std::string username)
+// void Message::setSource(const std::string nickname, const std::string username)
+// {
+// 	hasSource_ = true;
+// 	nickname_ = nickname;
+// 	username_ = username;
+// }
+
+void Message::setSource(const Client &client)
 {
 	hasSource_ = true;
-	nickname_ = nickname;
-	username_ = username;
+	nickname_ = client.getNickname();
+	username_ = client.getUsername();
+	hostname_ = client.getIP();
 }
 
 std::vector<std::string>& Message::getParams()

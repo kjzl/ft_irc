@@ -41,7 +41,7 @@ HDRS_DIR	:= include
 
 DIRS = $(addprefix $(OBJ_DIR)/, .)
 
-INCLUDES := -I$(HDRS_DIR) -I$(HDRS_DIR)/commands
+INCLUDES := -I$(HDRS_DIR) -Iinclude/commands
 
 SRCS := $(addprefix $(SRCS_DIR)/,\
 		main.cpp \
