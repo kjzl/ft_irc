@@ -165,18 +165,25 @@ Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> mes
 	return (message);
 }
 
+void	Server::quitClient(const Client &quitter)
+{
+	Message msg("QUIT", "Quit", quitter);
+	quitClient(quitter, msg);
+}
+
+void	Server::quitClient(const Client &quitter,  const std::string &reason)
+{
+	Message msg("QUIT", "Quit", reason, quitter);
+	quitClient(quitter, msg);
+}
 // used to removeClient from server (in poll and clients) and broadcast the Quit message.
 // if server needs to diconnect the client, modify messageParams to reflect reason
-void	Server::quitClient(const Client &quitter, std::vector<std::string> &messageParams)
+void	Server::quitClient(const Client &quitter,  const Message &msg)
 {
 	std::vector<Client>::iterator clIt = std::find(clients_.begin(), clients_.end(), quitter);
 	size_t	clientIndex = clIt - clients_.begin();
-	if (pollFds_[clientIndex + 1].fd != quitter.getSocket())
-		throw std::logic_error("clientIndex in quitClient is not corespondent to the quitting client");
 	removeClient(clientIndex + 1);
-	std::string	qNickname = quitter.getNickname();
-	messageParams.push_back(qNickname);
-	Message msg = buildErrorMessage(QUIT, messageParams);
+	std::string qNickname = quitter.getNickname();
 	for (std::map<std::string, Channel>::iterator cMapIter = channels_.begin(); cMapIter != channels_.end(); cMapIter++)
 	{
 		Channel quittersChannel = cMapIter->second;
@@ -194,9 +201,8 @@ void	Server::removeClient(int pollIndexToRemove)
 	struct pollfd pollToRemove = pollFds_[pollIndexToRemove];
 	debug("removing Client");
 	std::cout << "[Server] Client on fd " << pollToRemove.fd << " has disconnected." << std::endl;
-	shutdown(pollToRemove.fd, SHUT_RD);
 	if (-1 == close(pollToRemove.fd))
-		throw std::runtime_error("close error");
+		throw std::runtime_error("close error when removing a Client");
 	if (clients_[pollIndexToRemove - 1].getSocket() != pollFds_[pollIndexToRemove].fd)
 		throw std::logic_error("pollfds and clients should be indexwise only -1 apart");
 	clients_[pollIndexToRemove - 1] = clients_.back();
@@ -291,7 +297,7 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 	// {
 		bytesRead = recv(request.fd, message, BUFSIZ, MSG_DONTWAIT);
 		if (bytesRead == 0)
-			removeClient(pollIndex);
+			quitClient(client, "");
 		else if (bytesRead == -1)
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
