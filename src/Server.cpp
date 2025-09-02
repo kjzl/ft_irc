@@ -283,7 +283,7 @@ void	Server::processPollIn(struct pollfd request, int pollIndex)
 {
 	char	message[BUFSIZ];
 	int		bytesRead;
-	Client	client = clients_[pollIndex - 1];
+	Client	&client = clients_[pollIndex - 1];
 
 	// if (request.revents & POLLHUP)
 	// 	removeClient(pollIndex);
