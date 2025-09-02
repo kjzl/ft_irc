@@ -583,25 +583,26 @@ test_cases = [
       # Send and verify message
       { client: :alice, command: "TOPIC #test :Discuss the meaning of life", expect: [
       /:alice!alice@.+ TOPIC #test :Discuss the meaning of life/,
-      /.+ 332 #test :Discuss the meaning of life/,
+      /.+ TOPIC #test :Discuss the meaning of life/,
       ] },
       { client: :bob, command: "", expect: /:alice!alice@.+ TOPIC #test :Discuss the meaning of life/, timeout: 3 },
     ]
   },
   {
     name: "TOPIC displayed in join reply",
-    clients: [:alice, :bob],
+    clients: [:alice, :bob, :steve],
     steps: [
       # Register both clients
       { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
       { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
+      { procedure: :register_client, client_map: { client: :steve }, variables: { nickname: "steve" } },
       # Join channel
       { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#test"} },
       { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#test"} },
       # Send and verify message
       { client: :alice, command: "TOPIC #test :Discuss the meaning of life", expect: [
       /:alice!alice@.+ TOPIC #test :Discuss the meaning of life/,
-      /.+ 332 #test :Discuss the meaning of life/,
+      /.+ TOPIC #test :Discuss the meaning of life/,
       ] },
       { client: :bob, command: "", expect: /:alice!alice@.+ TOPIC #test :Discuss the meaning of life/, timeout: 3 },
       { procedure: :join_channel, client_map: { client: :steve }, variables: { channel: "#test"} },
