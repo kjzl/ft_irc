@@ -141,9 +141,9 @@ void	Server::setServerSocket( int serverSocketFd )
 void	Server::acceptConnection( void )
 {
 	int clientFd;
-
 	sockaddr_in client_addr;
 	socklen_t client_len;
+	
 	clientFd = accept(getServerSocket(), (sockaddr *)&client_addr, &client_len);
 	if (clientFd == -1)
 		throw std::runtime_error("[Server] accept error");
