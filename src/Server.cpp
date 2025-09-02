@@ -142,7 +142,7 @@ void	Server::acceptConnection( void )
 {
 	int clientFd;
 	sockaddr_in client_addr;
-	socklen_t client_len;
+	socklen_t client_len = sizeof(client_addr);
 	
 	clientFd = accept(getServerSocket(), (sockaddr *)&client_addr, &client_len);
 	if (clientFd == -1)
@@ -194,7 +194,6 @@ void	Server::removeClient(int pollIndexToRemove)
 	struct pollfd pollToRemove = pollFds_[pollIndexToRemove];
 	debug("removing Client");
 	std::cout << "[Server] Client on fd " << pollToRemove.fd << " has disconnected." << std::endl;
-	shutdown(pollToRemove.fd, SHUT_RD);
 	if (-1 == close(pollToRemove.fd))
 		throw std::runtime_error("close error");
 	if (clients_[pollIndexToRemove - 1].getSocket() != pollFds_[pollIndexToRemove].fd)
@@ -399,14 +398,12 @@ void	Server::serverShutdown(void)
 	std::cout << BRED << "==== STARTING SERVER SHUTDOWN ====" << RESET << std::endl;
 	for (size_t pollIndex = 1; pollIndex < pollFds_.size(); pollIndex++)
 	{
-		shutdown(pollFds_[pollIndex].fd,  SHUT_RDWR);
 		if (-1 == close(pollFds_[pollIndex].fd))
 			throw std::runtime_error("[Server] close error on fd: " + toString(pollFds_[pollIndex].fd));
 	}
 	std::cout << "[Server] diconnected all clients sockets" << RESET << std::endl;
 	if (serverSocket_ != -1)
 	{
-		shutdown(serverSocket_,  SHUT_RDWR);
 		if (-1 == close(serverSocket_))
 			throw std::runtime_error("[Server] close error on serverSocket");
 		std::cout << "[Server] diconnected listening socket" << RESET << std::endl;
