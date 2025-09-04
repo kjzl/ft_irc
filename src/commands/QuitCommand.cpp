@@ -1,6 +1,6 @@
-#include "QuitCommand.hpp"
-#include "Debug.hpp"
-#include "Message.hpp"
+#include "../../include/QuitCommand.hpp"
+#include "../../include/Debug.hpp"
+#include "../../include/Message.hpp"
 // Default Constructor
 QuitCommand::QuitCommand( void ): Command()
 {
@@ -48,6 +48,7 @@ void	QuitCommand::execute(Server& server, Client& sender)
 	if (!sender.isAuthenticated())
 		inMessage_.setSource(sender.getNickname(), sender.getUsername());
 	// do the exit & send notice to everyone
+	sender.sendErrorMessage(ERROR, "Connection closed");
 	server.quitClient(sender, inMessage_.getParams());
 }
 
