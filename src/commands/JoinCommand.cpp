@@ -55,9 +55,9 @@ void JoinCommand::execute(Server& server, Client& sender)
 		}
 		Channel *channel = (server.mapChannel(channelName)); 
 		// Creating a new channel
-		if (!channel)
-		{
-			server.getChannels()[channelName] = Channel(channelName, sender);
+		if (!channel) {
+			server.getChannels()[channelName] =
+				Channel(channelName, sender, server.getMessageQueueManager());
 			channel = (server.mapChannel(channelName));
 			sendValidationMessages(sender, *channel);
 			continue;
