@@ -1,9 +1,8 @@
 #include "../include/Message.hpp"
-#include "../include/IrcUtils.hpp"
-#include "Server.hpp"
+#include "../include/Client.hpp"
+#include "../include/Server.hpp"
 #include <cctype>
 #include <sstream>
-#include "Client.hpp"
 
 Message::Message()
 {}
@@ -65,35 +64,34 @@ Message::Message(const Message& other)
 {
 }
 
-std::ostream& operator<<(std::ostream& os, Message& message)
-{
-	os << message.toString();
-	return os;
+std::ostream &operator<<(std::ostream &os, const Message &message) {
+  os << message.toString();
+  return os;
 }
 
-//:nickname!username@host(or IP) type ... ... :back
-std::string	Message::toString()
-{
-	std::string msg;
-	std::string	lastParam = getParams().back();
-	if (hasSource_)
-	{
-		msg += ":";
-		if (!nickname_.empty())
-			msg += nickname_ + "!" + username_ + "@" ;
-		msg += hostname_ + " ";
-	}
-	msg += type_;
-	if (getParams().empty())
-		return msg;
-	else
-		msg += " ";
-	for (size_t i = 0; i < getParams().size() - 1; i++)
-		msg += getParams()[i] + " ";
-	if (lastParam.find(" ") != std::string::npos)
-		msg += ":";
-	msg += lastParam + "\r\n";
-	return (msg);
+//: nickname!username@host(or IP) type ... ... :back
+std::string Message::toString() const {
+  std::string msg;
+  const std::vector<std::string> &params = getParams();
+  // source prefix
+  if (hasSource_) {
+    msg += ":";
+    if (!nickname_.empty())
+      msg += nickname_ + "!" + username_ + "@";
+    msg += hostname_ + " ";
+  }
+  msg += type_;
+  if (params.empty())
+    return msg;
+  else
+    msg += " ";
+  for (size_t i = 0; i < params.size() - 1; i++)
+    msg += params[i] + " ";
+  const std::string &lastParam = params.back();
+  if (lastParam.find(" ") != std::string::npos)
+    msg += ":";
+  msg += lastParam + "\r\n";
+  return (msg);
 }
 
 Message::~Message()
@@ -150,10 +148,9 @@ void Message::setSource(const std::string nickname, const std::string username)
 	username_ = username;
 }
 
-std::vector<std::string>& Message::getParams()
-{
-	return params_;
-}
+std::vector<std::string> &Message::getParams() { return params_; }
+
+const std::vector<std::string> &Message::getParams() const { return params_; }
 
 Message::WrongMessageFormatException::WrongMessageFormatException(const std::string& message)
 	: message_(message)
