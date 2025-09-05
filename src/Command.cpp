@@ -1,19 +1,18 @@
-#include "Message.hpp"
-#include "Command.hpp"
-#include "Debug.hpp"
-#include "IrcUtils.hpp"
-#include "PassCommand.hpp"
-#include "NickCommand.hpp"
-#include "UserCommand.hpp"
-#include "PrivmsgCommand.hpp"
-#include "JoinCommand.hpp"
-#include "KickCommand.hpp"
-#include "QuitCommand.hpp"
-#include "InviteCommand.hpp"
-#include "TopicCommand.hpp"
-#include "ModeCommand.hpp"
-#include "WhoCommand.hpp"
-#include "UnknownCommand.hpp"
+#include "../include/Message.hpp"
+#include "../include/Command.hpp"
+#include "../include/Debug.hpp"
+#include "../include/PassCommand.hpp"
+#include "../include/NickCommand.hpp"
+#include "../include/UserCommand.hpp"
+#include "../include/PrivmsgCommand.hpp"
+#include "../include/JoinCommand.hpp"
+#include "../include/KickCommand.hpp"
+#include "../include/QuitCommand.hpp"
+#include "../include/InviteCommand.hpp"
+#include "../include/TopicCommand.hpp"
+#include "../include/ModeCommand.hpp"
+#include "../include/WhoCommand.hpp"
+#include "../include/UnknownCommand.hpp"
 
 // Default Constructor
 Command::Command( void ): inMessage_()
@@ -76,7 +75,7 @@ Command* convertMessageToCommand(const Message& message)
 		fillCommandMap(commandMap);
 	std::string type = message.getType();
 	std::map<std::string, CommandFactory>::iterator it = commandMap.find(type);
-	if (it == commandMap.end())		
+	if (it == commandMap.end())
 		return (commandMap["UNKNOWN"](message));
 	Command* cmd = it->second(message);
 	return cmd;
