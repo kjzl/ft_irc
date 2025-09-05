@@ -56,6 +56,12 @@ class MessageQueueManager {
 	MessageQueueManager();
 	/** @brief Destructor. Does not close sockets. */
 	virtual ~MessageQueueManager();
+	/** @brief Copy constructor. Copies tracked queues, pfds, and dead fd list.
+	 */
+	MessageQueueManager(const MessageQueueManager &other);
+	/** @brief Assignment operator. Copies tracked queues, pfds, and dead fd
+	 * list. */
+	MessageQueueManager &operator=(const MessageQueueManager &other);
 
 	/**
 	 * @brief Queue data for non-blocking delivery to fd, attempting an
@@ -211,13 +217,6 @@ class MessageQueueManager {
 	 */
 	bool sendOnFdWithoutBacklog_(int fd, const std::string &msg,
 								 std::string &remainder);
-
-	/** @brief Copy constructor. Copies tracked queues, pfds, and dead fd list.
-	 */
-	MessageQueueManager(const MessageQueueManager &other);
-	/** @brief Assignment operator. Copies tracked queues, pfds, and dead fd
-	 * list. */
-	MessageQueueManager &operator=(const MessageQueueManager &other);
 };
 
 #endif // MESSAGEQUEUEMANAGER_HPP

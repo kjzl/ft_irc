@@ -1,27 +1,25 @@
 #include "../include/Server.hpp"
 #include "../include/Channel.hpp"
+#include "../include/Command.hpp"
 #include "../include/Debug.hpp"
 #include "../include/IrcUtils.hpp"
-#include "../include/Command.hpp"
-#include <algorithm>
 #include <cerrno>
 #include <csignal>
 #include <cstdio>
+#include <errno.h>
 #include <iostream>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <ostream>
-#include <stdexcept>
-#include <sys/socket.h>
-#include <errno.h>
-#include <netdb.h>
 #include <poll.h>
+#include <stdexcept>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/poll.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <sys/fcntl.h>
+#include <sys/poll.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <vector>
 
 bool Server::running_ = false;
@@ -64,26 +62,24 @@ Server::~Server()
 }
 
 // Copy Constructor
-Server::Server(const Server& other):
-	name_(other.name_),
-	port_(other.port_),
-	password_(other.password_),
-	serverSocket_(other.serverSocket_),
-	pollFds_(other.pollFds_),
-	clients_(other.clients_),
-	timeCreated_(other.timeCreated_)
-	// channels_(other.channels_)
+Server::Server(const Server &other)
+	: name_(other.name_), port_(other.port_), password_(other.password_),
+	  serverSocket_(other.serverSocket_), pollFds_(other.pollFds_),
+	  clients_(other.clients_), timeCreated_(other.timeCreated_),
+	  messageQueueManager_(other.messageQueueManager_),
+	  pendingCloseClients_(other.pendingCloseClients_)
+// channels_(other.channels_)
 {}
 
 // Copy Assignment Operator
-Server& Server::operator=(const Server& other)
-{
-	if (this != &other)
-	{
-		serverSocket_ = other.serverSocket_;
-		pollFds_ = other.pollFds_;
-		clients_ = other.clients_;
-		channels_ = other.channels_;
+Server &Server::operator=(const Server &other) {
+	if (this != &other) {
+		serverSocket_		 = other.serverSocket_;
+		pollFds_			 = other.pollFds_;
+		clients_			 = other.clients_;
+		channels_			 = other.channels_;
+		messageQueueManager_ = other.messageQueueManager_;
+		pendingCloseClients_ = other.pendingCloseClients_;
 	}
 	return *this;
 }
@@ -147,8 +143,8 @@ void	Server::acceptConnection( void )
 		throw std::runtime_error("[Server] accept error");
 	addPollFd(clientFd, POLLIN, 0);
 	debug("[Server] accepted new connection");
-	std::string	clientFdString = toString(clientFd);
-	Client newcomer;
+	std::string clientFdString = toString(clientFd);
+	Client		newcomer(messageQueueManager_);
 	newcomer.setSocket(clientFd);
 	clients_.push_back(newcomer);
 }
@@ -162,44 +158,73 @@ Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> mes
 	return (message);
 }
 
-// used to removeClient from server (in poll and clients) and broadcast the Quit message.
-// if server needs to diconnect the client, modify messageParams to reflect reason
-void	Server::quitClient(const Client &quitter, std::vector<std::string> &messageParams)
-{
-	std::vector<Client>::iterator clIt = std::find(clients_.begin(), clients_.end(), quitter);
-	size_t	clientIndex = clIt - clients_.begin();
-	if (pollFds_[clientIndex + 1].fd != quitter.getSocket())
-		throw std::logic_error("clientIndex in quitClient is not corespondent to the quitting client");
-	removeClient(clientIndex + 1);
-	std::string	qNickname = quitter.getNickname();
+void Server::quitClient(const Client &quitter, std::string &message) {
+	std::vector<std::string> messageParams;
+	messageParams.push_back(message);
+	quitClient(quitter, messageParams);
+}
+
+// used to removeClient from server (in poll and clients) and broadcast the Quit
+// message. if server needs to diconnect the client, modify messageParams to
+// reflect reason
+void Server::quitClient(const Client			 &quitter,
+						std::vector<std::string> &messageParams) {
+	std::string qNickname = quitter.getNickname();
+	// Defer the actual close to allow queued data to flush
+	schedulePendingClose(quitter.getSocket());
+
 	messageParams.push_back(qNickname);
 	Message msg = buildErrorMessage(QUIT, messageParams);
-	for (std::map<std::string, Channel>::iterator cMapIter = channels_.begin(); cMapIter != channels_.end(); cMapIter++)
-	{
-		Channel quittersChannel = cMapIter->second;
+	for (std::map<std::string, Channel>::iterator cMapIter = channels_.begin();
+		 cMapIter != channels_.end(); ++cMapIter) {
+		Channel &quittersChannel = cMapIter->second;
 		if (!quittersChannel.isMember(qNickname))
 			continue;
-		quittersChannel.broadcastMsg(quitter, msg);
+		quittersChannel.broadcastMsg(qNickname, msg);
 		quittersChannel.removeMember(qNickname);
 	}
 }
 
-// closes and delets an elements from pollIndex_ 
-//the entry in pollFds_ corresponds to the same index -1 in clients_ for that particular client. they should have the same fd.
-void	Server::removeClient(int pollIndexToRemove)
-{
-	struct pollfd pollToRemove = pollFds_[pollIndexToRemove];
+// closes and delets an elements from pollIndex_
+// the entry in pollFds_ corresponds to the same index -1 in clients_ for that
+// particular client. they should have the same fd.
+void Server::removeClient(int fd) {
 	debug("removing Client");
-	std::cout << "[Server] Client on fd " << pollToRemove.fd << " has disconnected." << std::endl;
-	shutdown(pollToRemove.fd, SHUT_RD);
-	if (-1 == close(pollToRemove.fd))
-		throw std::runtime_error("close error");
-	if (clients_[pollIndexToRemove - 1].getSocket() != pollFds_[pollIndexToRemove].fd)
-		throw std::logic_error("pollfds and clients should be indexwise only -1 apart");
-	clients_[pollIndexToRemove - 1] = clients_.back();
-	clients_.pop_back();
-	pollFds_[pollIndexToRemove] = pollFds_.back();
-	pollFds_.pop_back();
+	std::cout << "[Server] Client on fd " << fd << " has disconnected."
+			  << std::endl;
+	// Ensure it's no longer scheduled for deferred close
+	// Remove from pendingCloseClients_ if present
+	bool wasPending = false;
+	for (std::vector<Client>::iterator it = pendingCloseClients_.begin();
+		 it != pendingCloseClients_.end(); ++it) {
+		if (it->getSocket() == fd) {
+			removeAndSwapBack(
+				pendingCloseClients_,
+				static_cast<size_t>(it - pendingCloseClients_.begin()));
+			wasPending = true;
+			break;
+		}
+	}
+	// Drop any pending outbound data for this fd via MessageQueueManager
+	messageQueueManager_.discard(fd);
+	if (close(fd) == -1) {
+		// Treat as already closed; continue cleanup non-fatally
+		debug(std::string("close failed on client fd ") + toString(fd) +
+			  ", treating as already closed");
+	}
+	int cIdx = clientIndexFromFd(fd);
+	if (cIdx != -1) {
+		removeAndSwapBack(clients_, cIdx);
+	} else if (!wasPending) {
+		// Only warn when not previously scheduled for pending close
+		debug("client list out of sync; could not find fd to remove");
+	}
+	int pfdIdx = pollFdIndexFromFd(fd);
+	if (pfdIdx != -1) {
+		removeAndSwapBack(pollFds_, pfdIdx);
+	} else {
+		debug("pollFds_ list out of sync; could not find fd to remove");
+	}
 }
 
 void Server::executeIncomingCommandMessage(Client& sender, const std::string& rawMessage)
@@ -213,32 +238,32 @@ void Server::executeIncomingCommandMessage(Client& sender, const std::string& ra
 	delete cmd;
 }
 
-void Server::broadcastErrorMessage(MessageType type, std::vector<std::string>& args) const
-{
+void Server::broadcastErrorMessage(MessageType				 type,
+								   std::vector<std::string> &args) {
 	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
-    IrcErrorInfo info = ErrorMap.find(type)->second;
-    args.push_back(info.message);
-    Message outMessage(info.code,  args);
+	IrcErrorInfo info = ErrorMap.find(type)->second;
+	args.push_back(info.message);
+	Message outMessage(info.code, args);
 	broadcastMsg(outMessage);
 }
 
-void	Server::broadcastErrorMessage(MessageType type, std::string args[], int size) const
-{
-	std::vector<std::string> outParams(args, args + size);
-    static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
-    IrcErrorInfo info = ErrorMap.find(type)->second;
-    outParams.push_back(info.message);
-    Message outMessage(info.code, outParams);
+void Server::broadcastErrorMessage(MessageType type, std::string args[],
+								   int size) {
+	std::vector<std::string>				   outParams(args, args + size);
+	static std::map<MessageType, IrcErrorInfo> ErrorMap = getErrorMap();
+	IrcErrorInfo info = ErrorMap.find(type)->second;
+	outParams.push_back(info.message);
+	Message outMessage(info.code, outParams);
 	broadcastMsg(outMessage);
 }
 
-void	Server::broadcastMsg(const Message &message) const
-{
-	Client	tmp;
-	for (std::vector<Client>::const_iterator clientIt = (clients_.begin()); clientIt != clients_.end(); clientIt++)
-		tmp.sendMessageToFd(message, clientIt->getSocket());
+void Server::broadcastMsg(const Message &message) {
+	const std::string wire = message.toString();
+	for (std::vector<Client>::const_iterator it = clients_.begin();
+		 it != clients_.end(); ++it) {
+		messageQueueManager_.send(it->getSocket(), wire);
+	}
 }
-
 
 bool	Server::clientNickExists(CaseMappedString& toCheck)
 {
@@ -273,84 +298,193 @@ void	Server::makeMessage(Client &client)
 	}
 }
 
-// this function should check if its a POLLHUP or POLLIN 
-// then interpret the message
-// and execute it
-void	Server::processPollIn(struct pollfd request, int pollIndex)
-{
-	char	message[BUFSIZ];
-	int		bytesRead;
+// interpret the message and execute it
+void Server::processPollIn(struct pollfd request) {
+	char message[BUFSIZ];
+	int	 bytesRead;
 
-	// if (request.revents & POLLHUP)
-	// 	removeClient(pollIndex);
-	// else
-	// {
-		bytesRead = recv(request.fd, message, BUFSIZ, MSG_DONTWAIT);
-		if (bytesRead == 0)
-			removeClient(pollIndex);
-		else if (bytesRead == -1)
-		{
-			if (errno == EAGAIN || errno == EWOULDBLOCK)
-				return ;
-			throw std::runtime_error("[Server] recv error");
-		}
-		else
-		{
-			std::cout << CYN << "[received a message from client: " << request.fd <<" ]" << RESET << std::endl;
-			clients_[pollIndex - 1].appendRawMessage(message, bytesRead);
-			makeMessage(clients_[pollIndex - 1]);
-		}
-	// }
+	bytesRead = recv(request.fd, message, BUFSIZ, MSG_DONTWAIT);
+	if (bytesRead == 0)
+		schedulePendingClose(request.fd);
+	else if (bytesRead == -1) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return;
+		throw std::runtime_error("[Server] recv error");
+	} else {
+		std::cout << CYN << "[received a message from client: " << request.fd
+				  << " ]" << RESET << std::endl;
+		int cidx = clientIndexFromFd(request.fd);
+		if (cidx >= 0) {
+			clients_[static_cast<size_t>(cidx)].appendRawMessage(message,
+																 bytesRead);
+			makeMessage(clients_[static_cast<size_t>(cidx)]);
+		} // else Client may have been moved to closing; ignore input
+	}
 }
 
-//main loop to be in while running
-//checks if any fd is ready and prints waiting messages inbetween
-//if ready, checks polls through and directs them toward acceptConnection or readFromSocket
-void	Server::waitForRequests(void)
-{
+void Server::handlePollIn(const std::vector<struct pollfd> &polled) {
+	for (std::vector<struct pollfd>::const_iterator it = polled.begin() + 1;
+		 it != polled.end(); ++it) {
+		if (it->revents & (POLLHUP | POLLERR | POLLNVAL)) {
+			std::string msg = "Socket error";
+			Client	   *c	= tryClientFromFd(it->fd);
+			if (c) {
+				// Notify peers with a QUIT, then force immediate removal
+				quitClient(*c, msg);
+			}
+			removeClient(it->fd);
+			continue;
+		}
+		if (!(it->revents & POLLIN))
+			continue;
+		// If this fd is already scheduled for close, ignore any POLLIN
+		if (isPendingCloseFd(it->fd)) {
+			continue;
+		}
+		processPollIn(*it);
+		std::cout << std::endl; // TODO why is this here?
+	}
+}
+
+// pollfd/socket with index 0 is the listening socket that accepts new
+// connections so we only check that one here
+void Server::handleNewConnection(const struct pollfd &polled) {
+	if (polled.revents & (POLLHUP | POLLERR | POLLNVAL)) {
+		debug("[Server] listening socket hangup/error");
+		running_ = false;
+	} else if (polled.revents & POLLIN) {
+		acceptConnection();
+	}
+}
+
+// main loop to be in while running
+// checks if any fd is ready and prints waiting messages inbetween
+// if ready, checks polls through and directs them toward acceptConnection or
+// readFromSocket
+void Server::waitForRequests(void) {
 	try {
-		while (running_)
-		{
-			int	rdyPollsCount = 0;
-			rdyPollsCount = poll(&(pollFds_[0]), pollFds_.size(), TIMEOUT);
+		while (running_) {
+			std::vector<struct pollfd> polled = pollFds_;
+			messageQueueManager_.mergePollfds(polled);
+			// polled vec is structurally the same as pollFds_ but with added
+			// POLLOUT events for the fd's that have a non-empty queue, thus it
+			// is safe to use the same indexes for both the polled array and the
+			// pollFds_ array
+			int rdyPollsCount = poll(&(polled[0]), polled.size(), TIMEOUT);
 			if (running_ && rdyPollsCount == -1)
 				throw std::runtime_error("[Server] poll error");
-			else if (rdyPollsCount == 0)
-			{
-				std::cout << "[Server] Waiting for requests" << std::endl;
+			else if (rdyPollsCount == 0) {
 				continue;
 			}
-			int	rdyPollsChecked = 0;
-			for (size_t pollIndex = 0; running_ && pollIndex < pollFds_.size() && rdyPollsChecked < rdyPollsCount; pollIndex++)
-			{ 
-				if (((pollFds_[pollIndex].revents & (POLLIN | POLLHUP)) != 1))
-					continue; // this socket is not the ready one
-				++rdyPollsChecked;
-				if (pollIndex == 0)
-					acceptConnection();
-				else
-					processPollIn(pollFds_[pollIndex], pollIndex);
-				std::cout << std::endl;
-			}
+			// Before draining, check if any pending-close fds are ready to be
+			// closed
+			processPendingCloses(polled);
+			messageQueueManager_.drainQueuesForPolled(polled);
+			handlePollIn(polled);
+			handleDeadFds();
+			handleNewConnection(polled[0]);
 		}
-	} catch (std::runtime_error &e) {
+	} catch (std::exception &e) {
 		std::cerr << e.what() << ": " << strerror(errno) << std::endl;
 		// serverShutdown();
 	}
-	std::cout << YEL << "[Server] Stopped listening for requests" << RESET << std::endl;
+	std::cout << YEL << "[Server] Stopped listening for requests" << RESET
+			  << std::endl;
 }
 
-//creates the one listening socket the server has to start out with
-void	Server::createListeningSocket(void)
-{
-	int	err = 0;
-	struct addrinfo	hints = {0, 0, 0, 0, 0, 0, 0, 0};
-	struct addrinfo	*res = {0};
-	hints.ai_family = AF_UNSPEC; // IPv4 or IPv6
-	hints.ai_socktype = SOCK_STREAM; //TCP
-	hints.ai_flags = AI_PASSIVE; //put in my ip for me
-	std::string port_str = toString(port_);
-	int optval = 1;
+void Server::handleDeadFds() {
+	if (!messageQueueManager_.hasDeadFds())
+		return;
+	std::vector<int> deadFds = messageQueueManager_.takeDeadFds();
+	for (std::vector<int>::iterator it = deadFds.begin(); it != deadFds.end();
+		 ++it) {
+		std::string msg = "Socket error or backlog overflow";
+		Client	   *c	= tryClientFromFd(*it);
+		// Immediate removal on fatal send error
+		if (c) {
+			quitClient(*c, msg);
+		}
+		removeClient(*it);
+	}
+}
+
+void Server::schedulePendingClose(int fd) {
+	// If already scheduled, nothing to do
+	if (isPendingCloseFd(fd))
+		return;
+	// Remove POLLIN, ensure POLLOUT is monitored
+	int pidx = pollFdIndexFromFd(fd);
+	if (pidx != -1) {
+		short &ev = pollFds_[pidx].events;
+		ev		  = static_cast<short>((ev & ~POLLIN) | POLLOUT);
+	}
+	// Move the Client object to closingClients_ and remove from channels
+	int cidx = clientIndexFromFd(fd);
+	if (cidx != -1) {
+		Client		dying	 = clients_[static_cast<size_t>(cidx)];
+		std::string nickname = dying.getNickname();
+		pendingCloseClients_.push_back(dying);
+		removeAndSwapBack(clients_, static_cast<size_t>(cidx));
+		for (std::map<std::string, Channel>::iterator cMapIter =
+				 channels_.begin();
+			 cMapIter != channels_.end(); ++cMapIter) {
+			Channel &ch = cMapIter->second;
+			if (ch.isMember(nickname))
+				ch.removeMember(nickname);
+		}
+	}
+}
+
+void Server::processPendingCloses(const std::vector<struct pollfd> &polled) {
+	if (pendingCloseClients_.empty())
+		return;
+	for (std::vector<Client>::iterator it = pendingCloseClients_.begin();
+		 it != pendingCloseClients_.end();) {
+		int	 fd			   = it->getSocket();
+		// Close only when backlog is empty AND POLLOUT fired this cycle
+		bool backlogExists = messageQueueManager_.hasBacklog(fd);
+		bool sawPolloUT	   = false;
+		if (!backlogExists) {
+			for (std::vector<struct pollfd>::const_iterator pit =
+					 polled.begin();
+				 pit != polled.end(); ++pit) {
+				if (pit->fd == fd) {
+					if (pit->revents & POLLOUT)
+						sawPolloUT = true;
+					break;
+				}
+			}
+		}
+		if (!backlogExists && sawPolloUT) {
+			removeClient(fd);
+			// removeClient already erases from pendingCloseClients_
+			// so restart loop safely
+			it = pendingCloseClients_.begin();
+		} else {
+			++it;
+		}
+	}
+}
+
+bool Server::isPendingCloseFd(int fd) const {
+	for (std::vector<Client>::const_iterator it = pendingCloseClients_.begin();
+		 it != pendingCloseClients_.end(); ++it) {
+		if (it->getSocket() == fd)
+			return true;
+	}
+	return false;
+}
+
+// creates the one listening socket the server has to start out with
+void Server::createListeningSocket(void) {
+	int				 err   = 0;
+	struct addrinfo	 hints = {0, 0, 0, 0, 0, 0, 0, 0};
+	struct addrinfo *res   = {0};
+	hints.ai_family		   = AF_UNSPEC;	  // IPv4 or IPv6
+	hints.ai_socktype	   = SOCK_STREAM; // TCP
+	hints.ai_flags		   = AI_PASSIVE;  // put in my ip for me
+	std::string port_str   = toString(port_);
+	int			optval	   = 1;
 
 	err = (getaddrinfo(NULL, port_str.c_str(), &hints, &res));
 	if (err != 0)
@@ -390,23 +524,27 @@ void	Server::serverInit(void)
 	this->addPollFd(getServerSocket(), POLLIN, 0);
 }
 
-//cleanup
-void	Server::serverShutdown(void)
-{
-	std::cout << BRED << "==== STARTING SERVER SHUTDOWN ====" << RESET << std::endl;
-	for (size_t pollIndex = 1; pollIndex < pollFds_.size(); pollIndex++)
-	{
-		shutdown(pollFds_[pollIndex].fd,  SHUT_RDWR);
-		if (-1 == close(pollFds_[pollIndex].fd))
-			throw std::runtime_error("[Server] close error on fd: " + toString(pollFds_[pollIndex].fd));
+// cleanup
+void Server::serverShutdown(void) {
+	std::cout << BRED << "==== STARTING SERVER SHUTDOWN ====" << RESET
+			  << std::endl;
+	for (size_t pollIndex = 1; pollIndex < pollFds_.size(); pollIndex++) {
+		shutdown(pollFds_[pollIndex].fd, SHUT_RDWR);
+		if (-1 == close(pollFds_[pollIndex].fd)) {
+			debug(std::string("close failed on fd ") +
+				  toString(pollFds_[pollIndex].fd) +
+				  ", treating as already closed");
+		}
 	}
-	std::cout << "[Server] diconnected all clients sockets" << RESET << std::endl;
-	if (serverSocket_ != -1)
-	{
-		shutdown(serverSocket_,  SHUT_RDWR);
-		if (-1 == close(serverSocket_))
-			throw std::runtime_error("[Server] close error on serverSocket");
-		std::cout << "[Server] diconnected listening socket" << RESET << std::endl;
+	std::cout << "[Server] diconnected all clients sockets" << RESET
+			  << std::endl;
+	if (serverSocket_ != -1) {
+		shutdown(serverSocket_, SHUT_RDWR);
+		if (-1 == close(serverSocket_)) {
+			debug("close failed on serverSocket; treating as already closed");
+		}
+		std::cout << "[Server] diconnected listening socket" << RESET
+				  << std::endl;
 	}
 	std::cout << GREEN << "[Server] Shutdown complete" << RESET << std::endl;
 }
@@ -424,3 +562,37 @@ std::map<std::string, Channel>&	Server::getChannels(void)
 	return (channels_);
 }
 
+// Accessor for outbound message queue manager
+MessageQueueManager &Server::getMessageQueueManager() {
+	return messageQueueManager_;
+}
+
+int Server::pollFdIndexFromFd(int fd) const {
+	for (size_t i = 0; i < pollFds_.size(); ++i) {
+		if (pollFds_[i].fd == fd)
+			return static_cast<int>(i);
+	}
+	return -1;
+}
+
+int Server::clientIndexFromFd(int fd) const {
+	int pidx = pollFdIndexFromFd(fd);
+	if (pidx > 0 && static_cast<size_t>(pidx) < pollFds_.size()) {
+		size_t cidx = static_cast<size_t>(pidx - 1);
+		if (cidx < clients_.size() &&
+			clients_[cidx].getSocket() == pollFds_[pidx].fd)
+			return static_cast<int>(cidx);
+		// fall through to linear scan if mismatch
+	}
+	// Fallback: linear scan of clients_ by socket fd
+	for (size_t i = 0; i < clients_.size(); ++i) {
+		if (clients_[i].getSocket() == fd)
+			return static_cast<int>(i);
+	}
+	return -1;
+}
+
+Client *Server::tryClientFromFd(int fd) {
+	int idx = clientIndexFromFd(fd);
+	return (idx >= 0) ? &clients_[static_cast<size_t>(idx)] : NULL;
+}

@@ -39,7 +39,10 @@ bool MessageQueueManager::insertMsgAtQueue_(std::size_t		   index,
 
 bool MessageQueueManager::insertAt_(std::size_t index, int fd,
 									const std::string &msg) {
-	struct pollfd p = {.fd = fd, .events = POLLOUT, .revents = 0};
+	struct pollfd p;
+	p.fd = fd;
+	p.events = POLLOUT;
+	p.revents = 0;
 
 	pfds_.insert(pfds_.begin() + static_cast<std::ptrdiff_t>(index), p);
 	queues_.insert(queues_.begin() + static_cast<std::ptrdiff_t>(index),

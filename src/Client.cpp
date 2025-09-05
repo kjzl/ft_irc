@@ -1,24 +1,19 @@
 #include "../include/Client.hpp"
 #include "../include/Channel.hpp"
+#include "../include/Debug.hpp"
+#include "../include/Message.hpp"
+#include "../include/MessageQueueManager.hpp"
 #include "../include/MessageType.hpp"
-#include "Debug.hpp"
-#include "Server.hpp"
+#include "../include/Server.hpp"
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
-#include <stdexcept>
-#include <sys/socket.h>
-#include "Message.hpp"
-#include "IrcUtils.hpp"
 
+Client::Client(MessageQueueManager &queueManager)
+	: mqr_(queueManager), registrationLevel_(0), socket_(-1), nickname_(""),
+	  username_("*"), realname_(""), rawMessage_("") {}
 
-Client::Client() : registrationLevel_(0), socket_(-1), nickname_(""), username_("*"), realname_(""), rawMessage_("")
-{}
-
-Client::Client(const Client &other)
-{
-    *this = other;
-}
+Client::Client(const Client &other) : mqr_(other.mqr_) { *this = other; }
 
 Client &Client::operator=(const Client &other)
 {
@@ -131,10 +126,8 @@ void Client::appendRawMessage(const char partialMessage[BUFSIZ], size_t length)
 	rawMessage_ += std::string(partialMessage, length);
 }
 
-
-void	Client::sendMessage(Message toSend) const
-{
-	safeSend(this->getSocket(), toSend.toString());
+void Client::sendMessage(Message toSend) const {
+	mqr_.send(this->getSocket(), toSend.toString());
 }
 
 bool	Client::sendMessageTo(Message msg, const std::string recipientNickname, Server &server) const
@@ -202,32 +195,7 @@ void Client::sendErrorMessage(MessageType type, std::string arg1, std::string ar
 	sendErrorMessage(type, outParams);
 }
 
-void	Client::sendMessageToFd(Message msg, int fd) const
-{
-	sendToFd(msg.toString(), fd);
-}
-
-
-void	Client::sendToFd(const std::string &string, int fd) const
-{
-	int sendBytes;
-	int	total_sent = 0;
-	int	left_size = string.size();
-
-	while (left_size)
-	{
-		sendBytes = send(fd, string.substr(total_sent, left_size).c_str(), left_size, 0);
-		if (sendBytes == -1)
-			throw std::runtime_error("[Server] send error with client: " + toString(fd));
-		total_sent += sendBytes;
-		left_size -= sendBytes;
-	}
-}
-
-
-
-void Client::sendCmdValidation(const Message inMessage) const
-{
+void Client::sendCmdValidation(const Message inMessage) const {
 	Message outMessage(inMessage);
 	outMessage.setSource(nickname_, username_);
 	sendMessage(outMessage);
