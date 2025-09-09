@@ -93,6 +93,8 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		ModeCommand.hpp \
 		WhoCommand.hpp \
 		UnknownCommand.hpp \
+		MessageQueue.hpp \
+		MessageQueueManager.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug
