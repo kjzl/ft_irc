@@ -15,6 +15,7 @@
 #include <stdexcept>
 #include <stdlib.h>
 #include <string.h>
+#include <set>
 #include <sys/fcntl.h>
 #include <sys/poll.h>
 #include <sys/socket.h>
@@ -437,32 +438,38 @@ void Server::schedulePendingClose(int fd) {
 void Server::processPendingCloses(const std::vector<struct pollfd> &polled) {
 	if (pendingCloseClients_.empty())
 		return;
-	for (std::vector<Client>::iterator it = pendingCloseClients_.begin();
-		 it != pendingCloseClients_.end();) {
-		int	 fd			   = it->getSocket();
-		// Close only when backlog is empty AND POLLOUT fired this cycle
-		bool backlogExists = messageQueueManager_.hasBacklog(fd);
-		bool sawPolloUT	   = false;
-		if (!backlogExists) {
-			for (std::vector<struct pollfd>::const_iterator pit =
-					 polled.begin();
-				 pit != polled.end(); ++pit) {
-				if (pit->fd == fd) {
-					if (pit->revents & POLLOUT)
-						sawPolloUT = true;
-					break;
-				}
-			}
-		}
-		if (!backlogExists && sawPolloUT) {
-			removeClient(fd);
-			debug("closed pending-close client " + toString(fd));
-			// removeClient already erases from pendingCloseClients_
-			// so restart loop safely
-			it = pendingCloseClients_.begin();
-		} else {
-			++it;
-		}
+
+	// Build a quick lookup of fds that reported POLLOUT this cycle so we don't
+	// rescan the polled vector for every pending client.
+	std::set<int> polloutReadyFds;
+	for (std::vector<struct pollfd>::const_iterator pit = polled.begin();
+		 pit != polled.end(); ++pit) {
+		if (pit->revents & POLLOUT)
+			polloutReadyFds.insert(pit->fd);
+	}
+
+	// Collect fds that are ready to close. We avoid mutating the
+	// pendingCloseClients_ vector while iterating it which was forcing us to
+	// restart the loop previously.
+	std::vector<int> readyToClose;
+	readyToClose.reserve(pendingCloseClients_.size());
+	for (std::vector<Client>::const_iterator it = pendingCloseClients_.begin();
+		 it != pendingCloseClients_.end(); ++it) {
+		int fd = it->getSocket();
+		// Only eligible when there's no remaining outbound backlog AND the fd
+		// produced a POLLOUT event this cycle (meaning kernel send buffer became
+		// writable and we now know all queued data was flushed).
+		if (messageQueueManager_.hasBacklog(fd))
+			continue;
+		if (polloutReadyFds.find(fd) == polloutReadyFds.end())
+			continue;
+		readyToClose.push_back(fd);
+	}
+
+	for (std::vector<int>::const_iterator it = readyToClose.begin();
+		 it != readyToClose.end(); ++it) {
+		removeClient(*it); // also erases from pendingCloseClients_
+		debug("closed pending-close client " + toString(*it));
 	}
 }
 
