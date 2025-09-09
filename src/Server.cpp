@@ -158,7 +158,7 @@ Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> mes
 	return (message);
 }
 
-void Server::quitClient(const Client &quitter, std::string &message) {
+void Server::quitClient(const Client &quitter, const std::string &message) {
 	std::vector<std::string> messageParams;
 	messageParams.push_back(message);
 	quitClient(quitter, messageParams);
@@ -342,7 +342,6 @@ void Server::handlePollIn(const std::vector<struct pollfd> &polled) {
 			continue;
 		}
 		processPollIn(*it);
-		std::cout << std::endl; // TODO why is this here?
 	}
 }
 
@@ -457,6 +456,7 @@ void Server::processPendingCloses(const std::vector<struct pollfd> &polled) {
 		}
 		if (!backlogExists && sawPolloUT) {
 			removeClient(fd);
+			debug("closed pending-close client " + toString(fd));
 			// removeClient already erases from pendingCloseClients_
 			// so restart loop safely
 			it = pendingCloseClients_.begin();

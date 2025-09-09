@@ -40,7 +40,7 @@ class Server {
 							   std::vector<std::string> &args);
 	void quitClient(const Client			 &quitter,
 					std::vector<std::string> &messageParams);
-	void quitClient(const Client &quitter, std::string &message);
+	void quitClient(const Client &quitter, const std::string &message);
 	const char					   *getTimeCreatedHumanReadable() const;
 	// everything is exposed :
 	std::vector<Client>			   &getClients(void);

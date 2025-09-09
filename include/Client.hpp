@@ -63,8 +63,6 @@ class Client {
 						  std::string arg3) const;
 	void sendErrorMessage(MessageType type, std::string arg1, std::string arg2,
 						  std::string arg3, std::string arg4) const;
-	void sendToFd(const std::string &string, int fd) const;
-	void sendMessageToFd(Message msg, int fd) const;
 };
 
 #endif

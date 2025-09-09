@@ -69,7 +69,7 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		commands/UnknownCommand.cpp \
 		)
 
-OBJS := $(SRCS:($(SRCS_DIR))%.cpp=$(OBJ_DIR)/%.o)
+OBJS := $(SRCS:($(SRCS_DIR))/%.cpp=$(OBJ_DIR)/%.o)
 
 HDRS := $(addprefix $(HDRS_DIR)/,\
 		CaseMappedString.hpp \
