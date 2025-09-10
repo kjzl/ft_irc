@@ -17,18 +17,17 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, Server& server, Cli
 	bool	messageSentSuccessfully = false;
 	if (recipient[0] == '#')
 	{
-		const Channel *recipientChannel = server.mapChannel(recipient);
+		const Channel *recipientChannel = server.mapChannel(recipient); 
 		if (recipientChannel)
 		{
+			if (!recipientChannel->isMember(sender.getNickname()))
+				return (sender.sendErrorMessage(ERR_CANNOTSENDTOCHAN, sender.getNickname(), recipient));
 			inMessage_.setSource(sender);
 			messageSentSuccessfully = true;
 			recipientChannel->broadcastMsg(sender, inMessage_);
 		}
-		// {// this error reply is something that can't happen, as we don't have the -v MODE
-		// 	// ERR_CANNOTSENDTOCHAN = 404, (not enough rights)
-		// 	std::string arr[] = {sender.getNickname(), recipient};
-		// 	return (sender.sendErrorMessage(ERR_CANNOTSENDTOCHAN, arr, 1));
-		// }
+		else
+			return (sender.sendErrorMessage(ERR_NOSUCHCHANNEL, sender.getNickname(), recipient));
 	}
 	else
 		messageSentSuccessfully = (sender.sendMessageTo(inMessage_, recipient, server));
