@@ -48,7 +48,7 @@ public:
 		const char* what() const throw();
 	};
 private:
-	bool 						hasSource_; 
+	bool 						hasSource_;
 	std::string					nickname_;
 	std::string					username_;
 	std::string			hostname_;
@@ -58,6 +58,6 @@ private:
 	void parseIncomingMessage(const std::string& raw);
 };
 
-std::ostream& operator<<(std::ostream& os, Message& message);
+std::ostream& operator<<(std::ostream& os, const Message& message);
 
 #endif
