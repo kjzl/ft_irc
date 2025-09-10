@@ -556,7 +556,6 @@ void Server::serverShutdown(void) {
 	std::cout << BRED << "==== STARTING SERVER SHUTDOWN ====" << RESET
 			  << std::endl;
 	for (size_t pollIndex = 1; pollIndex < pollFds_.size(); pollIndex++) {
-		shutdown(pollFds_[pollIndex].fd, SHUT_RDWR);
 		if (-1 == close(pollFds_[pollIndex].fd)) {
 			debug(std::string("close failed on fd ") +
 				  toString(pollFds_[pollIndex].fd) +
@@ -566,7 +565,6 @@ void Server::serverShutdown(void) {
 	std::cout << "[Server] diconnected all clients sockets" << RESET
 			  << std::endl;
 	if (serverSocket_ != -1) {
-		shutdown(serverSocket_, SHUT_RDWR);
 		if (-1 == close(serverSocket_)) {
 			debug("close failed on serverSocket; treating as already closed");
 		}
