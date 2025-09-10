@@ -1,4 +1,4 @@
-#include "../include/Server.hpp"
+#include "Server.hpp"
 #include <cstring>
 #include <exception>
 #include <iostream>
@@ -6,7 +6,6 @@
 #include <sstream>
 
 //TODO:
-//make main start with args
 //check canonical form
 
 

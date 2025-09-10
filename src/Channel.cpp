@@ -1,18 +1,7 @@
-#include "../include/Channel.hpp"
-#include "../include/Client.hpp"
-#include "../include/Message.hpp"
-#include "../include/MessageQueueManager.hpp"
-
-// Default constructor removed: Channel requires a MessageQueueManager reference
-
-// Channel::Channel(std::vector<const std::string> members, std::set<std::string> whiteList, std::set<std::string> operators, std::string topic, std::string password, int userLimit)
-// 	:	members_(members),
-// 		whiteList_(whiteList),
-// 		operators_(operators),
-// 		topic_(topic),
-// 		password_(password),
-// 		userLimit_(userLimit)
-// {}
+#include "Channel.hpp"
+#include "Client.hpp"
+#include "Message.hpp"
+#include "MessageQueueManager.hpp"
 
 Channel::Channel(const std::string &name, const Client &op,
 				 MessageQueueManager &queueManager)
@@ -36,7 +25,7 @@ Channel &Channel::operator=(const Channel &other) {
 		this->password_			= other.password_;
 		this->userLimit_		= other.userLimit_;
 		this->isInviteOnly_		= other.isInviteOnly_;
-		this->isTopicProtected_ = other.isTopicProtected_;
+		this->isTopicProtected_	= other.isTopicProtected_;
 	}
 	return *this;
 }
@@ -80,10 +69,34 @@ int Channel::getUserLimit() const
 	return userLimit_;
 }
 
+const time_t &Channel::getCreationTime() const
+{
+	return creationTime_;
+}
+
+const std::string &Channel::getTopicWho() const
+{
+	return topicWho_;
+}
+
+const time_t &Channel::getTopicTime() const
+{
+	return topicTime_;
+}
 // Setters
 void Channel::setTopic(const std::string &topic)
 {
 	topic_ = topic;
+}
+
+void Channel::setTopicWho(const std::string &topicWho)
+{
+	topicWho_ = topicWho;
+}
+
+void Channel::setTopicTime()
+{
+	topicTime_ = time(NULL);
 }
 
 void Channel::setPassword(const std::string &password)

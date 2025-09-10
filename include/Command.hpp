@@ -18,20 +18,6 @@ class Command
 		Command();
 };
 
-// enum AuthRequirement {
-// 	REQUIRES_UNAUTH,
-// 	NO_AUTH_REQUIRED,
-// 	REQUIRES_AUTH
-// };
-
-// struct CommandFactory {
-// 	int		minArgs;
-// 	AuthRequirement	auth;
-// 	Command* (*createCommand)(const Message&, const Client&);
-// };
-
-//TODO: Move those as member functions of the servers !
 Command* convertMessageToCommand(const Message& message);
-// void executeIncomingCommandMessage(Server& server, Client& sender, const std::string& rawMessage);
 
-#endif // COMMAND_HPP
+#endif

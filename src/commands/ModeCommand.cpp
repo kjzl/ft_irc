@@ -56,7 +56,7 @@ void	ModeCommand::userMode(Server& server, Client& sender)
 	std::vector<std::string> parameters = inMessage_.getParams();
 	std::string	senderNick = sender.getNickname();
 	CaseMappedString caseMappedNick(parameters[0]);
-	if (!server.clientNickExists(caseMappedNick)) // TODO: what is this check ?
+	if (!server.clientNickExists(caseMappedNick))
 		return (sender.sendErrorMessage(ERR_NOSUCHNICK, sender.getNickname(), parameters[0]));
 	if (senderNick != parameters[0])
 		return (sender.sendErrorMessage(ERR_USERSDONTMATCH, sender.getNickname()));
@@ -181,6 +181,8 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 	if (parameters.size() == 1)
 	{
 	//RPL_CHANNELMODEIS
+		parameters.push_back(parameters[0]);
+		parameters[0] = sender.getNickname();
 		std::string	modetypes = "+";
 		if (channel->isInviteOnly())
 			modetypes += "i";
@@ -201,8 +203,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 				parameters.push_back(toString(channelLimit));
 		}
 		sender.sendErrorMessage(RPL_CHANNELMODEIS, parameters);
-
-		//RPL_CREATIONTIME TODO: SHOULD == MUST ...
+		sender.sendErrorMessage(RPL_CREATIONTIME, sender.getNickname(), channel->getName(), toString(channel->getCreationTime()));
 	}
 	else
 	{
@@ -210,6 +211,7 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 			sender.sendErrorMessage(ERR_CHANOPRIVSNEEDED, sender.getNickname(), channelName);
 		// set Channel Modes, may ERR_NEEDMOREPARAMS
 		processChannelModes(sender, parameters[1], parameters, channel);
+		sender.sendCmdValidation(inMessage_, *channel); // TODO: make it robust to wrong input ?
 	}
 }
 

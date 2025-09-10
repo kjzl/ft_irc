@@ -4,31 +4,34 @@
 #include <string>
 #include <set>
 #include <map>
+#include <ctime>
 
 class Message;
 class Client;
 class MessageQueueManager;
 
 class Channel {
-  private:
-	MessageQueueManager		  &mqr_;
-	std::string				   name_;
-	// we could also use the unique fd ?
-	std::map<std::string, int> members_;
-	//(quicker search) if is not empty, is invite only channel
-	std::set<std::string>	   whiteList_;
-	std::set<std::string>	   operators_;
-	std::string				   topic_;
+	private:
+		MessageQueueManager			&mqr_;
+		std::string					 name_;
+		// we could also use the unique fd ?
+		std::map<std::string, int>	members_;
+		//(quicker search) if is not empty, is invite only channel
+		std::set<std::string>		whiteList_;
+		std::set<std::string>		operators_;
+		std::string					topic_;
+		std::string					topicWho_;
+		time_t						topicTime_;
+		time_t						creationTime_;
+		std::string					password_;
+		int		   					userLimit_;
+		bool	   					isInviteOnly_;
+		// If this mode is enabled, users must have channel
+		// privileges such as halfop or operator status in
+		// order to change the topic of a channel
+		bool						isTopicProtected_;
 
-	std::string password_;
-	int			userLimit_;
-	bool		isInviteOnly_;
-	// If this mode is enabled, users must have channel
-	// privileges such as halfop or operator status in
-	// order to change the topic of a channel
-	bool		isTopicProtected_;
-
-  public:
+	public:
 	// Channel(std::vector<std::string> members, std::set<std::string>
 	// whiteList, std::set<std::string> operators, std::string topic,
 	// std::string password, int userLimit);
@@ -46,15 +49,20 @@ class Channel {
 		const	std::string 				&getTopic() const;
 		const	std::string 				&getPassword() const;
 		int 								getUserLimit() const;
+		const	time_t						&getCreationTime() const;
+		const 	std::string 				&getTopicWho() const;
+		const 	time_t 						&getTopicTime() const;
 
 		// Setters => necessary or only Utils and full constructor?? 
 		void setTopic(const std::string &topic);
+		void setTopicWho(const std::string &topicWho);
+		void setTopicTime();
 		void setPassword(const std::string &password);
 		void setUserLimit(int limit);
 
 	// Broadcast to all members except the given sender nickname
 	void broadcastMsg(const std::string &senderNickname,
-					  const Message		&message) const;
+						const Message		&message) const;
 	void broadcastMsg(const Client &sender, const Message &message) const;
 
 		void addMember(const Client* client);

@@ -1,6 +1,6 @@
-#include "../../include/WhoCommand.hpp"
-#include "../../include/Debug.hpp"
-#include "../../include/MessageType.hpp"
+#include "WhoCommand.hpp"
+#include "Debug.hpp"
+#include "MessageType.hpp"
 
 #include <sstream>
 

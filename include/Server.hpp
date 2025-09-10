@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <arpa/inet.h>
 
 #include "Client.hpp"
 #include "MessageQueueManager.hpp"
@@ -17,85 +18,87 @@
 #define AVAILABLECHANNELMODES			   "it"
 #define AVAILABLECHANNELMODESWITHPARAMETER "k,o,l"
 
-class Channel;
+class	Channel;
 
-class Server {
-  public:
-	virtual ~Server();
-	Server(int port, std::string password);
-	Server(const Server &other);
-	Server &operator=(const Server &other);
+class	Server {
+	public:
+		virtual ~Server();
+		Server( int port, std::string password );
 
-	// core
-	void			   waitForRequests(void);
-	void			   serverShutdown(void);
-	// getters
-	const std::string &getName(void) const;
-	const std::string &getPassword(void) const;
-	// ?
-	bool			   clientNickExists(CaseMappedString &toCheck);
-	void			   broadcastMsg(const Message &message);
-	void broadcastErrorMessage(MessageType type, std::string args[], int size);
-	void broadcastErrorMessage(MessageType				 type,
-							   std::vector<std::string> &args);
-	void quitClient(const Client			 &quitter,
-					std::vector<std::string> &messageParams);
-	void quitClient(const Client &quitter, const std::string &message);
-	const char					   *getTimeCreatedHumanReadable() const;
-	// everything is exposed :
-	std::vector<Client>			   &getClients(void);
-	std::map<std::string, Channel> &getChannels(void);
-	// Utils
-	Channel						   *mapChannel(const std::string &channelName);
-	MessageQueueManager			   &getMessageQueueManager();
-	// Return index in pollFds_ for a given fd, or -1 if not found
-	int								pollFdIndexFromFd(int fd) const;
-	// Return index in clients_ for a given fd, or -1 if not found
-	int								clientIndexFromFd(int fd) const;
-	// Non-throwing: returns NULL if no Client matches fd
-	Client						   *tryClientFromFd(int fd);
+		Server(const Server& other);
+		Server& operator=( const Server& other );
+		// core
+		void	waitForRequests(void);
+		void	serverShutdown(void);
+		// getters
+		const std::string	&getName( void ) const;
+		const std::string	&getPassword( void ) const;
+		// ?
+		bool		clientNickExists(CaseMappedString& toCheck);
+		void		broadcastMsg(const Message &message) const;
+		void		broadcastErrorMessage(MessageType type, std::string args[], int size);
+		void		broadcastErrorMessage(MessageType type, std::vector<std::string>& args);
+		void		broadcastMsg(const Message &message);
 
-  private:
-	Server(void);
-	// Getters and setters
-	int	 getPort(void) const;
-	int	 getServerSocket(void) const;
-	void setServerSocket(int serverSocketFd);
-	void addPollFd(const int fd, const short events, const short revents);
+		void		quitClient(const Client &quitter);
+		void		quitClient(const Client &quitter, const std::string &message);
+		void		quitClient(const Client &quitter,  const Message &msg);
+		const char					   *getTimeCreatedHumanReadable() const;
+		// everything is exposed :
+		std::vector<Client>			   &getClients(void);
+		std::map<std::string, Channel> &getChannels(void);
+		// Utils
+		Channel						   *mapChannel(const std::string &channelName);
+		MessageQueueManager			   &getMessageQueueManager();
+		// Return index in pollFds_ for a given fd, or -1 if not found
+		int								pollFdIndexFromFd(int fd) const;
+		// Return index in clients_ for a given fd, or -1 if not found
+		int								clientIndexFromFd(int fd) const;
+		// Non-throwing: returns NULL if no Client matches fd
+		Client						   *tryClientFromFd(int fd);
 
-	void		handleNewConnection(const struct pollfd &polled);
-	void		handlePollIn(const std::vector<struct pollfd> &polled);
-	void		createListeningSocket(void);
-	void		serverInit(void);
-	void		acceptConnection();
-	void		processPollIn(struct pollfd request);
-	// Immediately and irrevocably remove and close the client on fd.
-	void		removeClient(int fd);
-	// Mark a client for deferred close after its outbound queue drains.
-	void		schedulePendingClose(int fd);
-	// Process any scheduled pending closes that are now safe to close.
-	void		processPendingCloses(const std::vector<struct pollfd> &polled);
-	bool		isPendingCloseFd(int fd) const;
-	// Handle MessageQueueManager dead fds cleanup
-	void		handleDeadFds();
-	static void signalHandler(int signum);
-	void		makeMessage(Client &client);
-	void		executeIncomingCommandMessage(Client			&sender,
-											  const std::string &rawMessage);
-	Message		buildErrorMessage(MessageType			   type,
-								  std::vector<std::string> messageParams) const;
-
-	const std::string			   name_;
-	const int					   port_;
-	const std::string			   password_;
-	int							   serverSocket_;
-	static bool					   running_;
-	std::vector<struct pollfd>	   pollFds_;
-	std::vector<Client>			   clients_;
-	std::map<std::string, Channel> channels_;
-	const time_t				   timeCreated_;
-	MessageQueueManager			   messageQueueManager_;
-	std::vector<Client>			   pendingCloseClients_;
+	private:
+		Server(void);
+		// Getters and setters
+		int			getPort(void) const;
+		int	 		getServerSocket(void) const;
+		void		setServerSocket(int serverSocketFd);
+		void		addPollFd(const int fd, const short events, const short revents);
+	
+		void		handleNewConnection(const struct pollfd &polled);
+		void		handlePollIn(const std::vector<struct pollfd> &polled);
+		void		createListeningSocket(void);
+		void		serverInit(void);
+		void		acceptConnection();
+		void		processPollIn(struct pollfd request);
+		// Immediately and irrevocably remove and close the client on fd.
+		void		removeClient(int fd);
+		// Mark a client for deferred close after its outbound queue drains.
+		void		schedulePendingClose(int fd);
+		// Process any scheduled pending closes that are now safe to close.
+		void		processPendingCloses(const std::vector<struct pollfd> &polled);
+		bool		isPendingCloseFd(int fd) const;
+		// Handle MessageQueueManager dead fds cleanup
+		void		handleDeadFds();
+		static void signalHandler(int signum);
+		void		makeMessage(Client &client);
+		void		executeIncomingCommandMessage(Client			&sender,
+												  const std::string &rawMessage);
+		Message		buildErrorMessage(MessageType			   type,
+									  std::vector<std::string> messageParams) const;
+		// void		quitClient(const Client &quitter,  const Message &msg);
+	
+		const std::string			   name_;
+		const int					   port_;
+		const std::string			   password_;
+		int							   serverSocket_;
+		static bool					   running_;
+		std::vector<struct pollfd>	   pollFds_;
+		std::vector<Client>			   clients_;
+		std::map<std::string, Channel> channels_;
+		const time_t				   timeCreated_;
+		MessageQueueManager			   messageQueueManager_;
+		std::vector<Client>			   pendingCloseClients_;
 };
 
 #endif // !SERVER_HPP

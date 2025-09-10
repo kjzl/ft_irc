@@ -26,16 +26,17 @@ public:
   virtual ~Message();
   std::string toString() const;
 
-  // Optional note of where the message came from
-  const std::string getNickname() const;
-  const std::string getUsername() const;
-  void setSource(const std::string nickname, const std::string username);
-  void setSource();
-  // The specific command this message represents.
-  std::string getType() const;
-  // If it exists, data relevant to this specific command.
-  std::vector<std::string> &getParams();
-  const std::vector<std::string> &getParams() const;
+	// Optional note of where the message came from
+	const std::string	getNickname() const;
+	const std::string	getUsername() const;
+	// void	setSource(const std::string nickname, const std::string username);
+	void	setSource();
+	void	setSource(const Client &client);
+	// The specific command this message represents.
+	std::string getType() const;
+	// If it exists, data relevant to this specific command.
+	std::vector<std::string>&	getParams();
+	const std::vector<std::string>	&getParams() const;
 
 	class WrongMessageFormatException : public std::exception {
 	private:
@@ -50,13 +51,13 @@ private:
 	bool 						hasSource_; 
 	std::string					nickname_;
 	std::string					username_;
-	const std::string			hostname_;
+	std::string			hostname_;
 	std::string					type_;
 	std::vector<std::string>	params_;
 
 	void parseIncomingMessage(const std::string& raw);
 };
 
-std::ostream &operator<<(std::ostream &os, const Message &message);
+std::ostream& operator<<(std::ostream& os, Message& message);
 
 #endif

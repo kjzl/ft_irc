@@ -1,6 +1,6 @@
-#include "../../include/JoinCommand.hpp"
-#include "../../include/Debug.hpp"
-#include "../../include/MessageType.hpp"
+#include "JoinCommand.hpp"
+#include "Debug.hpp"
+#include "MessageType.hpp"
 
 #include <sstream>
 
@@ -20,7 +20,7 @@ Command* JoinCommand::fromMessage(const Message& message)
     ERR_TOOMANYCHANNELS (405)	=> we ignore that...
     ERR_BADCHANNELKEY (475)		=> done
     x ERR_BANNEDFROMCHAN (474)	=> we don't ban
-    ERR_CHANNELISFULL (471)		=> TODO: we ignore that... our limit is MAX_INT ? ==> nop
+    ERR_CHANNELISFULL (471)		=> done
     ERR_INVITEONLYCHAN (473)	=> done
     ERR_BADCHANMASK (476)		=> ???
     RPL_TOPIC (332)				=> done
@@ -79,7 +79,7 @@ void JoinCommand::execute(Server& server, Client& sender)
 			continue;
 		}
 		// ERR_CHANNELISFULL (471)
-		if (channel->getUserLimit() && (int)channel->getMembers().size() == channel->getUserLimit())
+		if (channel->getUserLimit() && (int)channel->getMembers().size() >= channel->getUserLimit())
 		{
 			sender.sendErrorMessage(ERR_CHANNELISFULL, sender.getNickname(), channelName);
 			continue;

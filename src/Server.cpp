@@ -138,8 +138,10 @@ void	Server::setServerSocket( int serverSocketFd )
 void	Server::acceptConnection( void )
 {
 	int clientFd;
-
-	clientFd = accept(getServerSocket(), NULL, NULL);
+	sockaddr_in client_addr;
+	socklen_t client_len;
+	
+	clientFd = accept(getServerSocket(), (sockaddr *)&client_addr, &client_len);
 	if (clientFd == -1)
 		throw std::runtime_error("[Server] accept error");
 	addPollFd(clientFd, POLLIN, 0);
@@ -148,6 +150,7 @@ void	Server::acceptConnection( void )
 	Client		newcomer(messageQueueManager_);
 	newcomer.setSocket(clientFd);
 	clients_.push_back(newcomer);
+	clients_.back().setIP(inet_ntoa(client_addr.sin_addr));
 }
 
 Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> messageParams) const
@@ -159,23 +162,28 @@ Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> mes
 	return (message);
 }
 
-void Server::quitClient(const Client &quitter, const std::string &message) {
-	std::vector<std::string> messageParams;
-	messageParams.push_back(message);
-	quitClient(quitter, messageParams);
+void	Server::quitClient(const Client &quitter)
+{
+	Message msg("QUIT", "Quit", quitter);
+	quitClient(quitter, msg);
+}
+
+void	Server::quitClient(const Client &quitter,  const std::string &reason)
+{
+	Message msg("QUIT", "Quit", reason, quitter);
+	quitClient(quitter, msg);
 }
 
 // used to removeClient from server (in poll and clients) and broadcast the Quit
 // message. if server needs to diconnect the client, modify messageParams to
 // reflect reason
-void Server::quitClient(const Client			 &quitter,
-						std::vector<std::string> &messageParams) {
+// void Server::quitClient(const Client			 &quitter,
+// 						std::vector<std::string> &messageParams) {
+void	Server::quitClient(const Client &quitter,  const Message &msg)
+{
 	std::string qNickname = quitter.getNickname();
 	// Defer the actual close to allow queued data to flush
 	schedulePendingClose(quitter.getSocket());
-
-	messageParams.push_back(qNickname);
-	Message msg = buildErrorMessage(QUIT, messageParams);
 	for (std::map<std::string, Channel>::iterator cMapIter = channels_.begin();
 		 cMapIter != channels_.end(); ++cMapIter) {
 		Channel &quittersChannel = cMapIter->second;
@@ -342,7 +350,12 @@ void Server::handlePollIn(const std::vector<struct pollfd> &polled) {
 		if (isPendingCloseFd(it->fd)) {
 			continue;
 		}
+		try {
 		processPollIn(*it);
+		} catch (std::runtime_error &e) {
+			// TODO: send gerenic error reply to client
+			std::cerr << "[Server] " << e.what() << ": " << strerror(errno) << std::endl;
+		}
 	}
 }
 

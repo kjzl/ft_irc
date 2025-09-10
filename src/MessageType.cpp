@@ -1,8 +1,4 @@
 #include "MessageType.hpp"
-// #include <map>
-// #include <cctype>
-// #include <stdexcept>
-// #include <iostream>
 
 const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 {
@@ -63,6 +59,7 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 // TOPIC
 		errorMap[RPL_NOTOPIC]			= IrcErrorInfo("331", "No topic is set");
 		errorMap[RPL_TOPIC]				= IrcErrorInfo("332", "");
+		errorMap[RPL_TOPICWHOTIME]		= IrcErrorInfo("333", "");
 		// ...
 	}
 	return errorMap;

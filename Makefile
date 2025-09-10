@@ -42,10 +42,10 @@ HDRS_DIR	:= include
 
 DIRS = $(addprefix $(OBJ_DIR)/, .)
 
-INCLUDES := -I$(HDRS_DIR)
+INCLUDES := -I$(HDRS_DIR) -Iinclude/commands
 
 SRCS := $(addprefix $(SRCS_DIR)/,\
-        main.cpp \
+		main.cpp \
 		Server.cpp \
 		Client.cpp \
 		Message.cpp \
@@ -76,25 +76,22 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		Channel.hpp \
 		Client.hpp \
 		Command.hpp \
-		Channel.hpp \
 		MessageType.hpp \
 		IrcUtils.hpp \
 		Message.hpp \
 		Server.hpp \
-		NickCommand.hpp \
-		PassCommand.hpp \
-		UserCommand.hpp \
-		PrivmsgCommand.hpp \
-		JoinCommand.hpp \
-		KickCommand.hpp \
-		QuitCommand.hpp \
-		InviteCommand.hpp \
-		TopicCommand.hpp \
-		ModeCommand.hpp \
-		WhoCommand.hpp \
-		UnknownCommand.hpp \
-		MessageQueue.hpp \
-		MessageQueueManager.hpp \
+		commands/NickCommand.hpp \
+		commands/PassCommand.hpp \
+		commands/UserCommand.hpp \
+		commands/PrivmsgCommand.hpp \
+		commands/JoinCommand.hpp \
+		commands/KickCommand.hpp \
+		commands/QuitCommand.hpp \
+		commands/InviteCommand.hpp \
+		commands/TopicCommand.hpp \
+		commands/ModeCommand.hpp \
+		commands/WhoCommand.hpp \
+		commands/UnknownCommand.hpp \
 		)
 
 .PHONY: all clean fclean re sanitize debug

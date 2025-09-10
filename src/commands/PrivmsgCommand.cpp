@@ -1,6 +1,6 @@
-#include "../../include/PrivmsgCommand.hpp"
-#include "../../include/Debug.hpp"
-#include "../../include/MessageType.hpp"
+#include "PrivmsgCommand.hpp"
+#include "Debug.hpp"
+#include "MessageType.hpp"
 #include "Channel.hpp"
 #include <cstdlib>
 #include <sstream>
@@ -21,7 +21,7 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, Server& server, Cli
 		const Channel *recipientChannel = server.mapChannel(recipient); 
 		if (recipientChannel)
 		{
-			inMessage_.setSource(sender.getNickname(), sender.getUsername());
+			inMessage_.setSource(sender);
 			messageSentSuccessfully = true;
 			recipientChannel->broadcastMsg(sender, inMessage_);
 		}

@@ -1,6 +1,6 @@
-#include "../../include/UnknownCommand.hpp"
-#include "../../include/Debug.hpp"
-#include "../../include/MessageType.hpp"
+#include "UnknownCommand.hpp"
+#include "Debug.hpp"
+#include "MessageType.hpp"
 
 #include <sstream>
 

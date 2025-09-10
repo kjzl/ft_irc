@@ -1,6 +1,8 @@
-#include "../../include/QuitCommand.hpp"
-#include "../../include/Debug.hpp"
-#include "../../include/Message.hpp"
+#include "QuitCommand.hpp"
+#include "Debug.hpp"
+#include "Message.hpp"
+#include <cmath>
+
 // Default Constructor
 QuitCommand::QuitCommand( void ): Command()
 {
@@ -46,9 +48,11 @@ example: :dan-!d@localhost QUIT :Quit: Bye for now!
 void	QuitCommand::execute(Server& server, Client& sender)
 {
 	if (!sender.isAuthenticated())
-		inMessage_.setSource(sender.getNickname(), sender.getUsername());
+		inMessage_.setSource(sender);
 	// do the exit & send notice to everyone
 	sender.sendErrorMessage(ERROR, "Connection closed");
-	server.quitClient(sender, inMessage_.getParams());
+	if (inMessage_.getParams().size())
+		return (server.quitClient(sender, inMessage_.getParams()[0]));
+	server.quitClient(sender);
 }
 

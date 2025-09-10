@@ -1,6 +1,6 @@
-#include "../../include/NickCommand.hpp"
-#include "../../include/Debug.hpp"
-#include "../../include/MessageType.hpp"
+#include "NickCommand.hpp"
+#include "Debug.hpp"
+#include "MessageType.hpp"
 
 NickCommand::NickCommand(const Message& msg) : Command(msg)
 {}
