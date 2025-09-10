@@ -1,7 +1,6 @@
 #include "Message.hpp"
 #include "Command.hpp"
 #include "Debug.hpp"
-#include "ircUtils.hpp"
 #include "PassCommand.hpp"
 #include "NickCommand.hpp"
 #include "UserCommand.hpp"
@@ -76,7 +75,7 @@ Command* convertMessageToCommand(const Message& message)
 		fillCommandMap(commandMap);
 	std::string type = message.getType();
 	std::map<std::string, CommandFactory>::iterator it = commandMap.find(type);
-	if (it == commandMap.end())		
+	if (it == commandMap.end())
 		return (commandMap["UNKNOWN"](message));
 	Command* cmd = it->second(message);
 	return cmd;

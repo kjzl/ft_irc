@@ -6,7 +6,6 @@
 #include <sstream>
 
 //TODO:
-//make main start with args
 //check canonical form
 
 

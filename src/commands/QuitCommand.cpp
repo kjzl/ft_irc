@@ -1,8 +1,8 @@
 #include "QuitCommand.hpp"
 #include "Debug.hpp"
-#include "iostream"
 #include "Message.hpp"
 #include <cmath>
+
 // Default Constructor
 QuitCommand::QuitCommand( void ): Command()
 {
@@ -50,10 +50,9 @@ void	QuitCommand::execute(Server& server, Client& sender)
 	if (!sender.isAuthenticated())
 		inMessage_.setSource(sender);
 	// do the exit & send notice to everyone
-	//
-	std::cerr << "Quit parameters size: " << (inMessage_.getParams().size())  << std::endl;
+	sender.sendErrorMessage(ERROR, "Connection closed");
 	if (inMessage_.getParams().size())
 		return (server.quitClient(sender, inMessage_.getParams()[0]));
-	server.quitClient(sender, "");
+	server.quitClient(sender);
 }
 

@@ -1,19 +1,21 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include "CaseMappedString.hpp"
+#include "Message.hpp"
+#include "MessageType.hpp"
 #include <cstdio>
 #include <string>
 #include <vector>
-#include "CaseMappedString.hpp"
-#include "MessageType.hpp"
 
-class Message;
 class Server;
 class Channel;
+class MessageQueueManager;
 
 class   Client
 {
 	private:
+		MessageQueueManager	&mqr_;
 		int					registrationLevel_;
 		int					socket_;
 		CaseMappedString	nickname_;
@@ -22,15 +24,14 @@ class   Client
 		std::string			rawMessage_;
 		std::string			IP_;
 
+  public:
+	Client(MessageQueueManager &queueManager);
+	Client(const Client &other);
+	Client &operator=(const Client &other);
+	virtual ~Client();
 
-	public:
-		Client();
-		Client(const Client &other);
-		Client &operator=(const Client &other);
-		virtual ~Client();
-
-		bool	operator==(const std::string nickname);
-		bool	operator==(const Client &other);
+	bool operator==(const std::string nickname);
+	bool operator==(const Client &other);
 
 		const std::string		&getNickname() const;
 		const std::string		&getUsername() const;
@@ -66,7 +67,6 @@ class   Client
 		//send to fd stuff
 		void	sendToFd(const std::string &string, int fd) const;
 		void	sendMessageToFd(Message msg, int fd) const;
-
 };
 
 #endif

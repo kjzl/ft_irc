@@ -55,10 +55,14 @@ void JoinCommand::execute(Server& server, Client& sender)
 		}
 		Channel *channel = (server.mapChannel(channelName)); 
 		// Creating a new channel
-		if (!channel)
-		{
-			server.getChannels()[channelName] = Channel(channelName, sender);
-			channel = (server.mapChannel(channelName));
+		if (!channel) {
+			// Insert without requiring default constructor
+			std::map<std::string, Channel> &chs = server.getChannels();
+			std::pair<std::map<std::string, Channel>::iterator, bool> ins =
+				chs.insert(std::make_pair(
+					channelName,
+					Channel(channelName, sender, server.getMessageQueueManager())));
+			channel = &ins.first->second;
 			sendValidationMessages(sender, *channel);
 			continue;
 		}

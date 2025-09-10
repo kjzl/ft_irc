@@ -1,70 +1,31 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 #include "Message.hpp"
+#include "MessageQueueManager.hpp"
 
-Channel::Channel()
-	: name_(""),
-	  members_(),
-	  whiteList_(),
-	  operators_(),
-	  topic_(""),
-	  topicWho_(),
-	  topicTime_(),
-	  creationTime_(time(NULL)),
-	  password_(""),
-	  userLimit_(0),
-	  isInviteOnly_(false),
-	  isTopicProtected_(false)
-{}
-
-// Channel::Channel(std::vector<const std::string> members, std::set<std::string> whiteList, std::set<std::string> operators, std::string topic, std::string password, int userLimit)
-// 	:	members_(members),
-// 		whiteList_(whiteList),
-// 		operators_(operators),
-// 		topic_(topic),
-// 		password_(password),
-// 		userLimit_(userLimit)
-// {}
-
-Channel::Channel(const std::string& name, const Client& sender)
-	: name_(name),
-	  members_(),
-	  whiteList_(),
-	  operators_(),
-	  topic_(""),
-	  topicWho_(),
-	  topicTime_(),
-	  creationTime_(time(NULL)),
-	  password_(""),
-	  userLimit_(0),
-	  isInviteOnly_(false),
-	  isTopicProtected_(false)
-{
-	members_[sender.getNickname()] = sender.getSocket();
-	operators_.insert(sender.getNickname());
+Channel::Channel(const std::string &name, const Client &op,
+				 MessageQueueManager &queueManager)
+	: mqr_(queueManager), name_(name), members_(), whiteList_(), operators_(),
+	  topic_(""), password_(""), userLimit_(0), isInviteOnly_(false),
+	  isTopicProtected_(false) {
+	members_[op.getNickname()] = op.getSocket();
+	operators_.insert(op.getNickname());
 }
 
-Channel::Channel(const Channel &other)
-{
-	*this = other;
-}
+Channel::Channel(const Channel &other) : mqr_(other.mqr_) { *this = other; }
 
-Channel &Channel::operator=(const Channel &other)
-{
-	if (this != &other)
-	{
-		this->name_ = other.name_;
-		this->members_ = other.members_;
-		this->whiteList_ = other.whiteList_;
-		this->operators_ = other.operators_;
-		this->creationTime_ = other.creationTime_;
-		this->topic_ = other.topic_;
-		this->topicWho_ = other.topicWho_,
-	  	this->topicTime_ = other.topicTime_,
-		this->password_ = other.password_;
-		this->userLimit_ = other.userLimit_;
-		this->isInviteOnly_ = other.isInviteOnly_;
-		this->isTopicProtected_ = other.isTopicProtected_;
+// This can't change the MessageQueueManager reference stored inside
+Channel &Channel::operator=(const Channel &other) {
+	if (this != &other) {
+		this->name_				= other.name_;
+		this->members_			= other.members_;
+		this->whiteList_		= other.whiteList_;
+		this->operators_		= other.operators_;
+		this->topic_			= other.topic_;
+		this->password_			= other.password_;
+		this->userLimit_		= other.userLimit_;
+		this->isInviteOnly_		= other.isInviteOnly_;
+		this->isTopicProtected_	= other.isTopicProtected_;
 	}
 	return *this;
 }
@@ -148,13 +109,19 @@ void Channel::setUserLimit(int limit)
 	userLimit_ = limit;
 }
 
-void Channel::broadcastMsg(const Client &sender, const Message &message) const
-{
-	for (std::map<std::string, int>::const_iterator	memberIt = (members_.begin()); memberIt != members_.end(); memberIt++)
-	{
-		if (memberIt->first != sender.getNickname())
-			sender.sendMessageToFd(message, memberIt->second);
+void Channel::broadcastMsg(const std::string &senderNickname,
+						   const Message	 &message) const {
+	const std::string wire = message.toString();
+	for (std::map<std::string, int>::const_iterator memberIt = members_.begin();
+		 memberIt != members_.end(); ++memberIt) {
+		if (memberIt->first == senderNickname)
+			continue;
+		mqr_.send(memberIt->second, wire);
 	}
+}
+
+void Channel::broadcastMsg(const Client &sender, const Message &message) const {
+	broadcastMsg(sender.getNickname(), message);
 }
 
 bool Channel::checkKey(const std::string& key) const

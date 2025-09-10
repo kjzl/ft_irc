@@ -13,7 +13,8 @@ CURSOR_UP := $(shell printf '\033[1A')
 PHONY := all clean fclean re
 
 # Additional pretty printing variables
-TOTAL_FILES := $(words $(SRCS))
+# Use recursive expansion for TOTAL_FILES so SRCS can be defined later without warnings
+TOTAL_FILES = $(words $(SRCS))
 CURRENT_FILE := 0
 PROGRESS_BAR_WIDTH := 40
 
@@ -52,6 +53,8 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		CaseMappedString.cpp \
 		Command.cpp \
 		Channel.cpp \
+		MessageQueue.cpp \
+		MessageQueueManager.cpp \
 		commands/NickCommand.cpp \
 		commands/PassCommand.cpp \
 		commands/UserCommand.cpp \
@@ -66,7 +69,7 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		commands/UnknownCommand.cpp \
 		)
 
-OBJS := $(SRCS:($SRCS_DIR)%.cpp=$(OBJ_DIR)/%.o)
+OBJS := $(SRCS:($(SRCS_DIR))/%.cpp=$(OBJ_DIR)/%.o)
 
 HDRS := $(addprefix $(HDRS_DIR)/,\
 		CaseMappedString.hpp \
@@ -74,7 +77,7 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		Client.hpp \
 		Command.hpp \
 		MessageType.hpp \
-		ircUtils.hpp \
+		IrcUtils.hpp \
 		Message.hpp \
 		Server.hpp \
 		commands/NickCommand.hpp \
@@ -106,10 +109,10 @@ $(NAME): $(OBJS) $(HDRS) Makefile
 	printf "$(RED)$(BOLD)Build failed!$(RESET)\n"
 
 # Compile object files
-$(OBJ_DIR)/%.o: $(SRCS_DIR)%.c | $(DIRS)
+$(OBJ_DIR)/%.o: $(SRCS_DIR)/%.cpp | $(DIRS)
 	#$(call update_progress)
 	@printf "$(YELLOW)Compiling $(RESET)"
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 run: $(NAME)
 	./$(NAME)
