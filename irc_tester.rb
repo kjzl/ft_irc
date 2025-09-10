@@ -173,7 +173,7 @@ class IrcservTester
     Thread.new do
       begin
         stdout.each_line(chomp: true) do |line|
-          client[:response_mutex].synchronize do 
+          client[:response_mutex].synchronize do
             client[:responses] << line
           end
           puts "[CLIENT #{client_id} IN] #{line}" if ENV['DEBUG']
@@ -455,12 +455,12 @@ test_cases = [
       {
         procedure: :register_client,
         client_map: { client: :alice },
-        variables: { nickname: "alice", password: "password" } 
+        variables: { nickname: "alice", password: "password" }
       },
       {
         procedure: :register_client,
         client_map: { client: :bob },
-        variables: { nickname: "bob", password: "password" } 
+        variables: { nickname: "bob", password: "password" }
       }
     ]
   },
@@ -473,7 +473,7 @@ test_cases = [
       # Register both clients
       { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
       { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
-      
+
       # Join channel
       # { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "test"} },
       # { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "test"} },
@@ -608,6 +608,17 @@ test_cases = [
     ]
   }
   # setting topic when not operator
+  #--------------------------------------------------
+  # QUIT TEST
+  {
+    name: "QUIT sends error message",
+    clients: [:alice],
+    steps: [
+      { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+      # After QUIT we expect a numeric 5 (error-message) response before disconnect.
+      { client: :alice, command: "QUIT :Client exiting", expect: /ERROR/, timeout: 1.5 }
+    ]
+  }
 ]
 
 # Run tests
