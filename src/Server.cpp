@@ -139,7 +139,7 @@ void	Server::acceptConnection( void )
 {
 	while (true) {
 		sockaddr_in client_addr;
-		socklen_t client_len;
+		socklen_t client_len = sizeof(client_addr);
 		int clientFd = accept(getServerSocket(), (sockaddr *)&client_addr, &client_len);
 		if (clientFd == -1) {
 			if (errno == EINTR)
