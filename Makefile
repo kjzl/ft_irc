@@ -80,6 +80,8 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		IrcUtils.hpp \
 		Message.hpp \
 		Server.hpp \
+		MessageQueue.hpp \
+		MessageQueueManager.hpp \
 		commands/NickCommand.hpp \
 		commands/PassCommand.hpp \
 		commands/UserCommand.hpp \
