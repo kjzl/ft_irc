@@ -1,8 +1,6 @@
-#include "UnknownCommand.hpp"
-#include "Debug.hpp"
-#include "MessageType.hpp"
+#include "../../include/commands/UnknownCommand.hpp"
+#include "../../include/MessageType.hpp"
 
-#include <sstream>
 
 UnknownCommand::UnknownCommand(const Message& msg): Command(msg)
 {}

@@ -1,7 +1,6 @@
-#include "PrivmsgCommand.hpp"
-#include "Debug.hpp"
-#include "MessageType.hpp"
-#include "Channel.hpp"
+#include "../../include/commands/PrivmsgCommand.hpp"
+#include "../../include/MessageType.hpp"
+#include "../../include/Channel.hpp"
 #include <cstdlib>
 #include <sstream>
 
@@ -18,7 +17,7 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, Server& server, Cli
 	bool	messageSentSuccessfully = false;
 	if (recipient[0] == '#')
 	{
-		const Channel *recipientChannel = server.mapChannel(recipient); 
+		const Channel *recipientChannel = server.mapChannel(recipient);
 		if (recipientChannel)
 		{
 			inMessage_.setSource(sender);
@@ -49,7 +48,7 @@ void	PrivmsgCommand::privmsgRecipient(std::string recipient, Server& server, Cli
 void PrivmsgCommand::execute(Server& server, Client& sender)
 {
 	std::vector<std::string> inParams = inMessage_.getParams();
-	
+
 	// Not Authenticated ==> ignore it...
 	if (!sender.isAuthenticated())
 		return;

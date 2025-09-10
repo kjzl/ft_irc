@@ -1,7 +1,7 @@
-#include "Channel.hpp"
-#include "Client.hpp"
-#include "Message.hpp"
-#include "MessageQueueManager.hpp"
+#include "../include/Channel.hpp"
+#include "../include/Client.hpp"
+#include "../include/Message.hpp"
+#include "../include/MessageQueueManager.hpp"
 
 Channel::Channel(const std::string &name, const Client &op,
 				 MessageQueueManager &queueManager)

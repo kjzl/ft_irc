@@ -1,6 +1,6 @@
-#include "QuitCommand.hpp"
-#include "Debug.hpp"
-#include "Message.hpp"
+#include "../../include/commands/QuitCommand.hpp"
+#include "../../include/Debug.hpp"
+#include "../../include/Message.hpp"
 #include <cmath>
 
 // Default Constructor

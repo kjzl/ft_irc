@@ -2,8 +2,8 @@
 #ifndef QUITCOMMAND_HPP
 #define QUITCOMMAND_HPP
 
-#include "Command.hpp"
-#include "Channel.hpp"
+#include "../Command.hpp"
+#include "../Channel.hpp"
 
 class QuitCommand : public Command{
 	public:

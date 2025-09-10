@@ -1,8 +1,8 @@
-#include "ModeCommand.hpp"
-#include "Debug.hpp"
+#include "../../include/commands/ModeCommand.hpp"
+#include "../../include/Debug.hpp"
 #include <cstdlib>
 #include <vector>
-#include "IrcUtils.hpp"
+#include "../../include/IrcUtils.hpp"
 // Default Constructor
 ModeCommand::ModeCommand( void ): Command()
 {

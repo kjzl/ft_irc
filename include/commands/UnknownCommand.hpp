@@ -1,8 +1,8 @@
 #ifndef UNKNOWNCOMMAND_HPP
 #define UNKNOWNCOMMAND_HPP
 
-#include "Command.hpp"
-#include "Channel.hpp"
+#include "../Command.hpp"
+#include "../Channel.hpp"
 
 class UnknownCommand : public Command
 {

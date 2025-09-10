@@ -1,6 +1,6 @@
-#include "TopicCommand.hpp"
-#include "Debug.hpp"
-#include "IrcUtils.hpp"
+#include "../../include/commands/TopicCommand.hpp"
+#include "../../include/Debug.hpp"
+#include "../../include/IrcUtils.hpp"
 
 // Default Constructor
 TopicCommand::TopicCommand( void ): Command()

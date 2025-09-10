@@ -1,4 +1,4 @@
-#include "CaseMappedString.hpp"
+#include "../include/CaseMappedString.hpp"
 #include <cctype>
 
 // Static helper method to convert a character according to active case mapping

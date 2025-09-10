@@ -1,8 +1,6 @@
-#include "WhoCommand.hpp"
-#include "Debug.hpp"
-#include "MessageType.hpp"
+#include "../../include/commands/WhoCommand.hpp"
+#include "../../include/MessageType.hpp"
 
-#include <sstream>
 
 WhoCommand::WhoCommand(const Message& msg) : JoinCommand(msg)
 {}
@@ -29,9 +27,9 @@ void WhoCommand::execute(Server& server, Client& sender)
 	// 461
 	if (inParams.size() < 1)
 		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
-	
+
 	std::string	channelName = inParams[0];
-	Channel *channel = (server.mapChannel(channelName)); 
+	Channel *channel = (server.mapChannel(channelName));
 	// 403
 	if (channelName[0] != '#' || !channel)
 		return(sender.sendErrorMessage(ERR_NOSUCHCHANNEL, sender.getNickname(), channelName));

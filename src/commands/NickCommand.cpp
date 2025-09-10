@@ -1,6 +1,5 @@
-#include "NickCommand.hpp"
-#include "Debug.hpp"
-#include "MessageType.hpp"
+#include "../../include/commands/NickCommand.hpp"
+#include "../../include/MessageType.hpp"
 
 NickCommand::NickCommand(const Message& msg) : Command(msg)
 {}
@@ -30,7 +29,7 @@ void NickCommand::execute(Server& server, Client& sender)
 {
 	std::vector<std::string> inParams = inMessage_.getParams();
 	int	registrationLevel = sender.getRegistrationLevel();
-	
+
 	// checkRegistrationLevel => do nothing if no PASS given!
 	if (registrationLevel == 0)
 		return;
@@ -57,7 +56,7 @@ void NickCommand::execute(Server& server, Client& sender)
 bool	NickCommand::checkNickFormat(std::string nickname)
 {
 	if (nickname[0] == '#' //handling only public channels in general
-	|| nickname[0] == ':') 
+	|| nickname[0] == ':')
 		return (true);
 	if (nickname.find(" ") != std::string::npos)
 		return (true);

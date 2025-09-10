@@ -1,5 +1,5 @@
-#include "KickCommand.hpp"
-#include "Debug.hpp"
+#include "../../include/commands/KickCommand.hpp"
+#include "../../include/Debug.hpp"
 #include <sstream>
 // Default Constructor
 KickCommand::KickCommand( void ): Command()

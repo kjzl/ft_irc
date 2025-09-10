@@ -2,8 +2,8 @@
 #ifndef TOPICCOMMAND_HPP
 #define TOPICCOMMAND_HPP
 
-#include "Command.hpp"
-#include "Channel.hpp"
+#include "../Command.hpp"
+#include "../Channel.hpp"
 
 class TopicCommand : public Command{
 	public:

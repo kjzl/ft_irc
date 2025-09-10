@@ -1,6 +1,6 @@
-#include "InviteCommand.hpp"
-#include "Debug.hpp"
-#include "Message.hpp"
+#include "../../include/commands/InviteCommand.hpp"
+#include "../../include/Debug.hpp"
+#include "../../include/Message.hpp"
 // Default Constructor
 InviteCommand::InviteCommand( void ): Command()
 {

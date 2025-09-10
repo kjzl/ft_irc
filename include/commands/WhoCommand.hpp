@@ -1,8 +1,8 @@
 #ifndef WHOCOMMAND_HPP
 #define WHOCOMMAND_HPP
 
-#include "JoinCommand.hpp"
-#include "Channel.hpp"
+#include "../commands/JoinCommand.hpp"
+#include "../Channel.hpp"
 
 class WhoCommand : public JoinCommand {
 public:

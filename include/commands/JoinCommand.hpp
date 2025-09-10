@@ -1,8 +1,8 @@
 #ifndef JOINCOMMAND_HPP
 #define JOINCOMMAND_HPP
 
-#include "Command.hpp"
-#include "Channel.hpp"
+#include "../Command.hpp"
+#include "../Channel.hpp"
 
 class JoinCommand : public Command {
 public:

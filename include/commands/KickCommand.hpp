@@ -2,8 +2,8 @@
 #ifndef KICKCOMMAND_HPP
 #define KICKCOMMAND_HPP
 
-#include "Command.hpp"
-#include "Channel.hpp"
+#include "../Command.hpp"
+#include "../Channel.hpp"
 
 class KickCommand : public Command{
 	public:

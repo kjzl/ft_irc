@@ -1,8 +1,8 @@
 #ifndef MODECOMMAND_HPP
 #define MODECOMMAND_HPP
 
-#include "Command.hpp"
-#include "Channel.hpp"
+#include "../Command.hpp"
+#include "../Channel.hpp"
 
 class ModeCommand : public Command{
 	public:

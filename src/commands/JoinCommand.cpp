@@ -1,6 +1,6 @@
-#include "JoinCommand.hpp"
-#include "Debug.hpp"
-#include "MessageType.hpp"
+#include "../../include/commands/JoinCommand.hpp"
+#include "../../include/Debug.hpp"
+#include "../../include/MessageType.hpp"
 
 #include <sstream>
 

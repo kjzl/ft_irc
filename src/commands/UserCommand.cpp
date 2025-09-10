@@ -1,6 +1,6 @@
-#include "UserCommand.hpp"
-#include "Debug.hpp"
-#include "MessageType.hpp"
+#include "../../include/commands/UserCommand.hpp"
+#include "../../include/Debug.hpp"
+#include "../../include/MessageType.hpp"
 #include <vector>
 
 UserCommand::UserCommand(const Message& msg) : Command(msg)

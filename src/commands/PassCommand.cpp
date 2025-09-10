@@ -1,6 +1,5 @@
-#include "PassCommand.hpp"
-#include "Debug.hpp"
-#include "MessageType.hpp"
+#include "../../include/commands/PassCommand.hpp"
+#include "../../include/MessageType.hpp"
 
 PassCommand::PassCommand(const Message& msg) : Command(msg)
 {}
@@ -19,7 +18,7 @@ Command* PassCommand::fromMessage(const Message& message)
 void PassCommand::execute(Server& server, Client& sender)
 {
 	std::vector<std::string> inParams = inMessage_.getParams();
-	
+
 	// 461
 	if (inParams.size() == 0)
 		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));

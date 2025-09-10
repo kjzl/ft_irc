@@ -1,7 +1,7 @@
 #ifndef PRIVMSGCOMMAND_HPP
 #define PRIVMSGCOMMAND_HPP
 
-#include "Command.hpp"
+#include "../Command.hpp"
 
 class PrivmsgCommand : public Command {
 public:
