@@ -110,7 +110,7 @@ int MessageQueueManager::drainQueueForFd_(
       continue;
     }
 
-    const ssize_t n = ::send(fd, front.c_str(), len, MSG_NOSIGNAL);
+  const ssize_t n = ::send(fd, front.c_str(), len, MSG_NOSIGNAL | MSG_DONTWAIT);
     if (n > 0) {
       queue.removeBytesFromFront(static_cast<std::size_t>(n));
       continue; // try to drain more immediately
@@ -134,6 +134,25 @@ int MessageQueueManager::drainQueueForFd_(
   return 0; // no backlog left, fd alive
 }
 
+void MessageQueueManager::send(int fd, const std::string &msg) {
+  // If fd is already marked dead, discard any work.
+  if (isDead_(fd))
+    return;
+
+  if (!msg.empty()) {
+    const std::pair<bool, std::size_t> res = findIndexByFd_(fd);
+    bool exists = res.first;
+    const std::size_t i = res.second;
+    if (!exists) // dont care about the return values
+      insertAt_(i, fd, msg);
+    else
+      insertMsgAtQueue_(i, msg);
+  }
+}
+
+// Implementation that tries to send immediately without poll()
+/*
+
 bool MessageQueueManager::sendOnFdWithoutBacklog_(int fd,
                                                   const std::string &msg,
                                                   std::string &remainder) {
@@ -142,10 +161,9 @@ bool MessageQueueManager::sendOnFdWithoutBacklog_(int fd,
     return true;
   }
 
-  ssize_t n = ::send(fd, msg.c_str(), msg.size(), MSG_NOSIGNAL);
-  if (n < 0 && errno == EINTR) {
-    n = ::send(fd, msg.c_str(), msg.size(), MSG_NOSIGNAL);
-  }
+  ssize_t n = ::send(fd, msg.c_str(), msg.size(), MSG_NOSIGNAL | MSG_DONTWAIT);
+  if (n < 0 && errno == EINTR)
+    n = ::send(fd, msg.c_str(), msg.size(), MSG_NOSIGNAL | MSG_DONTWAIT);
 
   if (n == static_cast<ssize_t>(msg.size())) {
     return true; // fully sent
@@ -168,6 +186,24 @@ bool MessageQueueManager::sendOnFdWithoutBacklog_(int fd,
   }
 }
 
+///
+/// @brief Queue data for non-blocking delivery to fd, attempting an
+///        immediate one-shot write first.
+///
+/// Behavior:
+/// - If fd was previously marked dead, the call is a no-op.
+/// - Any existing backlog for fd is first drained (non-blocking).
+/// - If backlog is fully drained, a single non-blocking send(2) of msg is
+///   attempted (retrying once on EINTR). Unsent bytes, if any, are queued.
+/// - If the socket would block, the full message is queued.
+/// - On fatal errors, fd is recorded in deadFds_ and no data is queued.
+///
+/// This function does not call poll(2). Use mergePollfds() before your poll
+/// call and drainQueuesForPolled() afterwards to progress queued writes.
+///
+/// @param fd  Connected socket file descriptor (preferably O_NONBLOCK).
+/// @param msg Bytes to send (appends CRLF etc. should already be present).
+///
 void MessageQueueManager::send(int fd, const std::string &msg) {
   // If fd is already marked dead, discard any work.
   if (isDead_(fd))
@@ -198,6 +234,7 @@ void MessageQueueManager::send(int fd, const std::string &msg) {
       insertMsgAtQueue_(i, toQueue);
   }
 }
+*/
 
 void MessageQueueManager::drainQueuesForPolled(
     const std::vector<struct pollfd> &polled) {

@@ -137,20 +137,27 @@ void	Server::setServerSocket( int serverSocketFd )
 // accepts a connection from client and adds it to pollFds_
 void	Server::acceptConnection( void )
 {
-	int clientFd;
-	sockaddr_in client_addr;
-	socklen_t client_len;
-	
-	clientFd = accept(getServerSocket(), (sockaddr *)&client_addr, &client_len);
-	if (clientFd == -1)
-		throw std::runtime_error("[Server] accept error");
-	addPollFd(clientFd, POLLIN, 0);
-	debug("[Server] accepted new connection");
-	std::string clientFdString = toString(clientFd);
-	Client		newcomer(messageQueueManager_);
-	newcomer.setSocket(clientFd);
-	clients_.push_back(newcomer);
-	clients_.back().setIP(inet_ntoa(client_addr.sin_addr));
+	while (true) {
+		sockaddr_in client_addr;
+		socklen_t client_len = sizeof(client_addr);
+		int clientFd = accept(getServerSocket(), (sockaddr *)&client_addr, &client_len);
+		if (clientFd == -1) {
+			if (errno == EINTR)
+				continue; // retry accept
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				break; // no more incoming connections right now
+			// error: log and stop trying for this cycle
+			debug(std::string("[Server] accept error: ") + strerror(errno));
+			break;
+		}
+
+		addPollFd(clientFd, POLLIN, 0);
+		debug("[Server] accepted new connection");
+		Client newcomer(messageQueueManager_);
+		newcomer.setSocket(clientFd);
+		newcomer.setIP(inet_ntoa(client_addr.sin_addr));
+		clients_.push_back(newcomer);
+	}
 }
 
 Message	Server::buildErrorMessage(MessageType type, std::vector<std::string> messageParams) const
@@ -513,7 +520,7 @@ void Server::createListeningSocket(void) {
 		throw std::runtime_error(std::string(gai_strerror(err)));
 	}
 	//create Socket
-	serverSocket_ = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	serverSocket_ = socket(res->ai_family, res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
 	if (serverSocket_ == -1)
 	{
 		freeaddrinfo(res);

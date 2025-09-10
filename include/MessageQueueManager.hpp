@@ -64,18 +64,14 @@ class MessageQueueManager {
 	MessageQueueManager &operator=(const MessageQueueManager &other);
 
 	/**
-	 * @brief Queue data for non-blocking delivery to fd, attempting an
-	 *        immediate one-shot write first.
+	 * @brief Queue data for non-blocking delivery to fd
 	 *
 	 * Behavior:
 	 * - If fd was previously marked dead, the call is a no-op.
-	 * - Any existing backlog for fd is first drained (non-blocking).
-	 * - If backlog is fully drained, a single non-blocking send(2) of msg is
-	 *   attempted (retrying once on EINTR). Unsent bytes, if any, are queued.
-	 * - If the socket would block, the full message is queued.
+	 * - The full message is queued.
 	 * - On fatal errors, fd is recorded in deadFds_ and no data is queued.
 	 *
-	 * This function does not call poll(2). Use mergePollfds() before your poll
+	 * This function does not call poll(2) or send(2). Use mergePollfds() before your poll
 	 * call and drainQueuesForPolled() afterwards to progress queued writes.
 	 *
 	 * @param fd  Connected socket file descriptor (preferably O_NONBLOCK).
@@ -215,8 +211,10 @@ class MessageQueueManager {
 	 * @return true if fd remains usable (even if remainder is non-empty), false
 	 *         if a fatal error occurred and the fd was marked dead.
 	 */
+	/*
 	bool sendOnFdWithoutBacklog_(int fd, const std::string &msg,
 								 std::string &remainder);
+	*/
 };
 
 #endif // MESSAGEQUEUEMANAGER_HPP
