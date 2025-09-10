@@ -540,7 +540,7 @@ test_cases = [
     steps: [
       { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
       # Send and verify message
-      { client: :alice, command: "PRIVMSG #bla :Hi there!", expect: /401/ }
+      { client: :alice, command: "PRIVMSG #bla :Hi there!", expect: /403/ }
     ]
   },
   {
@@ -550,7 +550,7 @@ test_cases = [
       { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
       # Send and verify message
       { client: :alice, command: "PRIVMSG #test :Hi there!", expect: nil },
-      { client: :alice, command: "", expect: /401/ }
+      { client: :alice, command: "", expect: /404/ }
     ]
   },
   {
@@ -563,7 +563,7 @@ test_cases = [
       # Join channel
       { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#test"} },
       # Send and verify message
-      { client: :alice, command: "PRIVMSG #test :Hi there!", expect: /401 alice #test/ }
+      { client: :alice, command: "PRIVMSG #test :Hi there!", expect: /404 alice #test/ }
     ]
   },
   #--------------------------------------------------
@@ -606,7 +606,7 @@ test_cases = [
       { procedure: :join_channel, client_map: { client: :steve }, variables: { channel: "#test"} },
       { client: :steve, command: "", expect: /:alice!alice@.+ 332 #test :Discuss the meaning of life/, timeout: 3 }
     ]
-  }
+  },
   # setting topic when not operator
   #--------------------------------------------------
   # QUIT TEST
