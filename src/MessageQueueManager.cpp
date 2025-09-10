@@ -110,7 +110,7 @@ int MessageQueueManager::drainQueueForFd_(
       continue;
     }
 
-    const ssize_t n = ::send(fd, front.c_str(), len, MSG_NOSIGNAL);
+  const ssize_t n = ::send(fd, front.c_str(), len, MSG_NOSIGNAL | MSG_DONTWAIT);
     if (n > 0) {
       queue.removeBytesFromFront(static_cast<std::size_t>(n));
       continue; // try to drain more immediately
@@ -142,10 +142,9 @@ bool MessageQueueManager::sendOnFdWithoutBacklog_(int fd,
     return true;
   }
 
-  ssize_t n = ::send(fd, msg.c_str(), msg.size(), MSG_NOSIGNAL);
-  if (n < 0 && errno == EINTR) {
-    n = ::send(fd, msg.c_str(), msg.size(), MSG_NOSIGNAL);
-  }
+  ssize_t n = ::send(fd, msg.c_str(), msg.size(), MSG_NOSIGNAL | MSG_DONTWAIT);
+  if (n < 0 && errno == EINTR)
+    n = ::send(fd, msg.c_str(), msg.size(), MSG_NOSIGNAL | MSG_DONTWAIT);
 
   if (n == static_cast<ssize_t>(msg.size())) {
     return true; // fully sent
