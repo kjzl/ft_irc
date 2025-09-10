@@ -604,7 +604,7 @@ test_cases = [
       ] },
       { client: :bob, command: "", expect: /:alice!alice@.+ TOPIC #test :Discuss the meaning of life/, timeout: 3 },
       { procedure: :join_channel, client_map: { client: :steve }, variables: { channel: "#test"} },
-      { client: :steve, command: "", expect: /:alice!alice@.+ 332 #test :Discuss the meaning of life/, timeout: 3 }
+      { client: :steve, command: "", expect: /:AspenWood 332 steve #test :Discuss the meaning of life/, timeout: 3 }
     ]
   },
   # setting topic when not operator
@@ -624,7 +624,7 @@ test_cases = [
 # Run tests
 begin
   # Set DEBUG=1 for verbose output
-  # ENV['DEBUG'] = '1'
+  ENV['DEBUG'] = '1'
   if tester.start_server
     tester.setup_common_procedures
     tester.run_test_suite(test_cases)
