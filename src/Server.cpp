@@ -11,6 +11,7 @@
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <ostream>
 #include <poll.h>
 #include <stdexcept>
@@ -135,7 +136,7 @@ void	Server::setServerSocket( int serverSocketFd )
 void	Server::acceptConnection( void )
 {
 	while (true) {
-		sockaddr_in client_addr;
+		sockaddr_storage client_addr;
 		socklen_t client_len = sizeof(client_addr);
 		int clientFd = accept(getServerSocket(), (sockaddr *)&client_addr, &client_len);
 		if (clientFd == -1) {
@@ -152,8 +153,18 @@ void	Server::acceptConnection( void )
 		debug("[Server] accepted new connection");
 		Client newcomer(messageQueueManager_);
 		newcomer.setSocket(clientFd);
-		newcomer.setIP(inet_ntoa(client_addr.sin_addr));
+		char ipbuf[INET6_ADDRSTRLEN];
+		ipbuf[0] = '\0';
+		if (client_addr.ss_family == AF_INET) {
+			struct sockaddr_in *sa = (struct sockaddr_in *)&client_addr;
+			inet_ntop(AF_INET, &(sa->sin_addr), ipbuf, sizeof(ipbuf));
+		} else if (client_addr.ss_family == AF_INET6) {
+			struct sockaddr_in6 *sa6 = (struct sockaddr_in6 *)&client_addr;
+			inet_ntop(AF_INET6, &(sa6->sin6_addr), ipbuf, sizeof(ipbuf));
+		}
+		newcomer.setIP(std::string(ipbuf));
 		clients_.push_back(newcomer);
+		std::cout << "[Server] New connection from " << ipbuf << " on socket " << clientFd << std::endl;
 	}
 }
 
@@ -504,7 +515,8 @@ void Server::createListeningSocket(void) {
 	int				 err   = 0;
 	struct addrinfo	 hints = {0, 0, 0, 0, 0, 0, 0, 0};
 	struct addrinfo *res   = {0};
-	hints.ai_family		   = AF_UNSPEC;	  // IPv4 or IPv6
+	// Prefer single IPv6 socket and disable v6-only for dual-stack
+	hints.ai_family	   = AF_INET6;     // IPv6 (dual-stack when IPV6_V6ONLY=0)
 	hints.ai_socktype	   = SOCK_STREAM; // TCP
 	hints.ai_flags		   = AI_PASSIVE;  // put in my ip for me
 	std::string port_str   = toString(port_);
@@ -513,8 +525,11 @@ void Server::createListeningSocket(void) {
 	err = (getaddrinfo(NULL, port_str.c_str(), &hints, &res));
 	if (err != 0)
 	{
-		freeaddrinfo(res);
-		throw std::runtime_error(std::string(gai_strerror(err)));
+		// Fallback to IPv4-only if IPv6 resolution is not available
+		hints.ai_family = AF_INET;
+		err = getaddrinfo(NULL, port_str.c_str(), &hints, &res);
+		if (err != 0)
+			throw std::runtime_error(std::string(gai_strerror(err)));
 	}
 	//create Socket
 	serverSocket_ = socket(res->ai_family, res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
@@ -522,6 +537,16 @@ void Server::createListeningSocket(void) {
 	{
 		freeaddrinfo(res);
 		throw std::runtime_error("[Server] socket error");
+	}
+	// If IPv6 socket, try to accept IPv4-mapped addresses too
+	if (res->ai_family == AF_INET6)
+	{
+		int v6only = 0;
+		if (setsockopt(serverSocket_, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only)) == -1)
+		{
+			// Non-fatal; we can still serve IPv6 clients
+			debug("[Server] Warning: failed to disable IPV6_V6ONLY; IPv4 clients may not connect via mapped addresses");
+		}
 	}
 	//reusing old socket, if still open, to circumvent TIME_WAIT
 	setsockopt(serverSocket_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
