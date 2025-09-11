@@ -12,11 +12,12 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <iomanip>
+#include <sstream>
 #include <ostream>
 #include <poll.h>
 #include <stdexcept>
-#include <stdlib.h>
-#include <string.h>
+#include <cstring>
 #include <set>
 #include <sys/fcntl.h>
 #include <sys/poll.h>
@@ -131,6 +132,21 @@ void	Server::setServerSocket( int serverSocketFd )
 	this->serverSocket_ = serverSocketFd;
 }
 
+// Simple IPv6 address to string (no RFC 5952 compression).
+// It produces eight hextets separated by ':'.
+static std::string ipv6ToString_(const struct in6_addr &addr) {
+	std::ostringstream oss;
+	oss << std::hex << std::nouppercase;
+	for (int i = 0; i < 8; ++i) {
+		unsigned int hi = static_cast<unsigned int>(addr.s6_addr[i * 2]);
+		unsigned int lo = static_cast<unsigned int>(addr.s6_addr[i * 2 + 1]);
+		unsigned int val = (hi << 8) | lo;
+		if (i > 0)
+			oss << ':';
+		oss << std::setw(4) << std::setfill('0') << val;
+	}
+	return oss.str();
+}
 
 // accepts a connection from client and adds it to pollFds_
 void	Server::acceptConnection( void )
@@ -153,18 +169,37 @@ void	Server::acceptConnection( void )
 		debug("[Server] accepted new connection");
 		Client newcomer(messageQueueManager_);
 		newcomer.setSocket(clientFd);
-		char ipbuf[INET6_ADDRSTRLEN];
-		ipbuf[0] = '\0';
+		std::string ipOnly;
+		std::string hostForLog;
+		unsigned short port = 0;
 		if (client_addr.ss_family == AF_INET) {
 			struct sockaddr_in *sa = (struct sockaddr_in *)&client_addr;
-			inet_ntop(AF_INET, &(sa->sin_addr), ipbuf, sizeof(ipbuf));
+			// inet_ntoa returns a static buffer; copy to std::string
+			ipOnly = std::string(inet_ntoa(sa->sin_addr));
+			port = ntohs(sa->sin_port);
+			hostForLog = ipOnly;
 		} else if (client_addr.ss_family == AF_INET6) {
 			struct sockaddr_in6 *sa6 = (struct sockaddr_in6 *)&client_addr;
-			inet_ntop(AF_INET6, &(sa6->sin6_addr), ipbuf, sizeof(ipbuf));
+			// Normalize IPv4-mapped IPv6 addresses to plain IPv4 for readability
+			if (IN6_IS_ADDR_V4MAPPED(&(sa6->sin6_addr))) {
+				struct in_addr v4;
+				std::memcpy(&v4, &sa6->sin6_addr.s6_addr[12], sizeof(v4));
+				ipOnly = std::string(inet_ntoa(v4));
+				hostForLog = ipOnly;
+			} else {
+				ipOnly = ipv6ToString_(sa6->sin6_addr);
+				hostForLog.reserve(ipOnly.size() + 2);
+				hostForLog.push_back('[');
+				hostForLog.append(ipOnly);
+				hostForLog.push_back(']');
+			}
+			port = ntohs(sa6->sin6_port);
 		}
-		newcomer.setIP(std::string(ipbuf));
+		// Store only the IP address string in the Client (no port)
+		newcomer.setIP(ipOnly);
 		clients_.push_back(newcomer);
-		std::cout << "[Server] New connection from " << ipbuf << " on socket " << clientFd << std::endl;
+		std::cout << "[Server] New connection from " << hostForLog << ":" << port
+			  << " on socket " << clientFd << std::endl;
 	}
 }
 

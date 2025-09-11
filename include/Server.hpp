@@ -5,7 +5,6 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <arpa/inet.h>
 
 #include "Client.hpp"
 #include "MessageQueueManager.hpp"
@@ -64,7 +63,7 @@ class	Server {
 		int	 		getServerSocket(void) const;
 		void		setServerSocket(int serverSocketFd);
 		void		addPollFd(const int fd, const short events, const short revents);
-	
+
 		void		handleNewConnection(const struct pollfd &polled);
 		void		handlePollIn(const std::vector<struct pollfd> &polled);
 		void		createListeningSocket(void);
@@ -87,7 +86,7 @@ class	Server {
 		Message		buildErrorMessage(MessageType			   type,
 									  std::vector<std::string> messageParams) const;
 		// void		quitClient(const Client &quitter,  const Message &msg);
-	
+
 		const std::string			   name_;
 		const int					   port_;
 		const std::string			   password_;
