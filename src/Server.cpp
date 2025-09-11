@@ -43,16 +43,12 @@ Server::Server(void): name_(HOSTNAME), port_(6667), password_("password"), timeC
 // Parameterized Constructor
 Server::Server(int port, std::string password): name_(HOSTNAME), port_(port), password_(password), serverSocket_(-1), timeCreated_(std::time(NULL))
 {
-	struct sigaction sa;
-	sa.sa_handler = signalHandler;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = 0;
 	debug("Parameterized Constructor called");
 	std::cout << GREEN << "==== STARTING SERVER ====" << RESET << std::endl;
 	std::cout << BLUE << "port: " << port << ", password: " << password << RESET << std::endl;
 	running_ = true;
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
+	signal(SIGINT, signalHandler);
+	signal(SIGQUIT, signalHandler);
 	serverInit();
 }
 
