@@ -6,6 +6,7 @@
 #include <cerrno>
 #include <csignal>
 #include <cstdio>
+#include <ctime>
 #include <errno.h>
 #include <iostream>
 #include <netdb.h>
@@ -33,14 +34,14 @@ void	Server::signalHandler(int signum)
 }
 
 // Default Constructor
-Server::Server(void): name_(HOSTNAME), port_(6667), password_("password"), timeCreated_(time(NULL))
+Server::Server(void): name_(HOSTNAME), port_(6667), password_("password"), timeCreated_(std::time(NULL))
 {
 	running_ = true;
 	debug("Default Constructor called");
 }
 
 // Parameterized Constructor
-Server::Server(int port, std::string password): name_(HOSTNAME), port_(port), password_(password), serverSocket_(-1), timeCreated_(time(NULL))
+Server::Server(int port, std::string password): name_(HOSTNAME), port_(port), password_(password), serverSocket_(-1), timeCreated_(std::time(NULL))
 {
 	struct sigaction sa;
 	sa.sa_handler = signalHandler;
@@ -87,7 +88,7 @@ Server &Server::operator=(const Server &other) {
 
 const char	*Server::getTimeCreatedHumanReadable() const
 {
-	char * humanTime = ctime(&timeCreated_);
+	char * humanTime = std::ctime(&timeCreated_);
 	size_t i = 0;
 	while (humanTime[i] != '\0' && humanTime[i] != '\n')
 		++i;
