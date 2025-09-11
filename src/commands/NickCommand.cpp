@@ -31,7 +31,7 @@ void NickCommand::execute(Server& server, Client& sender)
 	int	registrationLevel = sender.getRegistrationLevel();
 
 	// checkRegistrationLevel => do nothing if no PASS given!
-	if (registrationLevel == 0)
+	if (registrationLevel == 0 && server.getPassword() != "")
 		return;
 	// 431
 	if (inParams.empty())
@@ -44,8 +44,10 @@ void NickCommand::execute(Server& server, Client& sender)
 	if (server.clientNickExists(tmp))
 		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, sender.getNickname(), inParams[0]));
 	// registering
-	if (registrationLevel == 1)
+	if (registrationLevel <= 1)
 	{
+		if (registrationLevel == 0)
+			sender.incrementRegistrationLevel();
 		sender.incrementRegistrationLevel();
 		sender.setNickname(inParams[0]);
 	}
