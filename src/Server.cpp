@@ -183,6 +183,7 @@ void	Server::acceptConnection( void )
 			// Normalize IPv4-mapped IPv6 addresses to plain IPv4 for readability
 			if (IN6_IS_ADDR_V4MAPPED(&(sa6->sin6_addr))) {
 				struct in_addr v4;
+				// IPv4-mapped IPv6 addresses store the IPv4 portion in bytes 12-15 of the in6_addr structure.
 				std::memcpy(&v4, &sa6->sin6_addr.s6_addr[12], sizeof(v4));
 				ipOnly = std::string(inet_ntoa(v4));
 				hostForLog = ipOnly;
@@ -562,6 +563,7 @@ void Server::createListeningSocket(void) {
 	{
 		// Fallback to IPv4-only if IPv6 resolution is not available
 		hints.ai_family = AF_INET;
+		freeaddrinfo(res);
 		err = getaddrinfo(NULL, port_str.c_str(), &hints, &res);
 		if (err != 0)
 			throw std::runtime_error(std::string(gai_strerror(err)));
