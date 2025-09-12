@@ -1,10 +1,9 @@
-#include "../include/Server.hpp"
+#include "../include/Bot.hpp"
 #include <cstring>
 #include <exception>
 #include <iostream>
 #include <errno.h>
-#include <sstream>
-#include "Bot.hpp"
+
 
 int bot_main(int argc, char *argv[]) {
 	// TODO optional args: <host> <port> <password> <nickname> <username> <realname> [auto-join channels...]
