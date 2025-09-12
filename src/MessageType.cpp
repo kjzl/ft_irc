@@ -10,6 +10,7 @@ const std::map<MessageType, IrcErrorInfo>& getErrorMap()
 		errorMap[ERROR]					= IrcErrorInfo("ERROR", "");
 		errorMap[ERR_UNKNOWNCOMMAND]	= IrcErrorInfo("421", "Unknown command");
 //NICK
+		errorMap[ERR_NOTREGISTERED] 	= IrcErrorInfo("451", "You have not registered");
 		errorMap[ERR_NONICKNAMEGIVEN] 	= IrcErrorInfo("431", "No nickname given");
 		errorMap[ERR_ERRONEUSNICKNAME]	= IrcErrorInfo("432", "Erroneous nickname");
 		errorMap[ERR_NICKNAMEINUSE]		= IrcErrorInfo("433", "Nickname is already in use");
