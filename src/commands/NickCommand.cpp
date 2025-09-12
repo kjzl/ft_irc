@@ -29,6 +29,7 @@ void NickCommand::execute(Server& server, Client& sender)
 {
 	std::vector<std::string> inParams = inMessage_.getParams();
 	int	registrationLevel = sender.getRegistrationLevel();
+	bool	isRegistration = sender.getNickname().empty(); // true if nick was not set before
 
 	// checkRegistrationLevel => do nothing if no PASS given!
 	if (registrationLevel == 0 && server.getPassword() != "")
@@ -36,6 +37,9 @@ void NickCommand::execute(Server& server, Client& sender)
 	// 431
 	if (inParams.empty())
 		return (sender.sendErrorMessage(ERR_NONICKNAMEGIVEN, sender.getNickname()));
+	// if pass was empty, we need to increase registration level upon nick instead of pass
+	if (registrationLevel == 0)
+		sender.incrementRegistrationLevel();
 	// 432
 	if (checkNickFormat(inParams[0]))
 		return (sender.sendErrorMessage(ERR_ERRONEUSNICKNAME, sender.getNickname(), inParams[0]));
@@ -44,15 +48,9 @@ void NickCommand::execute(Server& server, Client& sender)
 	if (server.clientNickExists(tmp))
 		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, sender.getNickname(), inParams[0]));
 	// registering
-	if (registrationLevel <= 1)
-	{
-		if (registrationLevel == 0)
-			sender.incrementRegistrationLevel();
-		sender.incrementRegistrationLevel();
-		sender.setNickname(inParams[0]);
-	}
-	else if (registrationLevel == 3 || registrationLevel == 2) // auth, just changing nick
-		sender.setNickname(inParams[0]);
+	sender.setNickname(inParams[0]);
+	if (isRegistration && sender.isAuthenticated())
+		sender.welcome(server);
 	return;
 }
 bool	NickCommand::checkNickFormat(std::string nickname)

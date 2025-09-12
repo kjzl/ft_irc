@@ -54,7 +54,7 @@ bool	Client::operator==(const Client &client)
 
 bool Client::isAuthenticated() const
 {
-    return (registrationLevel_ == 3);
+    return (getRegistrationLevel() == 3);
 }
 
 const std::string &Client::getNickname() const
@@ -100,7 +100,7 @@ void Client::incrementRegistrationLevel(void)
 
 int Client::getRegistrationLevel(void) const
 {
-    return (registrationLevel_);
+	return ((registrationLevel_ & 1) + (username_ != "*") + !nickname_.empty());
 }
 
 // Setters
@@ -221,4 +221,24 @@ void Client::sendCmdValidation(const Message inMessage, const Channel &channel) 
 	Message outMessage(inMessage);
 	outMessage.setSource(*this);
 	channel.broadcastMsg(*this, outMessage);
+}
+
+void	Client::welcome(const Server &server)
+{
+	std::string	nickname = getNickname();
+	std::string	welcome = std::string("Welcome to the ") + HOSTNAME + " Network, " + nickname;
+	std::string yourhost = std::string("Your host is ") + HOSTNAME + ", running version" + VERSION;
+	std::string created = std::string("This server was created ") + server.getTimeCreatedHumanReadable();
+	std::string myInfo = std::string(HOSTNAME) + " " + VERSION + " " AVAILABLEUSERMODES + " " + AVAILABLECHANNELMODES + " " + AVAILABLECHANNELMODESWITHPARAMETER; 
+	std::vector<std::string> vec;
+	vec.reserve(2);
+	vec.push_back(nickname);
+	vec.push_back(welcome);
+	this->sendErrorMessage(RPL_WELCOME, vec);
+	vec[1] = yourhost;
+	this->sendErrorMessage(RPL_YOURHOST, vec);
+	vec[1] = created;
+	this->sendErrorMessage(RPL_CREATED , vec);
+	vec[1] = myInfo;
+	this->sendErrorMessage(RPL_MYINFO , vec);
 }

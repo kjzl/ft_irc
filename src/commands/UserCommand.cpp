@@ -11,26 +11,6 @@ Command* UserCommand::fromMessage(const Message& message)
 	return new UserCommand(message);
 }
 
-void	UserCommand::welcome(const Server &server, const Client &sender)
-{
-	std::string	nickname = sender.getNickname();
-	std::string	welcome = std::string("Welcome to the ") + HOSTNAME + " Network, " + nickname;
-	std::string yourhost = std::string("Your host is ") + HOSTNAME + ", running version" + VERSION;
-	std::string created = std::string("This server was created ") + server.getTimeCreatedHumanReadable();
-	std::string myInfo = std::string(HOSTNAME) + " " + VERSION + " " AVAILABLEUSERMODES + " " + AVAILABLECHANNELMODES + " " + AVAILABLECHANNELMODESWITHPARAMETER; 
-	std::vector<std::string> vec;
-	vec.reserve(2);
-	vec.push_back(nickname);
-	vec.push_back(welcome);
-	sender.sendErrorMessage(RPL_WELCOME, vec);
-	vec[1] = yourhost;
-	sender.sendErrorMessage(RPL_YOURHOST, vec);
-	vec[1] = created;
-	sender.sendErrorMessage(RPL_CREATED , vec);
-	vec[1] = myInfo;
-	sender.sendErrorMessage(RPL_MYINFO , vec);
-}
-
 /*
     https://modern.ircdocs.horse/#user-message
     ERR_NEEDMOREPARAMS (461)
@@ -41,11 +21,6 @@ void UserCommand::execute(Server& server, Client& sender)
 	(void) server;
 	std::vector<std::string> inParams = inMessage_.getParams();
 	
-	if (sender.getRegistrationLevel() < 2) // user needs to give pass or nick first
-	{
-		debug("registration level too low for user command");
-		return ;
-	}
 	// 461
 	if (inParams.size() < 4)
 		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
@@ -53,13 +28,10 @@ void UserCommand::execute(Server& server, Client& sender)
 	if (sender.isAuthenticated())
 		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, sender.getNickname()));
 	// Sucess !
-	else if (sender.getRegistrationLevel() == 2)
-	{
-	debug("now setting user, incrementing registration level");
+	debug("now setting user");
 	sender.setUsername(inParams[0]);
 	sender.setRealname(inParams[3]);
-	sender.incrementRegistrationLevel();
-	welcome(server, sender);
-	}
+	if (sender.isAuthenticated())
+		sender.welcome(server);
 	return;
 }

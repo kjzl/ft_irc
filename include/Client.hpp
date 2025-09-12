@@ -66,6 +66,7 @@ class   Client
 		//send to fd stuff
 		void	sendToFd(const std::string &string, int fd) const;
 		void	sendMessageToFd(Message msg, int fd) const;
+		void	welcome(const Server &server);
 };
 
 #endif
