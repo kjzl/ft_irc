@@ -27,6 +27,8 @@ Command* JoinCommand::fromMessage(const Message& message)
     RPL_TOPICWHOTIME (333)		=> we don't do that (no history in our modest server)
     RPL_NAMREPLY (353)			=> done
     RPL_ENDOFNAMES (366)		=> done
+	others ...
+	ERR_USERONCHANNEL (443)		=> done
 */
 void JoinCommand::execute(Server& server, Client& sender)
 {
@@ -64,6 +66,12 @@ void JoinCommand::execute(Server& server, Client& sender)
 					Channel(channelName, sender, server.getMessageQueueManager())));
 			channel = &ins.first->second;
 			sendValidationMessages(sender, *channel);
+			continue;
+		}
+		// ERR_USERONCHANNEL (443)
+		if (channel->isMember(sender.getNickname()))
+		{
+			sender.sendErrorMessage(ERR_USERONCHANNEL, sender.getNickname(), channelName);
 			continue;
 		}
 		// ERR_BADCHANNELKEY (475)

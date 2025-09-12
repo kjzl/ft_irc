@@ -22,6 +22,9 @@ void PassCommand::execute(Server& server, Client& sender)
 	// 461
 	if (inParams.size() == 0)
 		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));
+	// do nothing if server started without password
+	if (server.getPassword().size() == 0)
+		return;
 	// 462
 	if (sender.getRegistrationLevel() > 0)
 		return (sender.sendErrorMessage(ERR_ALREADYREGISTERED, sender.getNickname()));
