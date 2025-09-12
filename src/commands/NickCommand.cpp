@@ -1,5 +1,6 @@
 #include "../../include/commands/NickCommand.hpp"
 #include "../../include/MessageType.hpp"
+#include "../../include/Channel.hpp"
 
 NickCommand::NickCommand(const Message& msg) : Command(msg)
 {}
@@ -44,6 +45,23 @@ void NickCommand::execute(Server& server, Client& sender)
 	if (server.clientNickExists(tmp))
 		return (sender.sendErrorMessage(ERR_NICKNAMEINUSE, sender.getNickname(), inParams[0]));
 	// registering
+	std::string oldNick = sender.getNickname();
+	if (!isRegistration)
+	{
+		// loop through all channels
+		std::map<std::string, Channel> &channels_ = server.getChannels();
+		for (std::map<std::string, Channel>::iterator cMapIter =
+				 channels_.begin(); cMapIter != channels_.end(); ++cMapIter) {
+			Channel &ch = cMapIter->second;
+			if (ch.isMember(oldNick))
+			{
+				//broadcast to the channel the nick change
+				sender.sendCmdValidation(inMessage_, ch);
+				// changes the nick in the channel's internal data structure
+				ch.changeNick(oldNick, inParams[0]);
+			}
+		}
+	}
 	sender.setNickname(inParams[0]);
 	if (isRegistration && sender.isAuthenticated())
 		sender.welcome(server);

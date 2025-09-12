@@ -208,3 +208,27 @@ void	Channel::setTopicProtected(bool value)
 {
 	isTopicProtected_ = value;
 }
+
+// change nickname in members, whiteList, operators
+void Channel::changeNick(const std::string &oldNick, const std::string &newNick)
+{
+	std::map<std::string, int>::iterator foundMemberIt = members_.find(oldNick);
+	if (foundMemberIt != members_.end())
+	{
+		int socket = foundMemberIt->second;
+		members_.erase(foundMemberIt);
+		members_[newNick] = socket;
+	}
+	std::set<std::string>::iterator foundWhiteListIt = whiteList_.find(oldNick);
+	if (foundWhiteListIt != whiteList_.end())
+	{
+		whiteList_.erase(foundWhiteListIt);
+		whiteList_.insert(newNick);
+	}
+	std::set<std::string>::iterator foundOperatorIt = operators_.find(oldNick);
+	if (foundOperatorIt != operators_.end())
+	{
+		operators_.erase(foundOperatorIt);
+		operators_.insert(newNick);
+	}
+}

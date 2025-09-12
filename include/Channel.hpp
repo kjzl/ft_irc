@@ -41,7 +41,7 @@ class Channel {
 	Channel &operator=(const Channel &other);
 	virtual ~Channel();
 
-		// Getters => necessary or only Utils?? 
+		// Getters => necessary or only Utils??
 		const	std::string					&getName() const;
 		const	std::map<std::string, int>	&getMembers() const;
 		const	std::set<std::string>		&getWhiteList() const;
@@ -53,12 +53,13 @@ class Channel {
 		const 	std::string 				&getTopicWho() const;
 		const 	time_t 						&getTopicTime() const;
 
-		// Setters => necessary or only Utils and full constructor?? 
+		// Setters => necessary or only Utils and full constructor??
 		void setTopic(const std::string &topic);
 		void setTopicWho(const std::string &topicWho);
 		void setTopicTime();
 		void setPassword(const std::string &password);
 		void setUserLimit(int limit);
+		void changeNick(const std::string &oldNick, const std::string &newNick);
 
 	// Broadcast to all members except the given sender nickname
 	void broadcastMsg(const std::string &senderNickname,
@@ -68,15 +69,15 @@ class Channel {
 		void addMember(const Client* client);
 		void removeMember(const std::string &nickname);
 		bool isMember(const std::string &nickname) const;
-		
+
 		void addToWhiteList(const std::string &nickname);
 		void removeFromWhiteList(const std::string &nickname);
 		bool isWhiteListed(const std::string &nickname) const;
-		
+
 		void addOperator(const std::string &nickname);
 		void removeOperator(const std::string &nickname);
 		bool isOperator(const std::string &nickname) const;
-		
+
 		void setInviteOnly(bool value);
 		void setTopicProtected(bool value);
 		bool checkKey(const std::string& key) const;
