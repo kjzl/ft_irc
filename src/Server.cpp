@@ -492,7 +492,11 @@ void Server::schedulePendingClose(int fd) {
 			 cMapIter != channels_.end(); ++cMapIter) {
 			Channel &ch = cMapIter->second;
 			if (ch.isMember(nickname))
+			{
 				ch.removeMember(nickname);
+				ch.removeFromWhiteList(nickname);
+				ch.removeOperator(nickname);
+			}
 		}
 	}
 }
