@@ -18,14 +18,8 @@ Message::Message(std::string type, const std::vector<std::string>& params)
 {
 }
 
-
-Message::Message(std::string type, const std::string& nickname, const std::string& username, const std::vector<std::string>& params)
-	: hasSource_(true), nickname_(nickname), username_(username), hostname_(HOSTNAME), type_(type), params_(params)
-{
-}
-
 Message::Message(std::string type, const Client& source, const std::vector<std::string>& params)
-	: hasSource_(true), nickname_(source.getNickname()), username_(source.getUsername()), hostname_(HOSTNAME), type_(type), params_(params)
+	: hasSource_(true), nickname_(source.getNickname()), username_(source.getUsername()), hostname_(source.getIP()), type_(type), params_(params)
 {
 }
 
@@ -42,13 +36,13 @@ Message::Message(std::string type, const std::string& arg1, const std::string& a
 }
 
 Message::Message(std::string type, const std::string& arg1, const Client& source)
-	: hasSource_(true), nickname_(source.getNickname()), username_(source.getUsername()), hostname_(HOSTNAME), type_(type), params_()
+	: hasSource_(true), nickname_(source.getNickname()), username_(source.getUsername()), hostname_(source.getIP()), type_(type), params_()
 {
 	params_.push_back(arg1);
 }
 
 Message::Message(std::string type, const std::string& arg1, const std::string& arg2, const Client& source)
-	: hasSource_(true), nickname_(source.getNickname()), username_(source.getUsername()), hostname_(HOSTNAME), type_(type), params_()
+	: hasSource_(true), nickname_(source.getNickname()), username_(source.getUsername()), hostname_(source.getIP()), type_(type), params_()
 {
 	params_.push_back(arg1);
 	params_.push_back(arg2);
@@ -174,13 +168,6 @@ void Message::setSource()
 {
 	hasSource_ = true;
 }
-
-// void Message::setSource(const std::string nickname, const std::string username)
-// {
-// 	hasSource_ = true;
-// 	nickname_ = nickname;
-// 	username_ = username;
-// }
 
 void Message::setSource(const Client &client)
 {

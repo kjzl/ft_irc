@@ -221,7 +221,7 @@ void	Server::quitClient(const Client &quitter)
 
 void	Server::quitClient(const Client &quitter,  const std::string &reason)
 {
-	Message msg("QUIT", "Quit", reason, quitter);
+	Message msg("QUIT", "Quit: " + reason, quitter);
 	quitClient(quitter, msg);
 }
 

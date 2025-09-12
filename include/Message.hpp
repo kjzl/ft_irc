@@ -13,8 +13,6 @@ public:
   Message();
   Message(const Message &other);
   Message(std::string type, const std::vector<std::string> &params);
-  Message(std::string type, const std::string &nickname,
-          const std::string &username, const std::vector<std::string> &params);
   Message(std::string type, const Client &source,
           const std::vector<std::string> &params);
   Message(std::string type, const std::string &arg1);
