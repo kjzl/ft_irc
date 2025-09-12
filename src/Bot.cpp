@@ -221,21 +221,23 @@ bool Bot::handleConnectReady(const struct pollfd &rp) {
     connecting_ = false;
     return false;
   }
+  // If we don't have any relevant events yet, keep waiting.
   if (!(rp.revents & (POLLOUT | POLLERR | POLLHUP | POLLNVAL)))
     return true;
-  int soerr;
-  soerr = 0;
-  socklen_t slen;
-  slen = sizeof(soerr);
-  if (getsockopt(socket_, SOL_SOCKET, SO_ERROR, &soerr, &slen) == -1)
-    soerr = errno;
-  if (soerr != 0) {
+
+  // Any error-like event should have been handled by handlePollErrors() just
+  // before this function is called. Consider the connect attempt finished.
+  if (rp.revents & (POLLERR | POLLHUP | POLLNVAL)) {
     connecting_ = false;
-    std::string reason = std::string("connect failed: ") + toString(soerr);
-    closeErroneousSocket(reason.c_str());
     return false;
   }
-  connecting_ = false;
+
+  // Writable means the non-blocking connect completed successfully.
+  if (rp.revents & POLLOUT) {
+    connecting_ = false;
+    return true;
+  }
+
   return true;
 }
 
