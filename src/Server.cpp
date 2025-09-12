@@ -234,15 +234,14 @@ void	Server::quitClient(const Client &quitter,  const Message &msg)
 {
 	std::string qNickname = quitter.getNickname();
 	// Defer the actual close to allow queued data to flush
-	schedulePendingClose(quitter.getSocket());
 	for (std::map<std::string, Channel>::iterator cMapIter = channels_.begin();
 		 cMapIter != channels_.end(); ++cMapIter) {
 		Channel &quittersChannel = cMapIter->second;
 		if (!quittersChannel.isMember(qNickname))
 			continue;
 		quittersChannel.broadcastMsg(qNickname, msg);
-		quittersChannel.removeMember(qNickname);
 	}
+	schedulePendingClose(quitter.getSocket());
 }
 
 // closes and delets an elements from pollIndex_
