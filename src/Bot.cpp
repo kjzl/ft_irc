@@ -95,7 +95,7 @@ bool Bot::connect() {
   freeaddrinfo(res);
 
   if (fd == -1) {
-    std::cout << "connect() failed: " << strerror(errno) << std::endl;
+    std::cout << "connect() failed: " << (errno) << std::endl;
     return false;
   }
 
@@ -163,7 +163,7 @@ void Bot::run() {
       if (rc == -1) {
         if (errno == EINTR)
           continue;
-        std::string err = std::string("poll failed: ") + strerror(errno);
+        std::string err = std::string("poll failed: ") + toString(errno);
         closeErroneousSocket(err.c_str());
       }
       if (rc > 0) {
@@ -231,7 +231,7 @@ bool Bot::handleConnectReady(const struct pollfd &rp) {
     soerr = errno;
   if (soerr != 0) {
     connecting_ = false;
-    std::string reason = std::string("connect failed: ") + strerror(soerr);
+    std::string reason = std::string("connect failed: ") + toString(soerr);
     closeErroneousSocket(reason.c_str());
     return false;
   }
@@ -254,7 +254,7 @@ void Bot::readFromSocket() {
   }
   if (n < 0) {
     if (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR) {
-      std::string reason = std::string("recv failed: ") + strerror(errno);
+      std::string reason = std::string("recv failed: ") + toString(errno);
       closeErroneousSocket(reason.c_str());
       return;
     }

@@ -17,7 +17,7 @@ int bot_main(int argc, char *argv[]) {
 		bot.disconnect();
 	}
 	} catch (std::exception &e) {
-		std::cerr << e.what() << ": " << strerror(errno) << std::endl;
+		std::cerr << e.what() << ": " << (errno) << std::endl;
 	}
 
 	return 0;
