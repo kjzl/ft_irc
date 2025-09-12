@@ -108,6 +108,10 @@ class IrcservTester
     @server_pid = nil
     @procedures = {}
     @server_running = false
+  @bot_pid = nil
+  @bot_running = false
+  @bot_stdout = ""
+  @bot_stderr = ""
   end
 
   def start_server
@@ -152,6 +156,47 @@ class IrcservTester
   rescue => e
     puts "Failed to start server: #{e.message}"
     @server_running = false
+    return false
+  end
+
+  def start_bot
+    return true if @bot_running
+    puts "Starting PollBot..."
+    system("make ircbot") or raise "Failed to compile ircbot!"
+    @bot_thread = Thread.new do
+      Open3.popen3("./ircbot") do |stdin, stdout, stderr, wait_thread|
+        @bot_pid = wait_thread.pid
+        @bot_running = true
+        # consume stdout/stderr to avoid blocking
+        Thread.new do
+          begin
+            stdout.each_line do |line|
+              @bot_stdout << line
+              puts "[BOT OUT] #{line.chomp}" if ENV['DEBUG']
+            end
+          rescue IOError => e
+            puts "[BOT OUT THREAD] Closed: #{e.message}" if @bot_running && ENV['DEBUG']
+          end
+        end
+        Thread.new do
+          begin
+            stderr.each_line do |line|
+              @bot_stderr << line
+              puts "[BOT ERR] #{line.chomp}" if ENV['DEBUG']
+            end
+          rescue IOError => e
+            puts "[BOT ERR THREAD] Closed: #{e.message}" if @bot_running && ENV['DEBUG']
+          end
+        end
+        wait_thread.value # wait for bot to exit
+      end
+    end
+    sleep(1)
+    puts "PollBot started with PID: #{@bot_pid}"
+    return true
+  rescue => e
+    puts "Failed to start bot: #{e.message}"
+    @bot_running = false
     return false
   end
 
@@ -386,6 +431,14 @@ class IrcservTester
         puts "Server terminated"
       rescue => e
         puts "Failed to terminate server: #{e.message}"
+      end
+    end
+    if @bot_pid && @bot_running
+      begin
+        Process.kill("TERM", @bot_pid) rescue nil
+        puts "Bot terminated"
+      rescue => e
+        puts "Failed to terminate bot: #{e.message}"
       end
     end
     puts "Cleanup complete."
@@ -626,8 +679,186 @@ begin
   # Set DEBUG=1 for verbose output
   ENV['DEBUG'] = '1'
   if tester.start_server
+    tester.start_bot
     tester.setup_common_procedures
-    tester.run_test_suite(test_cases)
+    # Append PollBot test cases
+  pollbot_tests = [
+      {
+        name: "PollBot Invite and Instructions",
+        clients: [:alice],
+        steps: [
+          { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+          { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#test" } },
+          # Invite the bot and expect it to JOIN and post instructions
+          { client: :alice, command: "INVITE PollBot #test", expect: nil },
+          { client: :alice, command: "", expect: [
+            /:PollBot!.+@.+ JOIN #test/,
+            /PRIVMSG #test :Hi! I can run simple polls\./,
+            /PRIVMSG #test :Start: !poll start .+\| .+\| .+/,
+            /PRIVMSG #test :Close: !poll close/,
+            /PRIVMSG #test :Vote \(private msg to me\): vote #channel <number>/
+          ], timeout: 3 }
+        ]
+      },
+      {
+        name: "PollBot Start Poll and Vote Requires Channel",
+        clients: [:alice],
+        steps: [
+          { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+          { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#poll" } },
+          { client: :alice, command: "INVITE PollBot #poll", expect: nil },
+          { client: :alice, command: "", expect: /:PollBot!.+@.+ JOIN #poll/, timeout: 3 },
+          # Start a poll
+          { client: :alice, command: "PRIVMSG #poll :!poll start Best color\? | Red | Blue", expect: [
+            /PRIVMSG #poll :New poll: Best color\?/,
+            /PRIVMSG #poll :1\) Red/,
+            /PRIVMSG #poll :2\) Blue/,
+            /PRIVMSG #poll :Vote by sending me a private message: vote #channel <number>/
+          ], timeout: 3 },
+          # Try to vote without channel -> expect usage notice to alice
+          { client: :alice, command: "PRIVMSG PollBot :vote 2", expect: /NOTICE alice :Usage: vote #channel <number>/, timeout: 2 },
+          # Correct vote with channel -> expect confirmation
+          { client: :alice, command: "PRIVMSG PollBot :vote #poll 2", expect: /NOTICE alice :Your vote has been recorded\./, timeout: 2 },
+          # Close poll -> expect results
+          { client: :alice, command: "PRIVMSG #poll :!poll close", expect: [
+            /PRIVMSG #poll :Poll closed\. Results:/,
+            /PRIVMSG #poll :1\) Red - 0 vote\(s\)/,
+            /PRIVMSG #poll :2\) Blue - 1 vote\(s\)/
+          ], timeout: 3 }
+        ]
+      },
+      {
+        name: "PollBot Invalid Option and No Open Poll",
+        clients: [:alice],
+        steps: [
+          { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+          { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#pollA" } },
+          { client: :alice, command: "INVITE PollBot #pollA", expect: nil },
+          { client: :alice, command: "", expect: /:PollBot!.+@.+ JOIN #pollA/, timeout: 3 },
+          { client: :alice, command: "PRIVMSG #pollA :!poll start Choose one | One | Two", expect: [
+            /PRIVMSG #pollA :New poll: Choose one/,
+            /PRIVMSG #pollA :1\) One/,
+            /PRIVMSG #pollA :2\) Two/
+          ], timeout: 3 },
+          # invalid vote id
+          { client: :alice, command: "PRIVMSG PollBot :vote #pollA 5", expect: /NOTICE alice :Please send a valid option number\./, timeout: 2 },
+          # close poll
+          { client: :alice, command: "PRIVMSG #pollA :!poll close", expect: /PRIVMSG #pollA :Poll closed\. Results:/, timeout: 3 },
+          # vote when no open poll -> no open poll notice
+          { client: :alice, command: "PRIVMSG PollBot :vote #pollA 1", expect: /NOTICE alice :No open poll in that channel\./, timeout: 2 }
+        ]
+      },
+      {
+        name: "PollBot Multiple Voters and Tally",
+        clients: [:alice, :bob],
+        steps: [
+          { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+          { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
+          { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#pollB" } },
+          { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#pollB" } },
+          { client: :alice, command: "INVITE PollBot #pollB", expect: nil },
+          { client: :alice, command: "", expect: /:PollBot!.+@.+ JOIN #pollB/, timeout: 3 },
+          { client: :alice, command: "PRIVMSG #pollB :!poll start Pick | A | B | C", expect: /PRIVMSG #pollB :New poll: Pick/, timeout: 3 },
+          # votes
+          { client: :alice, command: "PRIVMSG PollBot :vote #pollB 2", expect: /NOTICE alice :Your vote has been recorded\./, timeout: 2 },
+          { client: :bob,   command: "PRIVMSG PollBot :vote #pollB 3", expect: /NOTICE bob :Your vote has been recorded\./, timeout: 2 },
+          # close and check tallies
+          { client: :alice, command: "PRIVMSG #pollB :!poll close", expect: [
+            /PRIVMSG #pollB :1\) A - 0 vote\(s\)/,
+            /PRIVMSG #pollB :2\) B - 1 vote\(s\)/,
+            /PRIVMSG #pollB :3\) C - 1 vote\(s\)/
+          ], timeout: 3 }
+        ]
+      },
+      {
+        name: "PollBot Vote Update Overwrites Previous",
+        clients: [:alice],
+        steps: [
+          { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+          { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#pollC" } },
+          { client: :alice, command: "INVITE PollBot #pollC", expect: nil },
+          { client: :alice, command: "", expect: /:PollBot!.+@.+ JOIN #pollC/, timeout: 3 },
+          { client: :alice, command: "PRIVMSG #pollC :!poll start Choose | Left | Right", expect: /PRIVMSG #pollC :New poll: Choose/, timeout: 3 },
+          { client: :alice, command: "PRIVMSG PollBot :vote #pollC 1", expect: /NOTICE alice :Your vote has been recorded\./, timeout: 2 },
+          { client: :alice, command: "PRIVMSG PollBot :vote #pollC 2", expect: /NOTICE alice :Your vote has been recorded\./, timeout: 2 },
+          { client: :alice, command: "PRIVMSG #pollC :!poll close", expect: [
+            /PRIVMSG #pollC :1\) Left - 0 vote\(s\)/,
+            /PRIVMSG #pollC :2\) Right - 1 vote\(s\)/
+          ], timeout: 3 }
+        ]
+      },
+      {
+        name: "PollBot Prevent Second Poll and Close by Non-Starter",
+        clients: [:alice, :bob],
+        steps: [
+          { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+          { procedure: :register_client, client_map: { client: :bob }, variables: { nickname: "bob" } },
+          { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#pollD" } },
+          { procedure: :join_channel, client_map: { client: :bob }, variables: { channel: "#pollD" } },
+          { client: :alice, command: "INVITE PollBot #pollD", expect: nil },
+          { client: :alice, command: "", expect: /:PollBot!.+@.+ JOIN #pollD/, timeout: 3 },
+          { client: :alice, command: "PRIVMSG #pollD :!poll start A | Yes | No", expect: /PRIVMSG #pollD :New poll: A/, timeout: 3 },
+          # bob tries to start another poll
+          { client: :bob, command: "PRIVMSG #pollD :!poll start Another | 1 | 2", expect: /NOTICE #pollD :There\'s already an open poll\./, timeout: 2 },
+          # bob closes the poll
+          { client: :bob, command: "PRIVMSG #pollD :!poll close", expect: [
+            /PRIVMSG #pollD :Poll closed\. Results:/,
+            /PRIVMSG #pollD :1\) Yes - 0 vote\(s\)/,
+            /PRIVMSG #pollD :2\) No - 0 vote\(s\)/
+          ], timeout: 3 }
+        ]
+      },
+      {
+        name: "PollBot Ignores Channel Vote Text",
+        clients: [:alice],
+        steps: [
+          { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+          { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#pollE" } },
+          { client: :alice, command: "INVITE PollBot #pollE", expect: nil },
+          { client: :alice, command: "", expect: /:PollBot!.+@.+ JOIN #pollE/, timeout: 3 },
+          { client: :alice, command: "PRIVMSG #pollE :!poll start X | Y | Z", expect: /PRIVMSG #pollE :New poll: X/, timeout: 3 },
+          # In-channel 'vote' should be ignored by bot logic
+          { client: :alice, command: "PRIVMSG #pollE :vote #pollE 2", expect: nil },
+          # Proper private vote
+          { client: :alice, command: "PRIVMSG PollBot :vote #pollE 2", expect: /NOTICE alice :Your vote has been recorded\./, timeout: 2 },
+          # Results should only reflect the private vote
+          { client: :alice, command: "PRIVMSG #pollE :!poll close", expect: [
+            /PRIVMSG #pollE :1\) Y - 0 vote\(s\)/,
+            /PRIVMSG #pollE :2\) Z - 1 vote\(s\)/
+          ], timeout: 3 }
+        ]
+      },
+      {
+        name: "PollBot Malformed Vote Command",
+        clients: [:alice],
+        steps: [
+          { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+          { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#pollF" } },
+          { client: :alice, command: "INVITE PollBot #pollF", expect: nil },
+          { client: :alice, command: "", expect: /:PollBot!.+@.+ JOIN #pollF/, timeout: 3 },
+          { client: :alice, command: "PRIVMSG #pollF :!poll start Q | Yes | No", expect: /PRIVMSG #pollF :New poll: Q/, timeout: 3 },
+          # missing number
+          { client: :alice, command: "PRIVMSG PollBot :vote #pollF", expect: /NOTICE alice :Usage: vote #channel <number>/, timeout: 2 },
+          # non-numeric
+          { client: :alice, command: "PRIVMSG PollBot :vote #pollF two", expect: /NOTICE alice :Please send a valid option number\./, timeout: 2 },
+          # close to end
+          { client: :alice, command: "PRIVMSG #pollF :!poll close", expect: /PRIVMSG #pollF :Poll closed\. Results:/, timeout: 3 }
+        ]
+      },
+      {
+        name: "PollBot Start Requires At Least Two Options",
+        clients: [:alice],
+        steps: [
+          { procedure: :register_client, client_map: { client: :alice }, variables: { nickname: "alice" } },
+          { procedure: :join_channel, client_map: { client: :alice }, variables: { channel: "#pollG" } },
+          { client: :alice, command: "INVITE PollBot #pollG", expect: nil },
+          { client: :alice, command: "", expect: /:PollBot!.+@.+ JOIN #pollG/, timeout: 3 },
+          # one option only -> should respond with usage
+          { client: :alice, command: "PRIVMSG #pollG :!poll start Need more | OnlyOne", expect: /NOTICE #pollG :Usage: !poll start <question> \| <opt1> \| <opt2>/, timeout: 3 }
+        ]
+      }
+    ]
+    tester.run_test_suite(test_cases + pollbot_tests)
   end
 ensure
   tester.cleanup

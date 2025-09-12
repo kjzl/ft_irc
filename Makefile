@@ -58,6 +58,7 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		MessageQueue.cpp \
 		MessageQueueManager.cpp \
 		Bot.cpp \
+		PollBot.cpp \
 		BotMain.cpp \
 		commands/NickCommand.cpp \
 		commands/PassCommand.cpp \
@@ -87,6 +88,7 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		MessageQueue.hpp \
 		MessageQueueManager.hpp \
 		Bot.hpp \
+		PollBot.hpp \
 		commands/NickCommand.hpp \
 		commands/PassCommand.hpp \
 		commands/UserCommand.hpp \

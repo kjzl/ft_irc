@@ -9,38 +9,27 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <vector>
+#include "../include/Message.hpp"
 
 // Define static members
 bool Bot::stopRequested_ = false;
 
 Bot::Bot(std::string host, unsigned short port, std::string password,
          std::string nickname, std::string username, std::string realname)
-    : socket_(-1), running_(false), connecting_(false), pendingClose_(false),
+  : socket_(-1), running_(false), connecting_(false), pendingClose_(false), closeAttempts_(0),
       host_(host), port_(port), password_(password), nickname_(nickname),
       username_(username), realname_(realname) {
   debug("Bot constructor called");
 }
 
-Bot::Bot(const Bot &other) {
-  debug("Bot copy constructor called");
-  *this = other;
-}
-
-Bot &Bot::operator=(const Bot &other) {
-  debug("Bot assignment operator called");
-  if (this != &other) {
-    this->host_ = other.host_;
-    this->port_ = other.port_;
-    this->password_ = other.password_;
-    this->nickname_ = other.nickname_;
-    this->username_ = other.username_;
-    this->realname_ = other.realname_;
-    // socket_ is not copied
+Bot::~Bot() {
+  debug("Bot destructor called");
+  if (socket_ != -1) {
+    messageQueueManager_.discard(socket_);
+    close(socket_);
+    socket_ = -1;
   }
-  return *this;
 }
-
-Bot::~Bot() { debug("Bot destructor called"); }
 
 void Bot::sendRaw(const std::string &msg) {
   if (this->socket_ == -1)
@@ -52,6 +41,23 @@ void Bot::sendRaw(const std::string &msg) {
 void Bot::sendPass() { sendRaw("PASS " + password_); }
 void Bot::sendNick() { sendRaw("NICK " + nickname_); }
 void Bot::sendUser() { sendRaw("USER " + username_ + " 0 * :" + realname_); }
+
+void Bot::sendPrivmsg(const std::string &target, const std::string &text) {
+  sendRaw("PRIVMSG " + target + " :" + text);
+}
+
+void Bot::sendNotice(const std::string &target, const std::string &text) {
+  sendRaw("NOTICE " + target + " :" + text);
+}
+
+void Bot::sendJoin(const std::string &channel) { sendRaw("JOIN " + channel); }
+
+void Bot::sendPart(const std::string &channel, const std::string &reason) {
+  if (reason.empty())
+    sendRaw("PART " + channel);
+  else
+    sendRaw("PART " + channel + " :" + reason);
+}
 
 bool Bot::connect() {
   struct addrinfo hints;
@@ -184,7 +190,8 @@ void Bot::run() {
     std::cerr << "Error in Bot run loop: " << e.what() << std::endl;
   }
   if (socket_ != -1) {
-    close(socket_);
+  messageQueueManager_.discard(socket_);
+  close(socket_);
     socket_ = -1;
   }
 }
@@ -266,29 +273,40 @@ void Bot::processRxLines() {
     if (!line.empty() && line[line.size() - 1] == '\r') {
       line.erase(line.size() - 1);
     }
-    std::cout << "<<< " << line << std::endl;
-    // TODO match on commands and call handlers
+    std::cout << RED << "<<< " << RESET << line << std::endl;
+    // Parse incoming and dispatch
+    try {
+      Message msg(line);
+      handleMessage(msg);
+    } catch (const std::exception &e) {
+      std::cerr << "[Bot] Failed to parse/handle line: " << e.what() << std::endl;
+    }
   }
 }
 
 bool Bot::tryCloseIfPending() {
   if (!pendingClose_)
     return false;
+
   // Close as soon as our send backlog for this socket is drained and either the
   // socket is ready (with POLLOUT or an error) or the poll had a timeout.
-  if (!messageQueueManager_.hasBacklog(socket_)) {
-    close(socket_);
+  if (!messageQueueManager_.hasBacklog(socket_) || closeAttempts_ > 5) {
+  messageQueueManager_.discard(socket_);
+  close(socket_);
     socket_ = -1;
     running_ = false;
     pendingClose_ = false;
     std::cout << "Disconnected" << std::endl;
+  closeAttempts_ = 0;
     return true;
   }
+  closeAttempts_++;
   return false;
 }
 
 void Bot::closeErroneousSocket(const char *reason) {
   if (socket_ != -1) {
+  messageQueueManager_.discard(socket_);
     close(socket_);
     socket_ = -1;
   }
@@ -324,5 +342,66 @@ void Bot::installSignalHandlers() {
 void Bot::schedulePendingClose() {
   if (socket_ == -1)
     return;
-  pendingClose_ = true;
+  if (!pendingClose_) {
+    onShutdown();
+    pendingClose_ = true;
+    closeAttempts_ = 0;
+  }
 }
+
+// Default message handling: basic PING/PONG and dispatch of PRIVMSG/NOTICE or numerics
+void Bot::handleMessage(const Message &msg) {
+  const std::string type = msg.getType();
+  if (type == "PING") {
+    const std::vector<std::string> &p = msg.getParams();
+    onPing(p.empty() ? std::string() : p[0]);
+    return;
+  }
+  // Numerics are 3 digits
+  if (type.size() == 3 && std::isdigit(type[0]) && std::isdigit(type[1]) && std::isdigit(type[2])) {
+    onNumeric(msg);
+    return;
+  }
+  if (type == "PRIVMSG") {
+    onPrivmsg(msg);
+    return;
+  }
+  if (type == "NOTICE") {
+    onNotice(msg);
+    return;
+  }
+  if (type == "INVITE") {
+    onInvite(msg);
+    return;
+  }
+  if (type == "JOIN") {
+    onJoin(msg);
+    return;
+  }
+}
+
+void Bot::onPing(const std::string &token) {
+  try {
+    if (token.empty())
+      sendRaw("PONG");
+    else
+      sendRaw("PONG :" + token);
+  } catch (...) {
+  }
+}
+
+void Bot::onPrivmsg(const Message &msg) { (void)msg; }
+void Bot::onNotice(const Message &msg) { (void)msg; }
+void Bot::onNumeric(const Message &msg) { (void)msg; }
+void Bot::onInvite(const Message &msg) {
+  // INVITE <nick> <channel>
+  const std::vector<std::string> &p = msg.getParams();
+  if (p.size() >= 2) {
+    const std::string &nick = p[0];
+    const std::string &channel = p[1];
+    if (nick == getNickname()) {
+      sendJoin(channel);
+    }
+  }
+}
+void Bot::onJoin(const Message &msg) { (void)msg; }

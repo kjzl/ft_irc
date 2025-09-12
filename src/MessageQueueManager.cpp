@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cerrno>
 #include <cstddef>
+#include <iostream>
 #include <poll.h>
 #include <sys/socket.h>
 #include <utility>
@@ -110,8 +111,14 @@ int MessageQueueManager::drainQueueForFd_(
       continue;
     }
 
-  const ssize_t n = ::send(fd, front.c_str(), len, MSG_NOSIGNAL | MSG_DONTWAIT);
+    const ssize_t n =
+        ::send(fd, front.c_str(), len, MSG_NOSIGNAL | MSG_DONTWAIT);
     if (n > 0) {
+#ifdef DEBUG
+      std::string sent = front.substr(0, static_cast<std::size_t>(n));
+      debug("sent " + toString(n) + " bytes to fd " + toString(fd) + ": [" +
+            sent + "]");
+#endif
       queue.removeBytesFromFront(static_cast<std::size_t>(n));
       continue; // try to drain more immediately
     }
@@ -140,6 +147,8 @@ void MessageQueueManager::send(int fd, const std::string &msg) {
     return;
 
   if (!msg.empty()) {
+	// msg already contains crlf
+	std::cout << "[" << fd << "] " << GREEN << ">>> " << RESET << msg;
     const std::pair<bool, std::size_t> res = findIndexByFd_(fd);
     bool exists = res.first;
     const std::size_t i = res.second;

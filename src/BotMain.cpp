@@ -1,4 +1,4 @@
-#include "../include/Bot.hpp"
+#include "../include/PollBot.hpp"
 #include <cstring>
 #include <exception>
 #include <iostream>
@@ -10,7 +10,7 @@ int bot_main(int argc, char *argv[]) {
 	(void)argc;
 	(void)argv;
 	try {
-	Bot	bot("localhost", 6667, "password", "BotNick", "BotUser", "Bot Real Name");
+	PollBot	bot("127.0.0.1", 6667, "password", "PollBot", "PollUser", "Poll Bot");
 	if (bot.connect()) {
 		bot.login();
 		bot.run();

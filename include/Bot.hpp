@@ -24,9 +24,28 @@ public:
 	// Queue a raw IRC line (CRLF appended) for sending.
 	void sendRaw(const std::string& msg);
 
+	// Accessors
+	const std::string& getNickname() const { return nickname_; }
+	const std::string& getUsername() const { return username_; }
+	const std::string& getRealname() const { return realname_; }
+
 protected:
-	// TODO onPrivMsg... etc
-	//void onPing(const std::string& token);
+	// High-level send helpers
+	void sendPrivmsg(const std::string& target, const std::string& text);
+	void sendNotice(const std::string& target, const std::string& text);
+	void sendJoin(const std::string& channel);
+	void sendPart(const std::string& channel, const std::string& reason = "");
+
+	// Incoming message dispatching and virtual handlers to override
+	virtual void handleMessage(const class Message& msg);
+	virtual void onPing(const std::string& token);
+	virtual void onPrivmsg(const class Message& msg);
+	virtual void onNotice(const class Message& msg);
+	virtual void onNumeric(const class Message& msg);
+	virtual void onInvite(const class Message& msg);
+	virtual void onJoin(const class Message& msg);
+	// Called when a graceful disconnect is scheduled; subclasses can flush state
+	virtual void onShutdown() {}
 
 private:
 	// Connection state
@@ -34,6 +53,7 @@ private:
 	bool            running_;
 	bool            connecting_;
 	bool            pendingClose_;
+	int             closeAttempts_;
 
 	// Config
 	std::string     host_;
@@ -49,6 +69,7 @@ private:
 	// RX line buffer
 	std::string     rxBuffer_;
 
+	// Non-copyable: owning a socket is not safely copyable (declared only)
 	Bot& operator=(const Bot& other);
 	Bot(const Bot& other);
 	void sendPass();
