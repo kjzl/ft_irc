@@ -3,6 +3,8 @@
 #include <sstream>
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
+#include <cerrno>
 
 PollBot::PollBot(std::string host, unsigned short port, std::string password,
                  std::string nickname, std::string username, std::string realname)
@@ -73,17 +75,19 @@ void PollBot::handlePrivateCommand(const std::string &fromNick, const std::strin
     sendNotice(fromNick, "Usage: vote #channel <number>");
     return;
   }
-  bool allDigits = true;
-  for (size_t i = 0; i < token.size(); ++i) {
-    if (!std::isdigit(static_cast<unsigned char>(token[i]))) { allDigits = false; break; }
-  }
-  if (!allDigits) {
+  // Reject leading '+' or '-' to match previous "digits-only" expectation
+  if (token.empty() || token[0] == '+' || token[0] == '-') {
     sendNotice(fromNick, "Please send a valid option number.");
     return;
   }
-  std::istringstream numss(token);
-  size_t id = 0;
-  numss >> id;
+  char *endptr = 0;
+  errno = 0;
+  unsigned long ul = std::strtoul(token.c_str(), &endptr, 10);
+  if (errno == ERANGE || endptr == token.c_str() || *endptr != '\0') {
+    sendNotice(fromNick, "Please send a valid option number.");
+    return;
+  }
+  size_t id = static_cast<size_t>(ul);
   if (id == 0) {
     sendNotice(fromNick, "Please send a valid option number.");
     return;
