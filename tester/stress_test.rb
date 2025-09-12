@@ -79,7 +79,7 @@ def bob_slow
         next if data.nil? || data == :wait_readable
 
         puts "[Bob] got #{data.bytesize} bytes (processing slowly)"
-        sleep 1
+        sleep 0.1
       end
     rescue Errno::ECONNRESET
       puts "[Bob] Disconnected by server (RST)"

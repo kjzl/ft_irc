@@ -57,12 +57,13 @@ void MessageQueueManager::removeAt_(std::size_t index) {
 
 void MessageQueueManager::markDeadAndRemove_(std::size_t index) {
   const int fd = pfds_[index].fd;
-  linger ling;
-  ling.l_onoff = 1;
-  ling.l_linger = 0;
-  setsockopt(fd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling));
-  shutdown(fd, SHUT_RDWR); // ensure both read/write are terminated
-  close(fd); // BUGFIX...
+	// this is solely for stress testing
+  // linger ling;
+  // ling.l_onoff = 1;
+  // ling.l_linger = 0;
+  // setsockopt(fd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling));
+  // shutdown(fd, SHUT_RDWR); // ensure both read/write are terminated
+  // close(fd); // BUGFIX...
   deadFds_.push_back(fd);
   removeAt_(index);
 }
