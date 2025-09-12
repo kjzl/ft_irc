@@ -10,7 +10,7 @@ GREEN := $(shell printf '\033[32m')
 YELLOW := $(shell printf '\033[33m')
 CLEAR_LINE := $(shell printf '\033[2K')
 CURSOR_UP := $(shell printf '\033[1A')
-PHONY := all clean fclean re
+PHONY := all clean fclean re ircbot
 
 # Additional pretty printing variables
 # Use recursive expansion for TOTAL_FILES so SRCS can be defined later without warnings
@@ -31,6 +31,8 @@ define update_progress
 endef
 
 NAME := ircserv
+# Bot binary name
+BOT_NAME := ircbot
 CXX := c++
 OPTIM_FLAGS := -O3 -march=native
 CXXFLAGS = -Wall -Wextra -Werror -pedantic -std=c++98 $(OPTIM_FLAGS)
@@ -55,6 +57,9 @@ SRCS := $(addprefix $(SRCS_DIR)/,\
 		Channel.cpp \
 		MessageQueue.cpp \
 		MessageQueueManager.cpp \
+		Bot.cpp \
+		PollBot.cpp \
+		BotMain.cpp \
 		commands/NickCommand.cpp \
 		commands/PassCommand.cpp \
 		commands/UserCommand.cpp \
@@ -82,6 +87,8 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		Server.hpp \
 		MessageQueue.hpp \
 		MessageQueueManager.hpp \
+		Bot.hpp \
+		PollBot.hpp \
 		commands/NickCommand.hpp \
 		commands/PassCommand.hpp \
 		commands/UserCommand.hpp \
@@ -96,7 +103,7 @@ HDRS := $(addprefix $(HDRS_DIR)/,\
 		commands/UnknownCommand.hpp \
 		)
 
-.PHONY: all clean fclean re sanitize debug
+.PHONY: all clean fclean re sanitize debug ircbot
 
 all: $(NAME) $(HDRS)
 
@@ -107,6 +114,13 @@ $(DIRS):
 $(NAME): $(OBJS) $(HDRS) Makefile
 	@printf "\n$(BOLD)Linking $(NAME)$(RESET)\n"
 	$(CXX) $(CXXFLAGS) $(OBJS) $(INCLUDES) -o $@ && \
+	printf "\n$(GREEN)$(BOLD)Build successful!$(RESET)\n" || \
+	printf "$(RED)$(BOLD)Build failed!$(RESET)\n"
+
+# Build the bot binary without touching the server binary
+$(BOT_NAME): $(SRCS) $(HDRS) Makefile
+	@printf "\n$(BOLD)Linking $(BOT_NAME)$(RESET)\n"
+	$(CXX) $(CXXFLAGS) -DBOT_MAIN $(INCLUDES) $(SRCS) -o $@ && \
 	printf "\n$(GREEN)$(BOLD)Build successful!$(RESET)\n" || \
 	printf "$(RED)$(BOLD)Build failed!$(RESET)\n"
 

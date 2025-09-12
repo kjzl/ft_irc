@@ -100,17 +100,51 @@ Message::~Message()
 // input message must not end with crlf
 void Message::parseIncomingMessage(const std::string& msg)
 {
-	std::istringstream			iss(msg);
-	std::string					token;
-	bool 						lastParam = false;
+	std::istringstream iss(msg);
+	std::string token;
+	bool lastParam = false;
 
+	// Reset defaults
+	hasSource_ = false;
+	nickname_.clear();
+	username_.clear();
+	// hostname_ kept default
+	params_.clear();
+
+	// Optional prefix
+	if (iss.peek() == ':') {
+		iss.get(); // consume ':'
+		std::string prefix;
+		std::getline(iss, prefix, ' ');
+		// prefix may be of forms: nick!user@host or server.name
+		hasSource_ = true;
+		hostname_.clear();
+		std::string::size_type excl = prefix.find('!');
+		std::string::size_type at = prefix.find('@');
+		if (excl != std::string::npos && at != std::string::npos && excl < at) {
+			nickname_ = prefix.substr(0, excl);
+			username_ = prefix.substr(excl + 1, at - excl - 1);
+			hostname_ = prefix.substr(at + 1);
+		} else {
+			// server-only prefix
+			nickname_.clear();
+			username_.clear();
+			hostname_ = prefix;
+		}
+		// eat any extra spaces
+		while (iss.peek() == ' ') iss.get();
+	}
+
+	// Command
 	iss >> token;
 	type_ = token;
+
+	// Params
 	while (iss >> token)
 	{
 		if (lastParam)
 			params_.back() += " " + token;
-		else if (token[0] == ':')
+		else if (!token.empty() && token[0] == ':')
 		{
 			lastParam = true;
 			params_.push_back(token.substr(1));

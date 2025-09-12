@@ -305,7 +305,7 @@ void	Server::makeMessage(Client &client)
 			command = raw_message.substr(0, position);
 		raw_message.erase(0, position + 1);
 		client.setRawMessage(raw_message);
-		std::cout << command << std::endl;
+		std::cout << "[" << client.getSocket() << "] " << RED << "<<< " << RESET << command << std::endl;
 		executeIncomingCommandMessage(client, command);
 		debug(raw_message);
 	}
@@ -324,8 +324,7 @@ void Server::processPollIn(struct pollfd request) {
 			return;
 		throw std::runtime_error("[Server] recv error");
 	} else {
-		std::cout << CYN << "[received a message from client: " << request.fd
-				  << " ]" << RESET << std::endl;
+		debug("received a message from client: " + toString(request.fd));
 		int cidx = clientIndexFromFd(request.fd);
 		if (cidx >= 0) {
 			clients_[static_cast<size_t>(cidx)].appendRawMessage(message,
