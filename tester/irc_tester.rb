@@ -112,47 +112,49 @@ class IrcservTester
 
   def start_server
     return true if @server_running
-    puts "Starting IRC server on port #{@port} with password '#{@password}'..."
-    system("make") or raise "Failed to compile ircserv!"
-    @server_thread = Thread.new do
-      Open3.popen3("./ircserv #{@port} #{@password}") do |stdin, stdout, stderr, wait_thread|
-        @server_pid = wait_thread.pid
-        @server_running = true
-        # keep reading to not overflow internal buffer for stdin and stderr
-        stdout_thread = Thread.new do
-          begin
-            stdout.each_line do |line|
-              @server_stdout << line; # saving into internal log var
-              puts "[SERVER OUT] #{line.chomp}" if ENV['DEBUG'] # printing out
+    Dir.chdir('..') do
+      system("make") or raise "Failed to compile ircserv!"
+      puts "Starting IRC server on port #{@port} with password '#{@password}'..."
+      @server_thread = Thread.new do
+        Open3.popen3("./ircserv #{@port} #{@password}") do |stdin, stdout, stderr, wait_thread|
+          @server_pid = wait_thread.pid
+          @server_running = true
+          # keep reading to not overflow internal buffer for stdin and stderr
+          stdout_thread = Thread.new do
+            begin
+              stdout.each_line do |line|
+                @server_stdout << line; # saving into internal log var
+                puts "[SERVER OUT] #{line.chomp}" if ENV['DEBUG'] # printing out
+              end
+            rescue IOError => e
+              puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
             end
-          rescue IOError => e
-            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
           end
-        end
 
-        stderr_thread = Thread.new do
-          begin
-            stderr.each_line do |line|
-              @server_stderr << line;
-              puts "[SERVER ERR] #{line.chomp}" if ENV['DEBUG']
+          stderr_thread = Thread.new do
+            begin
+              stderr.each_line do |line|
+                @server_stderr << line;
+                puts "[SERVER ERR] #{line.chomp}" if ENV['DEBUG']
+              end
+            rescue IOError => e
+              puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
             end
-          rescue IOError => e
-            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
           end
-        end
 
-        exit_status = wait_thread.value
-        puts "[SERVER EXIT] status: #{exit_status}" if ENV['DEBUG']
+          exit_status = wait_thread.value
+          puts "[SERVER EXIT] status: #{exit_status}" if ENV['DEBUG']
+        end
       end
+      # wait time for server to start up
+      sleep(1)
+      puts "Server started with PID: #{@server_pid}"
+      return true
+    rescue => e
+      puts "Failed to start server: #{e.message}"
+      @server_running = false
+      return false
     end
-    # wait time for server to start up
-    sleep(1)
-    puts "Server started with PID: #{@server_pid}"
-    return true
-  rescue => e
-    puts "Failed to start server: #{e.message}"
-    @server_running = false
-    return false
   end
 
   # connect new client
