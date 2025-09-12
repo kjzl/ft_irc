@@ -25,7 +25,7 @@ class   Client
 		std::string			IP_;
 
   public:
-	Client(MessageQueueManager &queueManager);
+	Client(MessageQueueManager &queueManager, bool passResolved);
 	Client(const Client &other);
 	Client &operator=(const Client &other);
 	virtual ~Client();

@@ -28,18 +28,14 @@ Command Example:
 void NickCommand::execute(Server& server, Client& sender)
 {
 	std::vector<std::string> inParams = inMessage_.getParams();
-	int	registrationLevel = sender.getRegistrationLevel();
 	bool	isRegistration = sender.getNickname().empty(); // true if nick was not set before
 
 	// checkRegistrationLevel => do nothing if no PASS given!
-	if (registrationLevel == 0 && server.getPassword() != "")
+	if (sender.getRegistrationLevel() == 0)
 		return;
 	// 431
 	if (inParams.empty())
 		return (sender.sendErrorMessage(ERR_NONICKNAMEGIVEN, sender.getNickname()));
-	// if pass was empty, we need to increase registration level upon nick instead of pass
-	if (registrationLevel == 0)
-		sender.incrementRegistrationLevel();
 	// 432
 	if (checkNickFormat(inParams[0]))
 		return (sender.sendErrorMessage(ERR_ERRONEUSNICKNAME, sender.getNickname(), inParams[0]));

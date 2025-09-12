@@ -9,8 +9,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-Client::Client(MessageQueueManager &queueManager)
-	: mqr_(queueManager), registrationLevel_(0), socket_(-1), nickname_(""),
+Client::Client(MessageQueueManager &queueManager, bool passResolved)
+	: mqr_(queueManager), registrationLevel_(passResolved), socket_(-1), nickname_(""),
 	  username_("*"), realname_(""), rawMessage_("") {}
 
 Client::Client(const Client &other) : mqr_(other.mqr_)
@@ -54,7 +54,7 @@ bool	Client::operator==(const Client &client)
 
 bool Client::isAuthenticated() const
 {
-    return (getRegistrationLevel() == 3);
+	return ((username_ != "*") && !nickname_.empty());
 }
 
 const std::string &Client::getNickname() const
@@ -100,7 +100,7 @@ void Client::incrementRegistrationLevel(void)
 
 int Client::getRegistrationLevel(void) const
 {
-	return ((registrationLevel_ & 1) + (username_ != "*") + !nickname_.empty());
+	return ((registrationLevel_));
 }
 
 // Setters

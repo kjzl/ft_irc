@@ -21,6 +21,8 @@ void UserCommand::execute(Server& server, Client& sender)
 	(void) server;
 	std::vector<std::string> inParams = inMessage_.getParams();
 	
+	if (sender.getRegistrationLevel() == 0)
+		return;
 	// 461
 	if (inParams.size() < 4)
 		return (sender.sendErrorMessage(ERR_NEEDMOREPARAMS, sender.getNickname(), inMessage_.getType()));

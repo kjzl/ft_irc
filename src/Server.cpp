@@ -167,7 +167,7 @@ void	Server::acceptConnection( void )
 
 		addPollFd(clientFd, POLLIN, 0);
 		debug("[Server] accepted new connection");
-		Client newcomer(messageQueueManager_);
+		Client newcomer(messageQueueManager_, password_.empty());
 		newcomer.setSocket(clientFd);
 		std::string ipOnly;
 		std::string hostForLog;
