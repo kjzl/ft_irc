@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 	serv.waitForRequests();
 	serv.serverShutdown();
 	} catch (std::exception &e) {
-		std::cerr << e.what() << ": " << strerror(errno) << std::endl;
+		std::cerr << e.what() << ": " << (errno) << std::endl;
 	}
 
 	return 0;

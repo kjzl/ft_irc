@@ -161,7 +161,7 @@ void	Server::acceptConnection( void )
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
 				break; // no more incoming connections right now
 			// error: log and stop trying for this cycle
-			debug(std::string("[Server] accept error: ") + strerror(errno));
+			debug(std::string("[Server] accept error: ") + (errno));
 			break;
 		}
 
@@ -404,7 +404,7 @@ void Server::handlePollIn(const std::vector<struct pollfd> &polled) {
 		processPollIn(*it);
 		} catch (std::runtime_error &e) {
 			// TODO: send gerenic error reply to client
-			std::cerr << "[Server] " << e.what() << ": " << strerror(errno) << std::endl;
+			std::cerr << "[Server] " << e.what() << ": " << (errno) << std::endl;
 		}
 	}
 }
@@ -448,7 +448,7 @@ void Server::waitForRequests(void) {
 			handleNewConnection(polled[0]);
 		}
 	} catch (std::exception &e) {
-		std::cerr << e.what() << ": " << strerror(errno) << std::endl;
+		std::cerr << e.what() << ": " << (errno) << std::endl;
 		// serverShutdown();
 	}
 	std::cout << YEL << "[Server] Stopped listening for requests" << RESET
@@ -565,7 +565,7 @@ void Server::createListeningSocket(void) {
 		freeaddrinfo(res);
 		err = getaddrinfo(NULL, port_str.c_str(), &hints, &res);
 		if (err != 0)
-			throw std::runtime_error(std::string(gai_strerror(err)));
+			throw std::runtime_error("getaddrinfo error");
 	}
 	//create Socket
 	serverSocket_ = socket(res->ai_family, res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
