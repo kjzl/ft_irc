@@ -11,11 +11,13 @@
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <iomanip>
+#include <sstream>
 #include <ostream>
 #include <poll.h>
 #include <stdexcept>
-#include <stdlib.h>
-#include <string.h>
+#include <cstring>
 #include <set>
 #include <sys/fcntl.h>
 #include <sys/poll.h>
@@ -130,12 +132,27 @@ void	Server::setServerSocket( int serverSocketFd )
 	this->serverSocket_ = serverSocketFd;
 }
 
+// Simple IPv6 address to string (no RFC 5952 compression).
+// It produces eight hextets separated by ':'.
+static std::string ipv6ToString_(const struct in6_addr &addr) {
+	std::ostringstream oss;
+	oss << std::hex << std::nouppercase;
+	for (int i = 0; i < 8; ++i) {
+		unsigned int hi = static_cast<unsigned int>(addr.s6_addr[i * 2]);
+		unsigned int lo = static_cast<unsigned int>(addr.s6_addr[i * 2 + 1]);
+		unsigned int val = (hi << 8) | lo;
+		if (i > 0)
+			oss << ':';
+		oss << std::setw(4) << std::setfill('0') << val;
+	}
+	return oss.str();
+}
 
 // accepts a connection from client and adds it to pollFds_
 void	Server::acceptConnection( void )
 {
 	while (true) {
-		sockaddr_in client_addr;
+		sockaddr_storage client_addr;
 		socklen_t client_len = sizeof(client_addr);
 		int clientFd = accept(getServerSocket(), (sockaddr *)&client_addr, &client_len);
 		if (clientFd == -1) {
@@ -152,8 +169,38 @@ void	Server::acceptConnection( void )
 		debug("[Server] accepted new connection");
 		Client newcomer(messageQueueManager_);
 		newcomer.setSocket(clientFd);
-		newcomer.setIP(inet_ntoa(client_addr.sin_addr));
+		std::string ipOnly;
+		std::string hostForLog;
+		unsigned short port = 0;
+		if (client_addr.ss_family == AF_INET) {
+			struct sockaddr_in *sa = (struct sockaddr_in *)&client_addr;
+			// inet_ntoa returns a static buffer; copy to std::string
+			ipOnly = std::string(inet_ntoa(sa->sin_addr));
+			port = ntohs(sa->sin_port);
+			hostForLog = ipOnly;
+		} else if (client_addr.ss_family == AF_INET6) {
+			struct sockaddr_in6 *sa6 = (struct sockaddr_in6 *)&client_addr;
+			// Normalize IPv4-mapped IPv6 addresses to plain IPv4 for readability
+			if (IN6_IS_ADDR_V4MAPPED(&(sa6->sin6_addr))) {
+				struct in_addr v4;
+				// IPv4-mapped IPv6 addresses store the IPv4 portion in bytes 12-15 of the in6_addr structure.
+				std::memcpy(&v4, &sa6->sin6_addr.s6_addr[12], sizeof(v4));
+				ipOnly = std::string(inet_ntoa(v4));
+				hostForLog = ipOnly;
+			} else {
+				ipOnly = ipv6ToString_(sa6->sin6_addr);
+				hostForLog.reserve(ipOnly.size() + 2);
+				hostForLog.push_back('[');
+				hostForLog.append(ipOnly);
+				hostForLog.push_back(']');
+			}
+			port = ntohs(sa6->sin6_port);
+		}
+		// Store only the IP address string in the Client (no port)
+		newcomer.setIP(ipOnly);
 		clients_.push_back(newcomer);
+		std::cout << "[Server] New connection from " << hostForLog << ":" << port
+			  << " on socket " << clientFd << std::endl;
 	}
 }
 
@@ -503,7 +550,8 @@ void Server::createListeningSocket(void) {
 	int				 err   = 0;
 	struct addrinfo	 hints = {0, 0, 0, 0, 0, 0, 0, 0};
 	struct addrinfo *res   = {0};
-	hints.ai_family		   = AF_UNSPEC;	  // IPv4 or IPv6
+	// Prefer single IPv6 socket and disable v6-only for dual-stack
+	hints.ai_family	   = AF_INET6;     // IPv6 (dual-stack when IPV6_V6ONLY=0)
 	hints.ai_socktype	   = SOCK_STREAM; // TCP
 	hints.ai_flags		   = AI_PASSIVE;  // put in my ip for me
 	std::string port_str   = toString(port_);
@@ -512,8 +560,12 @@ void Server::createListeningSocket(void) {
 	err = (getaddrinfo(NULL, port_str.c_str(), &hints, &res));
 	if (err != 0)
 	{
+		// Fallback to IPv4-only if IPv6 resolution is not available
+		hints.ai_family = AF_INET;
 		freeaddrinfo(res);
-		throw std::runtime_error(std::string(gai_strerror(err)));
+		err = getaddrinfo(NULL, port_str.c_str(), &hints, &res);
+		if (err != 0)
+			throw std::runtime_error(std::string(gai_strerror(err)));
 	}
 	//create Socket
 	serverSocket_ = socket(res->ai_family, res->ai_socktype | SOCK_NONBLOCK, res->ai_protocol);
@@ -521,6 +573,16 @@ void Server::createListeningSocket(void) {
 	{
 		freeaddrinfo(res);
 		throw std::runtime_error("[Server] socket error");
+	}
+	// If IPv6 socket, try to accept IPv4-mapped addresses too
+	if (res->ai_family == AF_INET6)
+	{
+		int v6only = 0;
+		if (setsockopt(serverSocket_, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only)) == -1)
+		{
+			// Non-fatal; we can still serve IPv6 clients
+			debug("[Server] Warning: failed to disable IPV6_V6ONLY; IPv4 clients may not connect via mapped addresses");
+		}
 	}
 	//reusing old socket, if still open, to circumvent TIME_WAIT
 	setsockopt(serverSocket_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
