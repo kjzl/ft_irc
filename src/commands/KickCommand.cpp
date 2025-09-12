@@ -79,7 +79,7 @@ void	KickCommand::execute(Server& server, Client& sender)
 		// sending the KICK to the target and channel;
 		inMessage_.getParams()[1] = targetClient;
 		if (inMessage_.getParams().size() == 2)
-			inMessage_.getParams().push_back(":You have been kicked out (No reason provided)");
+			inMessage_.getParams().push_back("You have been kicked out (No reason provided)");
 		sender.sendCmdValidation(inMessage_, *channel);
 		// actually removing the targetClient
 		channel->removeMember(targetClient);
