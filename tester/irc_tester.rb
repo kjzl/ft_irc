@@ -116,88 +116,94 @@ class IrcservTester
 
   def start_server
     return true if @server_running
-    puts "Starting IRC server on port #{@port} with password '#{@password}'..."
-    system("make") or raise "Failed to compile ircserv!"
-    @server_thread = Thread.new do
-      Open3.popen3("./ircserv #{@port} #{@password}") do |stdin, stdout, stderr, wait_thread|
-        @server_pid = wait_thread.pid
-        @server_running = true
-        # keep reading to not overflow internal buffer for stdin and stderr
-        stdout_thread = Thread.new do
-          begin
-            stdout.each_line do |line|
-              @server_stdout << line; # saving into internal log var
-              puts "[SERVER OUT] #{line.chomp}" if ENV['DEBUG'] # printing out
+    Dir.chdir('..') do
+      puts "Make IRC server..."
+      system("make") or raise "Failed to compile ircserv!"
+      puts "Starting IRC server on port #{@port} with password '#{@password}'..."
+      @server_thread = Thread.new do
+        Open3.popen3("./ircserv #{@port} #{@password}") do |stdin, stdout, stderr, wait_thread|
+          @server_pid = wait_thread.pid
+          @server_running = true
+          # keep reading to not overflow internal buffer for stdin and stderr
+          stdout_thread = Thread.new do
+            begin
+              stdout.each_line do |line|
+                @server_stdout << line; # saving into internal log var
+                puts "[SERVER OUT] #{line.chomp}" if ENV['DEBUG'] # printing out
+              end
+            rescue IOError => e
+              puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
             end
-          rescue IOError => e
-            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
           end
-        end
 
-        stderr_thread = Thread.new do
-          begin
-            stderr.each_line do |line|
-              @server_stderr << line;
-              puts "[SERVER ERR] #{line.chomp}" if ENV['DEBUG']
+          stderr_thread = Thread.new do
+            begin
+              stderr.each_line do |line|
+                @server_stderr << line;
+                puts "[SERVER ERR] #{line.chomp}" if ENV['DEBUG']
+              end
+            rescue IOError => e
+              puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
             end
-          rescue IOError => e
-            puts "[SERVER OUT THREAD] Closed: #{e.message}" if @server_running && ENV['DEBUG']
           end
-        end
 
-        exit_status = wait_thread.value
-        puts "[SERVER EXIT] status: #{exit_status}" if ENV['DEBUG']
+          exit_status = wait_thread.value
+          puts "[SERVER EXIT] status: #{exit_status}" if ENV['DEBUG']
+        end
       end
+      # wait time for server to start up
+      sleep(1)
+      puts "Server started with PID: #{@server_pid}"
+      return true
+    rescue => e
+      puts "Failed to start server: #{e.message}"
+      @server_running = false
+      return false
     end
-    # wait time for server to start up
-    sleep(1)
-    puts "Server started with PID: #{@server_pid}"
-    return true
-  rescue => e
-    puts "Failed to start server: #{e.message}"
-    @server_running = false
-    return false
   end
 
   def start_bot
     return true if @bot_running
     puts "Starting PollBot..."
-    system("make ircbot") or raise "Failed to compile ircbot!"
-    @bot_thread = Thread.new do
-      Open3.popen3("./ircbot") do |stdin, stdout, stderr, wait_thread|
-        @bot_pid = wait_thread.pid
-        @bot_running = true
-        # consume stdout/stderr to avoid blocking
-        Thread.new do
-          begin
-            stdout.each_line do |line|
-              @bot_stdout << line
-              puts "[BOT OUT] #{line.chomp}" if ENV['DEBUG']
+    Dir.chdir('..') do
+      puts "Make ircbot..."
+      system("make ircbot") or raise "Failed to compile ircbot!"
+      @bot_thread = Thread.new do
+        Open3.popen3("./ircbot") do |stdin, stdout, stderr, wait_thread|
+          @bot_pid = wait_thread.pid
+          @bot_running = true
+          # consume stdout/stderr to avoid blocking
+          Thread.new do
+            begin
+              stdout.each_line do |line|
+                @bot_stdout << line
+                puts "[BOT OUT] #{line.chomp}" if ENV['DEBUG']
+              end
+            rescue IOError => e
+              puts "[BOT OUT THREAD] Closed: #{e.message}" if @bot_running && ENV['DEBUG']
             end
-          rescue IOError => e
-            puts "[BOT OUT THREAD] Closed: #{e.message}" if @bot_running && ENV['DEBUG']
           end
-        end
-        Thread.new do
-          begin
-            stderr.each_line do |line|
-              @bot_stderr << line
-              puts "[BOT ERR] #{line.chomp}" if ENV['DEBUG']
+          Thread.new do
+            begin
+              stderr.each_line do |line|
+                @bot_stderr << line
+                puts "[BOT ERR] #{line.chomp}" if ENV['DEBUG']
+              end
+            rescue IOError => e
+              puts "[BOT ERR THREAD] Closed: #{e.message}" if @bot_running && ENV['DEBUG']
             end
-          rescue IOError => e
-            puts "[BOT ERR THREAD] Closed: #{e.message}" if @bot_running && ENV['DEBUG']
           end
+          wait_thread.value # wait for bot to exit
         end
-        wait_thread.value # wait for bot to exit
       end
+      sleep(1)
+      puts "PollBot started with PID: #{@bot_pid}"
+      return true
+    rescue => e
+      puts "Failed to start bot: #{e.message}"
+      @bot_running = false
+      return false
     end
-    sleep(1)
-    puts "PollBot started with PID: #{@bot_pid}"
-    return true
-  rescue => e
-    puts "Failed to start bot: #{e.message}"
-    @bot_running = false
-    return false
   end
 
   # connect new client
