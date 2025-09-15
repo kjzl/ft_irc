@@ -161,7 +161,7 @@ void	Server::acceptConnection( void )
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
 				break; // no more incoming connections right now
 			// error: log and stop trying for this cycle
-			debug(std::string("[Server] accept error: ") + (errno));
+			debug(std::string("[Server] accept error: ") + toString(errno));
 			break;
 		}
 
@@ -364,7 +364,11 @@ void Server::processPollIn(struct pollfd request) {
 
 	bytesRead = recv(request.fd, message, BUFSIZ, MSG_DONTWAIT);
 	if (bytesRead == 0)
-		schedulePendingClose(request.fd);
+	{
+		Client *quitter = tryClientFromFd(request.fd);
+		if (quitter)
+			quitClient(*quitter);
+	}
 	else if (bytesRead == -1) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
 			return;

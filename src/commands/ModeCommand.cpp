@@ -177,10 +177,16 @@ void	ModeCommand::channelMode(Server& server, Client& sender)
 	if (!channel)
 	{
 		sender.sendErrorMessage(ERR_NOSUCHCHANNEL, parameters);
+		return ;
 	}
 	if (parameters.size() == 1)
 	{
 	//RPL_CHANNELMODEIS
+		if (!channel->isMember(nickname))
+		{
+			sender.sendErrorMessage(ERR_NOTONCHANNEL, nickname, channelName);
+			return ;
+		}
 		parameters.push_back(parameters[0]);
 		parameters[0] = sender.getNickname();
 		std::string	modetypes = "+";

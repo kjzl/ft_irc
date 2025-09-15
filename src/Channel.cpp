@@ -7,7 +7,7 @@
 Channel::Channel(const std::string &name, const Client &op,
 				 MessageQueueManager &queueManager)
 	: mqr_(queueManager), name_(name), members_(), whiteList_(), operators_(),
-	  topic_(""), password_(""), userLimit_(0), isInviteOnly_(false),
+	  topic_(""), topicWho_(""), topicTime_(0), creationTime_(std::time(NULL)), password_(""), userLimit_(0), isInviteOnly_(false),
 	  isTopicProtected_(false) {
 	members_[op.getNickname()] = op.getSocket();
 	operators_.insert(op.getNickname());
@@ -23,6 +23,9 @@ Channel &Channel::operator=(const Channel &other) {
 		this->whiteList_		= other.whiteList_;
 		this->operators_		= other.operators_;
 		this->topic_			= other.topic_;
+		this->topicWho_			= other.topicWho_;
+		this->topicTime_		= other.topicTime_;
+		this->creationTime_		= other.creationTime_;
 		this->password_			= other.password_;
 		this->userLimit_		= other.userLimit_;
 		this->isInviteOnly_		= other.isInviteOnly_;
